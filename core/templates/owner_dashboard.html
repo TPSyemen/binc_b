@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block content %}
+    <h2>{% trans "لوحة تحكم الـ Owner" %}</h2>
+    <h3>{% trans "المتجر" %}: {{ shop.name }}</h3>
+    <p>{% trans "العنوان" %}: {{ shop.address }}</p>
+    <p>{% trans "الرابط" %}: <a href="{{ shop.url }}">{{ shop.url }}</a></p>
+
+    <h3>{% trans "المنتجات" %}:</h3>
+    <div class="container mt-5">
+        <form id="filter-form">
+            <input type="text" id="search-box" class="form-control" placeholder="{% trans 'Search products...' %}" autocomplete="off">
+            <select id="category-filter" class="form-control mt-2">
+                <option value="">{% trans "All Categories" %}</option>
+                {% for category in categories %}
+                    <option value="{{ category.id }}">{{ category.name }}</option>
+                {% endfor %}
+            </select>
+            <input type="number" id="min-price" class="form-control mt-2" placeholder="{% trans 'Min Price' %}">
+            <input type="number" id="max-price" class="form-control mt-2" placeholder="{% trans 'Max Price' %}">
+        </form>
+
+        <div class="row mt-3" id="product-list">
+            {% for product in products %}
+            <div class="col-md-4">
+                <div class="card mb-4">
+                    <div class="fixed-image-container">
+                        <img src="{{ product.image_url }}" alt="{{ product.name }}" class="product-img">
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">{{ product.name }}</h5>
+                        <p class="card-text"><strong>{% trans "Views:" %}</strong> {{ product.views }}</p>
+                        <p class="card-text">{{ product.description }}</p>
+                        <p class="card-text"><strong>{% trans "Price:" %}</strong> ${{ product.price }}</p>
+                        <a href="{{ product.video_url }}" class="btn btn-primary">{% trans "Watch Video" %}</a>
+                        <a href="{% url 'product_detail' product.id %}" class="btn btn-info">{% trans "Details" %}</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div id="no-results" class="text-center text-muted mt-3" style="display: none;">
+            {% trans "No products found." %}
+        </div>
+    </div>
+
+    <div id="pagination">
+        {% if products.has_previous %}
+            <a href="?page={{ products.previous_page_number }}">{% trans "Previous" %}</a>
+        {% endif %}
+        <span>{% trans "Page" %} {{ products.number }} {% trans "of" %} {{ products.paginator.num_pages }}</span>
+        {% if products.has_next %}
+            <a href="?page={{ products.next_page_number }}">{% trans "Next" %}</a>
+        {% endif %}
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+    $(document).ready(function(){
+        $("#filter-form").on("change keyup", function(){
+            var query = $("#search-box").val().trim();
+            var category = $("#category-filter").val();
+            var minPrice = $("#min-price").val();
+            var maxPrice = $("#max-price").val();
+
+            $.ajax({
+                url: "{% url 'search_products' %}",
+                data: {
+                    'q': query,
+                    'category': category,
+                    'min_price': minPrice,
+                    'max_price': maxPrice,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'
+                },
+                dataType: 'json',
+                success: function(data){
+                    $("#product-list").html("");
+                    if(data.products.length === 0){
+                        $("#no-results").show();
+                    } else {
+                        $("#no-results").hide();
+                        $.each(data.products, function(index, product){
+                            var productHTML = `
+                            <div class="col-md-4">
+                                <div class="card mb-4">
+                                    <div class="fixed-image-container">
+                                        <img src="${product.image_url}" alt="${product.name}" class="product-img">
+                                    </div>
+                                    <div class="card-body">
+                                        <h5 class="card-title">${product.name}</h5>
+                                        <p class="card-text"><strong>{% trans "Views:" %}</strong> ${product.views}</p>
+                                        <p class="card-text">${product.description}</p>
+                                        <p class="card-text"><strong>{% trans "Price:" %}</strong> $${product.price}</p>
+                                        <a href="${product.video_url}" class="btn btn-primary">{% trans "Watch Video" %}</a>
+                                        <a href="/products/${product.id}/" class="btn btn-info">{% trans "Details" %}</a>
+                                    </div>
+                                </div>
+                            </div>
+                            `;
+                            $("#product-list").append(productHTML);
+                        });
+                    }
+                },
+                error: function(xhr, status, error){
+                    console.error("AJAX Error: " + status + ": " + error);
+                }
+            });
+        });
+    });
+    </script>
+
+    <style>
+    .fixed-image-container {
+        position: relative;
+        overflow: hidden;
+        width: 100%;
+        height: 200px;
+    }
+
+    .product-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    </style>
+{% endblock %}
