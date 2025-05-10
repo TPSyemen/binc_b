@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block content %}
+    <h2>Product Comparison</h2>
+    <div class="product">
+        <h3>{{ product.name }}</h3>
+        <p>Price: ${{ product.price }}</p>
+        <p>Rating: {{ product.rating }}</p>
+        <p>Brand: {{ product.brand.name }}</p>
+        <p>Category: {{ product.category.name }}</p>
+    </div>
+    <hr>
+    <h3>Similar Products</h3>
+    <div class="similar-products">
+        {% for similar_product in similar_products %}
+            <div class="product">
+                <h4>{{ similar_product.name }}</h4>
+                <p>Price: ${{ similar_product.price }}</p>
+                <p>Rating: {{ similar_product.rating }}</p>
+                <p>Brand: {{ similar_product.brand.name }}</p>
+                <p>Category: {{ similar_product.category.name }}</p>
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}

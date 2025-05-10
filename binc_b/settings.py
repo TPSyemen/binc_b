@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'promotions',
     'reviews',
     'recommendations',
+    'comparison',
 
 
     'django.contrib.sites',  # Required for authentication and allauth

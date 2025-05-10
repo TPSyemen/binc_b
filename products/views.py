@@ -1,4 +1,5 @@
 from django.shortcuts import get_object_or_404
+from django.db.models import Q
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -119,3 +120,26 @@ class RecentlyViewedProductsView(View):
     def get(self, request, *args, **kwargs):
         # Example response for recently viewed products
         return JsonResponse({"recently_viewed": []})
+
+
+class SimilarProductsView(APIView):
+    """Retrieve similar products based on category, price, brand, and popularity."""
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request, product_id):
+        product = get_object_or_404(Product, id=product_id, is_active=True)
+        price_range = 0.2 * product.price  # 20% price range
+
+        similar_products = Product.objects.filter(
+            Q(category=product.category) &
+            Q(price__gte=product.price - price_range) &
+            Q(price__lte=product.price + price_range) &
+            Q(brand=product.brand) &
+            ~Q(id=product.id)  # Exclude the current product
+        ).order_by('-rating', '-views')[:10]  # Order by rating and views
+
+        serializer = ProductListSerializer(similar_products, many=True)
+        return Response({
+            "current_product": ProductDetailSerializer(product).data,
+            "similar_products": serializer.data
+        })

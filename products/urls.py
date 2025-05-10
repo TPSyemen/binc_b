@@ -1,7 +1,8 @@
 from django.urls import path
 from .views import (
     ProductListView, ProductDetailView, ProductCreateView, ProductUpdateView,
-    ProductDeleteView, FeaturedProductsView, ProductSearchView, RecentlyViewedProductsView
+    ProductDeleteView, FeaturedProductsView, ProductSearchView, RecentlyViewedProductsView,
+    SimilarProductsView
 )
 
 urlpatterns = [
@@ -13,4 +14,5 @@ urlpatterns = [
     path('featured/', FeaturedProductsView.as_view(), name='featured-products'),
     path('search/', ProductSearchView.as_view(), name='product-search'),
     path('recently-viewed/', RecentlyViewedProductsView.as_view(), name='recently-viewed-products'),
+    path('<uuid:product_id>/similar/', SimilarProductsView.as_view(), name='similar-products'),
 ]
