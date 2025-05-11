@@ -128,6 +128,4 @@ binc_b/
 
 إذا كان لديك أي أسئلة أو استفسارات، يرجى التواصل معنا عبر:
 
-- البريد الإلكتروني: contact@bestinclick.com
-- Twitter: [@BestInClick](https://twitter.com/BestInClick)
-- موقع الويب: [www.bestinclick.com](https://www.bestinclick.com)
+- البريد الإلكتروني: ttt.ppp.sss.77@gmaile.com
