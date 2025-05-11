@@ -16,6 +16,7 @@ Request JSON:
     "password": "securepassword123",
     "user_type": "customer"
 }
+
 Response JSON:
 {
     "id": "user_id",
