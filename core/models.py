@@ -5,9 +5,13 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils import timezone
 from decimal import Decimal
 from django.apps import apps  # Use apps.get_model to resolve circular imports
+from .models_favorites import Favorite  # Import the Favorite model
+from .models_verification import EmailVerificationToken, ActionVerificationToken  # Import verification models
+from .models_preferences import UserPreference, BrandPreference  # Import preferences models
 
 #----------------------------------------------------------------
-# User model
+#           User model
+#----------------------------------------------------------------
 class User(AbstractUser):
     USER_TYPE_CHOICES = (
         ('admin', 'Admin'),
@@ -40,11 +44,16 @@ class User(AbstractUser):
         verbose_name="Is Banned",
         help_text="Indicates whether the user is banned."
     )
+    is_email_verified = models.BooleanField(
+        default=False,
+        verbose_name="Is Email Verified",
+        help_text="Indicates whether the user's email has been verified."
+    )
 
     def has_permission(self, permission):
         """Check if the user has a specific permission based on user_type."""
         if self.user_type == 'admin':
-            return True  # Admins have all permissions
+            return True
         elif self.user_type == 'owner':
             return permission in ['manage_shop', 'manage_products']
         elif self.user_type == 'customer':
@@ -52,7 +61,8 @@ class User(AbstractUser):
         return False
 
 #----------------------------------------------------------------
-# Owner Role
+#                   Owner Role
+#----------------------------------------------------------------
 class Owner(models.Model):
     id = models.UUIDField(
         primary_key=True,
@@ -72,9 +82,10 @@ class Owner(models.Model):
         return self.user.username
 
 #----------------------------------------------------------------
-# Shop module
+#                       Shop module
+#----------------------------------------------------------------
 class Shop(models.Model):
-    id = models.UUIDField( 
+    id = models.UUIDField(
         primary_key=True,
         default=uuid.uuid4,
         editable=False
@@ -90,12 +101,40 @@ class Shop(models.Model):
         max_length=500,
         verbose_name="Shop Address"
     )
+    description = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name="Shop Description"
+    )
     logo = models.ImageField(
         upload_to='shop_logos/',
         verbose_name="Shop Logo"
     )
+    banner = models.ImageField(
+        upload_to='shop_banners/',
+        verbose_name="Shop Banner",
+        blank=True,
+        null=True
+    )
     url = models.URLField(
         verbose_name="Shop URL"
+    )
+    phone = models.CharField(
+        max_length=20,
+        blank=True,
+        null=True,
+        verbose_name="Shop Phone"
+    )
+    email = models.EmailField(
+        blank=True,
+        null=True,
+        verbose_name="Shop Email"
+    )
+    social_media = models.JSONField(
+        default=dict,
+        blank=True,
+        null=True,
+        verbose_name="Social Media Links"
     )
     is_banned = models.BooleanField(
         default=False,
@@ -107,7 +146,8 @@ class Shop(models.Model):
         return self.name
 
 #----------------------------------------------------------------
-# Brand models
+#                           Brand models
+#----------------------------------------------------------------
 class Brand(models.Model):
     id = models.UUIDField(
         primary_key=True,
@@ -144,7 +184,8 @@ class Brand(models.Model):
         return self.name
 
 #----------------------------------------------------------------
-# Category models
+#                       Category models
+#----------------------------------------------------------------
 class Category(models.Model):
     id = models.UUIDField(
         primary_key=True,
@@ -166,7 +207,8 @@ class Category(models.Model):
         return self.name
 
 #----------------------------------------------------------------
-# Product models
+#                       Product models
+#----------------------------------------------------------------
 class Product(models.Model):
     id = models.UUIDField(
         primary_key=True,
@@ -182,7 +224,9 @@ class Product(models.Model):
         Brand,
         related_name='products',
         on_delete=models.CASCADE,
-        verbose_name="Brand"
+        verbose_name="Brand",
+        null=True,
+        blank=True
     )
     category = models.ForeignKey(
         Category,
@@ -196,6 +240,14 @@ class Product(models.Model):
         decimal_places=2,
         validators=[MinValueValidator(Decimal('0.01'))],
         verbose_name="Price (USD)"
+    )
+    original_price = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal('0.01'))],
+        verbose_name="Original Price (USD)",
+        null=True,
+        blank=True
     )
     release_date = models.DateField(
         null=True,
@@ -271,8 +323,16 @@ class Product(models.Model):
         UserBehaviorLog = apps.get_model('recommendations', 'UserBehaviorLog')  # Dynamically get the model
         UserBehaviorLog.objects.create(user=user, product=self, action=action)
 
+    @property
+    def discount_percentage(self):
+        """Calculate discount percentage."""
+        if hasattr(self, 'original_price') and self.original_price and self.original_price > self.price:
+            return round(((self.original_price - self.price) / self.original_price) * 100, 2)
+        return 0
+
 #----------------------------------------------------------------
-# Specification models
+#                    Specification models
+#----------------------------------------------------------------
 class SpecificationCategory(models.Model):
     id = models.UUIDField(
         primary_key=True,
@@ -290,7 +350,8 @@ class SpecificationCategory(models.Model):
         return self.category_name
 
 #----------------------------------------------------------------
-# Specification model
+#                       Specification model
+#----------------------------------------------------------------
 class Specification(models.Model):
     id = models.UUIDField(
         primary_key=True,
@@ -312,6 +373,8 @@ class Specification(models.Model):
     def __str__(self):
         return self.specification_name
 
+#----------------------------------------------------------------
+#                   Product Speci fication
 #----------------------------------------------------------------
 class ProductSpecification(models.Model):
     id = models.UUIDField(
@@ -342,7 +405,8 @@ class ProductSpecification(models.Model):
         return f"{self.product.name} - {self.specification.specification_name}: {self.specification_value}"
 
 #----------------------------------------------------------------
-# Seller Rating model
+#                       Seller Rating model
+#----------------------------------------------------------------
 class SellerRating(models.Model):
     """Model for storing seller ratings."""
     seller = models.ForeignKey(Shop, on_delete=models.CASCADE, related_name='ratings')
@@ -362,13 +426,35 @@ class SellerRating(models.Model):
         return f"Rating for {self.seller.name} by {self.user.username}"
 
 #----------------------------------------------------------------
-# Notification model
+#                   Customer model
+#----------------------------------------------------------------
+class Customer(models.Model):
+    """Model for storing customer information."""
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False
+    )
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='customer_profile', null=True, blank=True)
+    name = models.CharField(max_length=255, verbose_name="Customer Name")
+    email = models.EmailField(verbose_name="Email")
+    phone = models.CharField(max_length=20, blank=True, null=True, verbose_name="Phone Number")
+    address = models.TextField(blank=True, null=True, verbose_name="Address")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Created At")
+
+    def __str__(self):
+        return self.name
+
+#----------------------------------------------------------------
+#                   Notification model
+#----------------------------------------------------------------
 class Notification(models.Model):
     """Model for storing notifications."""
     NOTIFICATION_TYPES = (
         ('promotion', 'Promotion'),
         ('order', 'Order Update'),
         ('general', 'General'),
+        ('inventory', 'Inventory Alert'),
     )
 
     recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
@@ -376,6 +462,32 @@ class Notification(models.Model):
     notification_type = models.CharField(max_length=20, choices=NOTIFICATION_TYPES, default='general')
     is_read = models.BooleanField(default=False, verbose_name="Is Read")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Created At")
+    related_id = models.CharField(max_length=255, blank=True, null=True, verbose_name="Related ID")
 
     def __str__(self):
         return f"Notification for {self.recipient.username} - {self.notification_type}"
+
+#----------------------------------------------------------------
+#                   User Product Reaction model
+#----------------------------------------------------------------
+class UserProductReaction(models.Model):
+    """Model for storing user reactions to products (like, dislike, neutral)."""
+    REACTION_TYPES = (
+        ('like', 'Like'),
+        ('dislike', 'Dislike'),
+        ('neutral', 'Neutral'),
+    )
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='product_reactions')
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='user_reactions')
+    reaction_type = models.CharField(max_length=10, choices=REACTION_TYPES, default='neutral')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Created At")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Updated At")
+
+    class Meta:
+        unique_together = ('user', 'product')
+        verbose_name = "User Product Reaction"
+        verbose_name_plural = "User Product Reactions"
+
+    def __str__(self):
+        return f"{self.user.username}'s {self.reaction_type} reaction to {self.product.name}"

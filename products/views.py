@@ -8,18 +8,23 @@ from django.http import JsonResponse
 
 from core.models import Product, Category
 from .serializers import ProductListSerializer, ProductDetailSerializer, CategorySerializer
+from products.rating_service import rating_service
 
 
 class ProductListView(APIView):
     """List all products based on user permissions."""
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]  # السماح بالوصول العام
 
     def get(self, request):
-        if request.user.user_type == 'owner':
-            products = Product.objects.filter(shop__owner__user=request.user)
-        elif request.user.user_type == 'admin':
-            products = Product.objects.all()
+        if request.user.is_authenticated:
+            if request.user.user_type == 'owner':
+                products = Product.objects.filter(shop__owner__user=request.user)
+            elif request.user.user_type == 'admin':
+                products = Product.objects.all()
+            else:
+                products = Product.objects.filter(is_active=True)
         else:
+            # للمستخدمين غير المسجلين، عرض المنتجات النشطة فقط
             products = Product.objects.filter(is_active=True)
 
         serializer = ProductListSerializer(products, many=True)
@@ -48,8 +53,15 @@ class ProductCreateView(APIView):
 
         serializer = ProductDetailSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save(shop=request.user.owner_profile.shop)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            product = serializer.save(shop=request.user.owner_profile.shop)
+            
+            # حساب التقييم الأولي للمنتج
+            rating_service.calculate_product_rating(product.id)
+            
+            # إعادة تحميل المنتج بعد تحديث التقييم
+            product.refresh_from_db()
+            
+            return Response(ProductDetailSerializer(product).data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -128,12 +140,19 @@ class SimilarProductsView(APIView):
 
     def get(self, request, product_id):
         product = get_object_or_404(Product, id=product_id, is_active=True)
-        price_range = 0.2 * product.price  # 20% price range
+
+        # Convertir Decimal a float para operaciones matemáticas
+        price_float = float(product.price)
+        price_range = 0.2 * price_float  # 20% price range
+
+        # Calcular los límites de precio
+        min_price = price_float - price_range
+        max_price = price_float + price_range
 
         similar_products = Product.objects.filter(
             Q(category=product.category) &
-            Q(price__gte=product.price - price_range) &
-            Q(price__lte=product.price + price_range) &
+            Q(price__gte=min_price) &
+            Q(price__lte=max_price) &
             Q(brand=product.brand) &
             ~Q(id=product.id)  # Exclude the current product
         ).order_by('-rating', '-views')[:10]  # Order by rating and views

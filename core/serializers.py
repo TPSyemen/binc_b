@@ -1,5 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
+from .models import Notification
+
 
 User = get_user_model()
 # ----------------------------------------------------------
@@ -39,3 +41,19 @@ class RegisterSerializer(serializers.ModelSerializer):
 class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True, style={'input_type': 'password'})
+
+# ----------------------------------------------------------------------------
+#                   Notification Serializer
+# -------------------------------------------------------------------------------
+class NotificationSerializer(serializers.ModelSerializer):
+    recipient_username = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Notification
+        fields = ['id', 'recipient', 'recipient_username', 'content', 'notification_type',
+                  'is_read', 'created_at', 'related_id']
+        read_only_fields = ['id', 'recipient', 'created_at']
+
+    def get_recipient_username(self, obj):
+        return obj.recipient.username if obj.recipient else None
+    

@@ -1,0 +1,2127 @@
+# Best In Click API Endpoints Documentation
+#############################################################################
+
+## 1. Authentication Endpoints
+#############################################################################
+
+-----------------------------------------------------------------------------
+### Register User
+-----------------------------------------------------------------------------
+URL: /api/auth/register/
+Method: POST
+Request JSON:
+{
+    "username": "newuser",
+    "email": "user@example.com",
+    "password": "securepassword123",
+    "user_type": "customer"
+}
+Response JSON:
+{
+    "id": "user_id",
+    "username": "newuser",
+    "email": "user@example.com",
+    "user_type": "customer",
+    "created_at": "2023-06-15T10:30:00Z"
+}
+
+-----------------------------------------------------------------------------
+### Login User
+-----------------------------------------------------------------------------
+URL: /api/auth/login/
+Method: POST
+Request JSON:
+{
+    "email": "user@example.com",
+    "password": "securepassword123"
+}
+Response JSON:
+{
+    "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "user": {
+        "id": "user_id",
+        "username": "newuser",
+        "email": "user@example.com",
+        "user_type": "customer"
+    }
+}
+
+-----------------------------------------------------------------------------
+### Logout User
+-----------------------------------------------------------------------------
+URL: /api/auth/logout/
+Method: POST
+Request JSON:
+{
+    "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+Response JSON:
+{
+    "message": "Successfully logged out"
+}
+
+-----------------------------------------------------------------------------
+### Refresh Token
+-----------------------------------------------------------------------------
+URL: /api/auth/token/refresh/
+Method: POST
+Request JSON:
+{
+    "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+Response JSON:
+{
+    "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+
+-----------------------------------------------------------------------------
+### Reset Password Request
+-----------------------------------------------------------------------------
+URL: /api/auth/reset-password-request/
+Method: POST
+Request JSON:
+{
+    "email": "user@example.com"
+}
+Response JSON:
+{
+    "message": "Password reset email has been sent"
+}
+
+-----------------------------------------------------------------------------
+### Reset Password Confirm
+-----------------------------------------------------------------------------
+URL: /api/auth/reset-password-confirm/
+Method: POST
+Request JSON:
+{
+    "token": "reset_token",
+    "password": "newpassword123"
+}
+Response JSON:
+{
+    "message": "Password has been reset successfully"
+}
+
+#############################################################################
+## 2. Products Endpoints
+#############################################################################
+-----------------------------------------------------------------------------
+### List Products
+-----------------------------------------------------------------------------
+URL: /products/
+Method: GET
+Query Parameters:
+- page: Page number for pagination
+- limit: Number of products per page
+- sort_by: Field to sort by (e.g., "price", "name", "created_at")
+- order: Sort order ("asc" or "desc")
+- category_id: Filter by category
+- brand_id: Filter by brand
+- min_price: Minimum price filter
+- max_price: Maximum price filter
+Response JSON:
+{
+    "count": 100,
+    "next": "/products/?page=2&limit=10",
+    "previous": null,
+    "results": [
+        {
+            "id": "product_id_1",
+            "name": "Product Name",
+            "description": "Product description",
+            "price": 150.0,
+            "original_price": 200.0,
+            "discount": 25,
+            "category": {
+                "id": "category_id",
+                "name": "Category Name"
+            },
+            "brand": {
+                "id": "brand_id",
+                "name": "Brand Name"
+            },
+            "shop_name": "Shop Name",
+            "image_url": "https://example.com/image.jpg",
+            "in_stock": true,
+            "rating": 4.5,
+            "is_active": true
+        },
+        // More products...
+    ]
+}
+
+-----------------------------------------------------------------------------
+### Product Detail
+-----------------------------------------------------------------------------
+URL: /products/{product_id}/
+Method: GET
+Response JSON:
+{
+    "id": "product_id",
+    "name": "Product Name",
+    "description": "Detailed product description",
+    "price": 150.0,
+    "original_price": 200.0,
+    "discount": 25,
+    "category": {
+        "id": "category_id",
+        "name": "Category Name"
+    },
+    "brand": {
+        "id": "brand_id",
+        "name": "Brand Name"
+    },
+    "shop": {
+        "id": "shop_id",
+        "name": "Shop Name",
+        "logo_url": "https://example.com/shop_logo.jpg",
+        "rating": 4.8
+    },
+    "images": [
+        {"id": "image_id_1", "url": "https://example.com/image1.jpg"},
+        {"id": "image_id_2", "url": "https://example.com/image2.jpg"}
+    ],
+    "video_url": "https://example.com/video.mp4",
+    "specifications": [
+        {"name": "Color", "value": "Black"},
+        {"name": "Weight", "value": "200g"},
+        {"name": "Dimensions", "value": "10 x 5 x 2 cm"}
+    ],
+    "in_stock": true,
+    "stock": 10,
+    "rating": 4.5,
+    "review_count": 120,
+    "is_active": true,
+    "created_at": "2023-06-15T10:30:00Z",
+    "release_date": "2023-01-01",
+    "likes": 45,
+    "dislikes": 5,
+    "views": 1200,
+    "is_banned": false
+}
+
+-----------------------------------------------------------------------------
+### Create Product
+-----------------------------------------------------------------------------
+URL: /products/create/
+Method: POST
+Request JSON:
+{
+    "name": "New Product",
+    "price": 150.0,
+    "original_price": 200.0,
+    "category_id": "category_id",
+    "brand_id": "brand_id",
+    "description": "Product description",
+    "image_url": "https://example.com/image.jpg",
+    "video_url": "https://example.com/video.mp4",
+    "release_date": "2023-01-01",
+    "is_active": true,
+    "in_stock": true,
+    "stock": 10,
+    "shop_id": "shop_id"
+}
+Response JSON:
+{
+    "id": "product_id",
+    "name": "New Product",
+    "description": "Product description",
+    "price": 150.0,
+    "original_price": 200.0,
+    "discount": 25,
+    "category": {
+        "id": "category_id",
+        "name": "Category Name"
+    },
+    "brand": {
+        "id": "brand_id",
+        "name": "Brand Name"
+    },
+    "shop_name": "Shop Name",
+    "image_url": "https://example.com/image.jpg",
+    "in_stock": true,
+    "rating": 0,
+    "is_active": true,
+    "created_at": "2023-06-15T10:30:00Z",
+    "video_url": "https://example.com/video.mp4",
+    "release_date": "2023-01-01",
+    "likes": 0,
+    "dislikes": 0,
+    "neutrals": 0,
+    "views": 0,
+    "is_banned": false
+}
+
+-----------------------------------------------------------------------------
+### Update Product
+-----------------------------------------------------------------------------
+URL: /products/{product_id}/update/
+Method: PUT
+Request JSON:
+{
+    "name": "Updated Product Name",
+    "price": 160.0,
+    "original_price": 210.0,
+    "category_id": "category_id",
+    "brand_id": "brand_id",
+    "description": "Updated product description",
+    "image_url": "https://example.com/updated_image.jpg",
+    "video_url": "https://example.com/updated_video.mp4",
+    "is_active": true,
+    "in_stock": true,
+    "stock": 15
+}
+Response JSON:
+{
+    "id": "product_id",
+    "name": "Updated Product Name",
+    "description": "Updated product description",
+    "price": 160.0,
+    "original_price": 210.0,
+    "discount": 23.8,
+    "category": {
+        "id": "category_id",
+        "name": "Category Name"
+    },
+    "brand": {
+        "id": "brand_id",
+        "name": "Brand Name"
+    },
+    "shop_name": "Shop Name",
+    "image_url": "https://example.com/updated_image.jpg",
+    "in_stock": true,
+    "rating": 4.5,
+    "is_active": true,
+    "created_at": "2023-06-15T10:30:00Z",
+    "updated_at": "2023-06-16T11:45:00Z",
+    "video_url": "https://example.com/updated_video.mp4",
+    "release_date": "2023-01-01",
+    "likes": 45,
+    "dislikes": 5,
+    "views": 1200,
+    "is_banned": false
+}
+
+-----------------------------------------------------------------------------
+### Delete Product
+-----------------------------------------------------------------------------
+URL: /products/{product_id}/delete/
+Method: DELETE
+Response JSON:
+{
+    "message": "Product successfully deleted"
+}
+
+-----------------------------------------------------------------------------
+### Featured Products
+-----------------------------------------------------------------------------
+URL: /products/featured/
+Method: GET
+Query Parameters:
+- limit: Number of products to return
+Response JSON:
+{
+    "results": [
+        {
+            "id": "product_id_1",
+            "name": "Featured Product 1",
+            "price": 150.0,
+            "original_price": 200.0,
+            "discount": 25,
+            "image_url": "https://example.com/image1.jpg",
+            "rating": 4.8,
+            "in_stock": true
+        },
+        // More products...
+    ]
+}
+
+-----------------------------------------------------------------------------
+### Search Products
+-----------------------------------------------------------------------------
+URL: /products/search/
+Method: GET
+Query Parameters:
+- query: Search term
+- category: Category ID to filter by
+- brand: Brand ID to filter by
+- min_price: Minimum price
+- max_price: Maximum price
+- sort_by: Field to sort by
+- order: Sort order
+- page: Page number
+- limit: Results per page
+Response JSON:
+{
+    "count": 25,
+    "next": "/products/search/?query=phone&page=2&limit=10",
+    "previous": null,
+    "results": [
+        {
+            "id": "product_id_1",
+            "name": "Smartphone X",
+            "description": "High-end smartphone with advanced features",
+            "price": 799.99,
+            "original_price": 899.99,
+            "discount": 11.1,
+            "category": {
+                "id": "category_id",
+                "name": "Smartphones"
+            },
+            "brand": {
+                "id": "brand_id",
+                "name": "TechBrand"
+            },
+            "image_url": "https://example.com/smartphone_x.jpg",
+            "in_stock": true,
+            "rating": 4.7
+        },
+        // More products...
+    ]
+}
+
+-----------------------------------------------------------------------------
+### Recently Viewed Products
+-----------------------------------------------------------------------------
+URL: /products/recently-viewed/
+Method: GET
+Query Parameters:
+- limit: Number of products to return
+Response JSON:
+{
+    "results": [
+        {
+            "id": "product_id_1",
+            "name": "Recently Viewed Product 1",
+            "price": 150.0,
+            "original_price": 200.0,
+            "discount": 25,
+            "image_url": "https://example.com/image1.jpg",
+            "rating": 4.5,
+            "viewed_at": "2023-06-15T14:30:00Z"
+        },
+        // More products...
+    ]
+}
+
+-----------------------------------------------------------------------------
+### Similar Products
+-----------------------------------------------------------------------------
+URL: /products/{product_id}/similar/
+Method: GET
+Query Parameters:
+- limit: Number of products to return
+Response JSON:
+{
+    "results": [
+        {
+            "id": "similar_product_id_1",
+            "name": "Similar Product 1",
+            "price": 145.0,
+            "original_price": 190.0,
+            "discount": 23.7,
+            "image_url": "https://example.com/similar1.jpg",
+            "rating": 4.3,
+            "similarity_score": 0.92
+        },
+        // More products...
+    ]
+}
+
+-----------------------------------------------------------------------------
+### Product Price History
+-----------------------------------------------------------------------------
+URL: /products/{product_id}/price-history/
+Method: GET
+Query Parameters:
+- period: Time period (e.g., "1m", "3m", "6m", "1y", "all")
+Response JSON:
+{
+    "product_id": "product_id",
+    "product_name": "Product Name",
+    "current_price": 150.0,
+    "lowest_price": {
+        "price": 130.0,
+        "date": "2023-03-15T00:00:00Z"
+    },
+    "highest_price": {
+        "price": 210.0,
+        "date": "2023-01-05T00:00:00Z"
+    },
+    "price_history": [
+        {"date": "2023-01-01T00:00:00Z", "price": 200.0},
+        {"date": "2023-01-05T00:00:00Z", "price": 210.0},
+        {"date": "2023-02-01T00:00:00Z", "price": 190.0},
+        {"date": "2023-03-15T00:00:00Z", "price": 130.0},
+        {"date": "2023-04-01T00:00:00Z", "price": 150.0},
+        {"date": "2023-05-01T00:00:00Z", "price": 150.0},
+        {"date": "2023-06-01T00:00:00Z", "price": 150.0}
+    ]
+}
+
+###################################################################################
+## 3. Categories Endpoints
+###################################################################################
+-----------------------------------------------------------------------------
+### List Categories
+-----------------------------------------------------------------------------
+URL: /categories/
+Method: GET
+Response JSON:
+{
+    "results": [
+        {
+            "id": "category_id_1",
+            "name": "Electronics",
+            "description": "Electronic devices and accessories",
+            "image_url": "https://example.com/electronics.jpg",
+            "parent_id": null,
+            "product_count": 250
+        },
+        {
+            "id": "category_id_2",
+            "name": "Smartphones",
+            "description": "Mobile phones and accessories",
+            "image_url": "https://example.com/smartphones.jpg",
+            "parent_id": "category_id_1",
+            "product_count": 120
+        },
+        // More categories...
+    ]
+}
+-----------------------------------------------------------------------------
+### Category Detail
+-----------------------------------------------------------------------------
+URL: /categories/{category_id}/
+Method: GET
+Response JSON:
+{
+    "id": "category_id",
+    "name": "Smartphones",
+    "description": "Mobile phones and accessories",
+    "image_url": "https://example.com/smartphones.jpg",
+    "parent": {
+        "id": "parent_category_id",
+        "name": "Electronics"
+    },
+    "subcategories": [
+        {
+            "id": "subcategory_id_1",
+            "name": "Android Phones",
+            "product_count": 75
+        },
+        {
+            "id": "subcategory_id_2",
+            "name": "iOS Phones",
+            "product_count": 45
+        }
+    ],
+    "product_count": 120,
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-05-15T10:30:00Z"
+}
+
+-----------------------------------------------------------------------------
+### Create Category
+-----------------------------------------------------------------------------
+URL: /categories/create/
+Method: POST
+Request JSON:
+{
+    "name": "New Category",
+    "description": "Description of the new category",
+    "image_url": "https://example.com/new_category.jpg",
+    "parent_id": "parent_category_id" // Optional
+}
+Response JSON:
+{
+    "id": "new_category_id",
+    "name": "New Category",
+    "description": "Description of the new category",
+    "image_url": "https://example.com/new_category.jpg",
+    "parent_id": "parent_category_id",
+    "product_count": 0,
+    "created_at": "2023-06-15T10:30:00Z"
+}
+
+-----------------------------------------------------------------------------
+### Update Category
+-----------------------------------------------------------------------------
+URL: /categories/{category_id}/update/
+Method: PUT
+Request JSON:
+{
+    "name": "Updated Category Name",
+    "description": "Updated category description",
+    "image_url": "https://example.com/updated_category.jpg",
+    "parent_id": "parent_category_id"
+}
+Response JSON:
+{
+    "id": "category_id",
+    "name": "Updated Category Name",
+    "description": "Updated category description",
+    "image_url": "https://example.com/updated_category.jpg",
+    "parent_id": "parent_category_id",
+    "product_count": 120,
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-06-15T11:45:00Z"
+}
+
+-----------------------------------------------------------------------------
+### Delete Category
+-----------------------------------------------------------------------------
+URL: /categories/{category_id}/delete/
+Method: DELETE
+Response JSON:
+{
+    "message": "Category successfully deleted"
+}
+
+#############################################################################
+## 4. Brands Endpoints
+#############################################################################
+
+-----------------------------------------------------------------------------
+### List Brands
+-----------------------------------------------------------------------------
+URL: /brands/
+Method: GET
+Query Parameters:
+- page: Page number
+- limit: Results per page
+Response JSON:
+{
+    "count": 50,
+    "next": "/brands/?page=2&limit=10",
+    "previous": null,
+    "results": [
+        {
+            "id": "brand_id_1",
+            "name": "TechBrand",
+            "description": "High-quality technology products",
+            "logo_url": "https://example.com/techbrand_logo.jpg",
+            "website": "https://techbrand.example.com",
+            "product_count": 75
+        },
+        {
+            "id": "brand_id_2",
+            "name": "FashionBrand",
+            "description": "Trendy fashion items",
+            "logo_url": "https://example.com/fashionbrand_logo.jpg",
+            "website": "https://fashionbrand.example.com",
+            "product_count": 120
+        },
+        // More brands...
+    ]
+}
+
+-----------------------------------------------------------------------------
+### Brand Detail
+-----------------------------------------------------------------------------
+URL: /brands/{brand_id}/
+Method: GET
+Response JSON:
+{
+    "id": "brand_id",
+    "name": "TechBrand",
+    "description": "High-quality technology products with innovative features",
+    "logo_url": "https://example.com/techbrand_logo.jpg",
+    "banner_url": "https://example.com/techbrand_banner.jpg",
+    "website": "https://techbrand.example.com",
+    "founded_year": 2005,
+    "headquarters": "San Francisco, CA",
+    "social_media": {
+        "facebook": "https://facebook.com/techbrand",
+        "twitter": "https://twitter.com/techbrand",
+        "instagram": "https://instagram.com/techbrand"
+    },
+    "product_count": 75,
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-05-15T10:30:00Z"
+}
+
+-----------------------------------------------------------------------------
+### Create Brand
+-----------------------------------------------------------------------------
+URL: /brands/create/
+Method: POST
+Request JSON:
+{
+    "name": "New Brand",
+    "description": "Description of the new brand",
+    "logo_url": "https://example.com/new_brand_logo.jpg",
+    "website": "https://newbrand.example.com",
+    "founded_year": 2010,
+    "headquarters": "New York, NY",
+    "social_media": {
+        "facebook": "https://facebook.com/newbrand",
+        "twitter": "https://twitter.com/newbrand",
+        "instagram": "https://instagram.com/newbrand"
+    }
+}
+Response JSON:
+{
+    "id": "new_brand_id",
+    "name": "New Brand",
+    "description": "Description of the new brand",
+    "logo_url": "https://example.com/new_brand_logo.jpg",
+    "website": "https://newbrand.example.com",
+    "founded_year": 2010,
+    "headquarters": "New York, NY",
+    "social_media": {
+        "facebook": "https://facebook.com/newbrand",
+        "twitter": "https://twitter.com/newbrand",
+        "instagram": "https://instagram.com/newbrand"
+    },
+    "product_count": 0,
+    "created_at": "2023-06-15T10:30:00Z"
+}
+
+-----------------------------------------------------------------------------
+### Update Brand
+-----------------------------------------------------------------------------
+URL: /brands/{brand_id}/update/
+Method: PUT
+Request JSON:
+{
+    "name": "Updated Brand Name",
+    "description": "Updated brand description",
+    "logo_url": "https://example.com/updated_brand_logo.jpg",
+    "website": "https://updatedbrand.example.com"
+}
+Response JSON:
+{
+    "id": "brand_id",
+    "name": "Updated Brand Name",
+    "description": "Updated brand description",
+    "logo_url": "https://example.com/updated_brand_logo.jpg",
+    "website": "https://updatedbrand.example.com",
+    "founded_year": 2005,
+    "headquarters": "San Francisco, CA",
+    "social_media": {
+        "facebook": "https://facebook.com/updatedbrand",
+        "twitter": "https://twitter.com/updatedbrand",
+        "instagram": "https://instagram.com/updatedbrand"
+    },
+    "product_count": 75,
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-06-15T11:45:00Z"
+}
+
+-----------------------------------------------------------------------------
+### Delete Brand
+-----------------------------------------------------------------------------
+URL: /brands/{brand_id}/delete/
+Method: DELETE
+Response JSON:
+{
+    "message": "Brand successfully deleted"
+}
+
+#############################################################################
+## 5. Reviews Endpoints
+#############################################################################
+
+-----------------------------------------------------------------------------
+### List Reviews for Product
+-----------------------------------------------------------------------------
+URL: /products/{product_id}/reviews/
+Method: GET
+Query Parameters:
+- page: Page number
+- limit: Results per page
+- sort_by: Field to sort by (e.g., "created_at", "rating")
+- order: Sort order ("asc" or "desc")
+Response JSON:
+{
+    "count": 120,
+    "next": "/products/{product_id}/reviews/?page=2&limit=10",
+    "previous": null,
+    "results": [
+        {
+            "id": "review_id_1",
+            "user": {
+                "id": "user_id",
+                "username": "reviewer1",
+                "avatar_url": "https://example.com/avatar1.jpg"
+            },
+            "rating": 5,
+            "title": "Excellent product",
+            "content": "This is one of the best products I've ever used.",
+            "pros": "High quality, easy to use, great value",
+            "cons": "None that I can think of",
+            "verified_purchase": true,
+            "helpful_votes": 25,
+            "created_at": "2023-05-15T10:30:00Z",
+            "updated_at": "2023-05-15T10:30:00Z",
+            "images": [
+                {"id": "image_id_1", "url": "https://example.com/review_image1.jpg"},
+                {"id": "image_id_2", "url": "https://example.com/review_image2.jpg"}
+            ]
+        },
+        // More reviews...
+    ]
+}
+
+-----------------------------------------------------------------------------
+### Create Review
+-----------------------------------------------------------------------------
+URL: /products/{product_id}/reviews/create/
+Method: POST
+Request JSON:
+{
+    "rating": 4,
+    "title": "Great product with minor issues",
+    "content": "I really like this product but there are a few minor issues.",
+    "pros": "Good quality, nice design",
+    "cons": "A bit expensive, delivery took longer than expected",
+    "images": [
+        "https://example.com/my_review_image1.jpg",
+        "https://example.com/my_review_image2.jpg"
+    ]
+}
+Response JSON:
+{
+    "id": "new_review_id",
+    "user": {
+        "id": "user_id",
+        "username": "current_user",
+        "avatar_url": "https://example.com/current_user_avatar.jpg"
+    },
+    "rating": 4,
+    "title": "Great product with minor issues",
+    "content": "I really like this product but there are a few minor issues.",
+    "pros": "Good quality, nice design",
+    "cons": "A bit expensive, delivery took longer than expected",
+    "verified_purchase": true,
+    "helpful_votes": 0,
+    "created_at": "2023-06-15T10:30:00Z",
+    "images": [
+        {"id": "image_id_1", "url": "https://example.com/my_review_image1.jpg"},
+        {"id": "image_id_2", "url": "https://example.com/my_review_image2.jpg"}
+    ]
+}
+
+-----------------------------------------------------------------------------
+### Review Detail
+-----------------------------------------------------------------------------
+URL: /products/{product_id}/reviews/{review_id}/
+Method: GET
+Response JSON:
+{
+    "id": "review_id",
+    "user": {
+        "id": "user_id",
+        "username": "reviewer1",
+        "avatar_url": "https://example.com/avatar1.jpg"
+    },
+    "rating": 5,
+    "title": "Excellent product",
+    "content": "This is one of the best products I've ever used.",
+    "pros": "High quality, easy to use, great value",
+    "cons": "None that I can think of",
+    "verified_purchase": true,
+    "helpful_votes": 25,
+    "created_at": "2023-05-15T10:30:00Z",
+    "updated_at": "2023-05-15T10:30:00Z",
+    "images": [
+        {"id": "image_id_1", "url": "https://example.com/review_image1.jpg"},
+        {"id": "image_id_2", "url": "https://example.com/review_image2.jpg"}
+    ],
+    "comments": [
+        {
+            "id": "comment_id_1",
+            "user": {
+                "id": "user_id_2",
+                "username": "commenter1",
+                "avatar_url": "https://example.com/avatar2.jpg"
+            },
+            "content": "I agree with this review!",
+            "created_at": "2023-05-16T14:20:00Z"
+        },
+        // More comments...
+    ]
+}
+
+-----------------------------------------------------------------------------
+### Update Review
+-----------------------------------------------------------------------------
+URL: /products/{product_id}/reviews/{review_id}/update/
+Method: PUT
+Request JSON:
+{
+    "rating": 3,
+    "title": "Updated review title",
+    "content": "Updated review content",
+    "pros": "Updated pros",
+    "cons": "Updated cons"
+}
+Response JSON:
+{
+    "id": "review_id",
+    "user": {
+        "id": "user_id",
+        "username": "reviewer1",
+        "avatar_url": "https://example.com/avatar1.jpg"
+    },
+    "rating": 3,
+    "title": "Updated review title",
+    "content": "Updated review content",
+    "pros": "Updated pros",
+    "cons": "Updated cons",
+    "verified_purchase": true,
+    "helpful_votes": 25,
+    "created_at": "2023-05-15T10:30:00Z",
+    "updated_at": "2023-06-15T11:45:00Z",
+    "images": [
+        {"id": "image_id_1", "url": "https://example.com/review_image1.jpg"},
+        {"id": "image_id_2", "url": "https://example.com/review_image2.jpg"}
+    ]
+}
+
+-----------------------------------------------------------------------------
+### Delete Review
+-----------------------------------------------------------------------------
+URL: /products/{product_id}/reviews/{review_id}/delete/
+Method: DELETE
+Response JSON:
+{
+    "message": "Review successfully deleted"
+}
+
+-----------------------------------------------------------------------------
+### Vote Review as Helpful
+-----------------------------------------------------------------------------
+URL: /products/{product_id}/reviews/{review_id}/vote/
+Method: POST
+Request JSON:
+{
+    "helpful": true
+}
+Response JSON:
+{
+    "message": "Vote recorded successfully",
+    "helpful_votes": 26
+}
+
+#############################################################################
+## 6. Shop Endpoints
+#############################################################################
+
+-----------------------------------------------------------------------------
+### List Shops
+-----------------------------------------------------------------------------
+URL: /shops/
+Method: GET
+Query Parameters:
+- page: Page number
+- limit: Results per page
+- sort_by: Field to sort by (e.g., "created_at", "rating")
+- order: Sort order ("asc" or "desc")
+Response JSON:
+{
+    "count": 50,
+    "next": "/shops/?page=2&limit=10",
+    "previous": null,
+    "results": [
+        {
+            "id": "shop_id_1",
+            "name": "Tech Shop",
+            "description": "The best tech products",
+            "logo_url": "https://example.com/techshop_logo.jpg",
+            "banner_url": "https://example.com/techshop_banner.jpg",
+            "rating": 4.8,
+            "product_count": 120,
+            "follower_count": 1500
+        },
+        {
+            "id": "shop_id_2",
+            "name": "Fashion Store",
+            "description": "Trendy fashion items",
+            "logo_url": "https://example.com/fashionstore_logo.jpg",
+            "banner_url": "https://example.com/fashionstore_banner.jpg",
+            "rating": 4.6,
+            "product_count": 250,
+            "follower_count": 2200
+        },
+        // More shops...
+    ]
+}
+
+-----------------------------------------------------------------------------
+### Shop Detail
+-----------------------------------------------------------------------------
+URL: /shops/{shop_id}/
+Method: GET
+Response JSON:
+{
+    "id": "shop_id",
+    "name": "Tech Shop",
+    "description": "The best tech products at affordable prices",
+    "logo_url": "https://example.com/techshop_logo.jpg",
+    "banner_url": "https://example.com/techshop_banner.jpg",
+    "owner": {
+        "id": "user_id",
+        "username": "shop_owner"
+    },
+    "address": "123 Tech Street, San Francisco, CA",
+    "phone": "+1-123-456-7890",
+    "email": "contact@techshop.example.com",
+    "website": "https://techshop.example.com",
+    "social_media": {
+        "facebook": "https://facebook.com/techshop",
+        "twitter": "https://twitter.com/techshop",
+        "instagram": "https://instagram.com/techshop"
+    },
+    "business_hours": [
+        {"day": "Monday", "open": "09:00", "close": "18:00"},
+        {"day": "Tuesday", "open": "09:00", "close": "18:00"},
+        {"day": "Wednesday", "open": "09:00", "close": "18:00"},
+        {"day": "Thursday", "open": "09:00", "close": "18:00"},
+        {"day": "Friday", "open": "09:00", "close": "18:00"},
+        {"day": "Saturday", "open": "10:00", "close": "16:00"},
+        {"day": "Sunday", "open": "Closed", "close": "Closed"}
+    ],
+    "rating": 4.8,
+    "review_count": 350,
+    "product_count": 120,
+    "follower_count": 1500,
+    "is_following": false,
+    "created_at": "2022-01-15T10:30:00Z",
+    "featured_products": [
+        {
+            "id": "product_id_1",
+            "name": "Featured Product 1",
+            "price": 150.0,
+            "image_url": "https://example.com/product1.jpg",
+            "rating": 4.7
+        },
+        {
+            "id": "product_id_2",
+            "name": "Featured Product 2",
+            "price": 200.0,
+            "image_url": "https://example.com/product2.jpg",
+            "rating": 4.9
+        },
+        {
+            "id": "product_id_3",
+            "name": "Featured Product 3",
+            "price": 120.0,
+            "image_url": "https://example.com/product3.jpg",
+            "rating": 4.6
+        }
+    ]
+}
+
+-----------------------------------------------------------------------------
+### Register Shop
+-----------------------------------------------------------------------------
+URL: /shops/register/
+Method: POST
+Request JSON:
+{
+    "name": "New Shop",
+    "description": "Description of the new shop",
+    "logo_url": "https://example.com/newshop_logo.jpg",
+    "banner_url": "https://example.com/newshop_banner.jpg",
+    "address": "456 New Street, New York, NY",
+    "phone": "+1-234-567-8901",
+    "email": "contact@newshop.example.com",
+    "website": "https://newshop.example.com",
+    "social_media": {
+        "facebook": "https://facebook.com/newshop",
+        "twitter": "https://twitter.com/newshop",
+        "instagram": "https://instagram.com/newshop"
+    },
+    "business_hours": [
+        {"day": "Monday", "open": "09:00", "close": "18:00"},
+        {"day": "Tuesday", "open": "09:00", "close": "18:00"},
+        {"day": "Wednesday", "open": "09:00", "close": "18:00"},
+        {"day": "Thursday", "open": "09:00", "close": "18:00"},
+        {"day": "Friday", "open": "09:00", "close": "18:00"},
+        {"day": "Saturday", "open": "10:00", "close": "16:00"},
+        {"day": "Sunday", "open": "Closed", "close": "Closed"}
+    ]
+}
+Response JSON:
+{
+    "id": "new_shop_id",
+    "name": "New Shop",
+    "description": "Description of the new shop",
+    "logo_url": "https://example.com/newshop_logo.jpg",
+    "banner_url": "https://example.com/newshop_banner.jpg",
+    "owner": {
+        "id": "user_id",
+        "username": "current_user"
+    },
+    "address": "456 New Street, New York, NY",
+    "phone": "+1-234-567-8901",
+    "email": "contact@newshop.example.com",
+    "website": "https://newshop.example.com",
+    "social_media": {
+        "facebook": "https://facebook.com/newshop",
+        "twitter": "https://twitter.com/newshop",
+        "instagram": "https://instagram.com/newshop"
+    },
+    "business_hours": [
+        {"day": "Monday", "open": "09:00", "close": "18:00"},
+        {"day": "Tuesday", "open": "09:00", "close": "18:00"},
+        {"day": "Wednesday", "open": "09:00", "close": "18:00"},
+        {"day": "Thursday", "open": "09:00", "close": "18:00"},
+        {"day": "Friday", "open": "09:00", "close": "18:00"},
+        {"day": "Saturday", "open": "10:00", "close": "16:00"},
+        {"day": "Sunday", "open": "Closed", "close": "Closed"}
+    ]
+}
+
+-----------------------------------------------------------------------------
+### Update Shop
+-----------------------------------------------------------------------------
+URL: /shops/{shop_id}/update/
+Method: PUT
+Request JSON:
+{
+    "name": "Updated Shop Name",
+    "description": "Updated shop description",
+    "logo_url": "https://example.com/updated_logo.jpg",
+    "banner_url": "https://example.com/updated_banner.jpg",
+    "address": "789 Updated Street, Los Angeles, CA",
+    "phone": "+1-345-678-9012",
+    "email": "updated@shop.example.com",
+    "website": "https://updated-shop.example.com",
+    "social_media": {
+        "facebook": "https://facebook.com/updated-shop",
+        "twitter": "https://twitter.com/updated-shop",
+        "instagram": "https://instagram.com/updated-shop"
+    },
+    "business_hours": [
+        {"day": "Monday", "open": "10:00", "close": "19:00"},
+        {"day": "Tuesday", "open": "10:00", "close": "19:00"},
+        {"day": "Wednesday", "open": "10:00", "close": "19:00"},
+        {"day": "Thursday", "open": "10:00", "close": "19:00"},
+        {"day": "Friday", "open": "10:00", "close": "19:00"},
+        {"day": "Saturday", "open": "11:00", "close": "17:00"},
+        {"day": "Sunday", "open": "12:00", "close": "16:00"}
+    ]
+}
+Response JSON:
+{
+    "id": "shop_id",
+    "name": "Updated Shop Name",
+    "description": "Updated shop description",
+    "logo_url": "https://example.com/updated_logo.jpg",
+    "banner_url": "https://example.com/updated_banner.jpg",
+    "owner": {
+        "id": "user_id",
+        "username": "shop_owner"
+    },
+    "address": "789 Updated Street, Los Angeles, CA",
+    "phone": "+1-345-678-9012",
+    "email": "updated@shop.example.com",
+    "website": "https://updated-shop.example.com",
+    "social_media": {
+        "facebook": "https://facebook.com/updated-shop",
+        "twitter": "https://twitter.com/updated-shop",
+        "instagram": "https://instagram.com/updated-shop"
+    },
+    "business_hours": [
+        {"day": "Monday", "open": "10:00", "close": "19:00"},
+        {"day": "Tuesday", "open": "10:00", "close": "19:00"},
+        {"day": "Wednesday", "open": "10:00", "close": "19:00"},
+        {"day": "Thursday", "open": "10:00", "close": "19:00"},
+        {"day": "Friday", "open": "10:00", "close": "19:00"},
+        {"day": "Saturday", "open": "11:00", "close": "17:00"},
+        {"day": "Sunday", "open": "12:00", "close": "16:00"}
+    ],
+    "rating": 4.8,
+    "review_count": 350,
+    "product_count": 120,
+    "follower_count": 1500,
+    "created_at": "2022-01-15T10:30:00Z",
+    "updated_at": "2023-06-15T11:45:00Z"
+}
+
+-----------------------------------------------------------------------------
+### Follow Shop
+-----------------------------------------------------------------------------
+URL: /shops/{shop_id}/follow/
+Method: POST
+Response JSON:
+{
+    "message": "Shop followed successfully",
+    "is_following": true,
+    "follower_count": 1501
+}
+
+### Unfollow Shop
+URL: /shops/{shop_id}/unfollow/
+Method: POST
+Response JSON:
+{
+    "message": "Shop unfollowed successfully",
+    "is_following": false,
+    "follower_count": 1500
+}
+
+-----------------------------------------------------------------------------
+### Shop Products
+-----------------------------------------------------------------------------
+URL: /shops/{shop_id}/products/
+Method: GET
+Query Parameters:
+- page: Page number
+- limit: Results per page
+- sort_by: Field to sort by
+- order: Sort order
+- category: Filter by category
+Response JSON:
+{
+    "count": 120,
+    "next": "/shops/{shop_id}/products/?page=2&limit=10",
+    "previous": null,
+    "results": [
+        {
+            "id": "product_id_1",
+            "name": "Product 1",
+            "price": 150.0,
+            "original_price": 200.0,
+            "discount": 25,
+            "image_url": "https://example.com/product1.jpg",
+            "rating": 4.7,
+            "in_stock": true
+        },
+        // More products...
+    ]
+}
+
+-----------------------------------------------------------------------------
+### Shop Reviews
+-----------------------------------------------------------------------------
+URL: /shops/{shop_id}/reviews/
+Method: GET
+Query Parameters:
+- page: Page number
+- limit: Results per page
+- sort_by: Field to sort by
+- order: Sort order
+Response JSON:
+{
+    "count": 350,
+    "next": "/shops/{shop_id}/reviews/?page=2&limit=10",
+    "previous": null,
+    "results": [
+        {
+            "id": "review_id_1",
+            "user": {
+                "id": "user_id",
+                "username": "reviewer1",
+                "avatar_url": "https://example.com/avatar1.jpg"
+            },
+            "rating": 5,
+            "title": "Excellent shop",
+            "content": "Great products and excellent customer service.",
+            "created_at": "2023-05-15T10:30:00Z",
+            "helpful_votes": 25
+        },
+        // More reviews...
+    ]
+}
+
+#############################################################################
+## 7. Dashboard Endpoints
+#############################################################################
+
+-----------------------------------------------------------------------------
+### Dashboard Overview
+-----------------------------------------------------------------------------
+URL: /api/dashboard/overview/
+Method: GET
+Response JSON:
+{
+    "shop": {
+        "id": "shop_id",
+        "name": "My Shop",
+        "logo_url": "https://example.com/myshop_logo.jpg",
+        "rating": 4.8,
+        "follower_count": 1500
+    },
+    "stats": {
+        "total_products": 120,
+        "active_products": 115,
+        "out_of_stock_products": 5,
+        "total_views": 25000,
+        "total_likes": 3500,
+        "total_reviews": 350,
+        "average_rating": 4.8
+    },
+    "recent_activity": {
+        "new_followers": 25,
+        "new_reviews": 10,
+        "new_orders": 35
+    },
+    "top_products": [
+        {
+            "id": "product_id_1",
+            "name": "Top Product 1",
+            "price": 150.0,
+            "image_url": "https://example.com/product1.jpg",
+            "views": 1200,
+            "likes": 350,
+            "sales": 120
+        },
+        {
+            "id": "product_id_2",
+            "name": "Top Product 2",
+            "price": 200.0,
+            "image_url": "https://example.com/product2.jpg",
+            "views": 1000,
+            "likes": 300,
+            "sales": 100
+        },
+        {
+            "id": "product_id_3",
+            "name": "Top Product 3",
+            "price": 120.0,
+            "image_url": "https://example.com/product3.jpg",
+            "views": 900,
+            "likes": 250,
+            "sales": 80
+        }
+    ]
+}
+
+-----------------------------------------------------------------------------
+### Dashboard Products
+-----------------------------------------------------------------------------
+URL: /api/dashboard/products/
+Method: GET
+Query Parameters:
+- page: Page number
+- limit: Results per page
+- sort_by: Field to sort by
+- order: Sort order
+- status: Filter by status (active, inactive, out_of_stock)
+- category: Filter by category
+Response JSON:
+{
+    "count": 120,
+    "next": "/api/dashboard/products/?page=2&limit=10",
+    "previous": null,
+    "results": [
+        {
+            "id": "product_id_1",
+            "name": "Product 1",
+            "price": 150.0,
+            "original_price": 200.0,
+            "discount": 25,
+            "category": {
+                "id": "category_id",
+                "name": "Category Name"
+            },
+            "image_url": "https://example.com/product1.jpg",
+            "in_stock": true,
+            "stock": 10,
+            "is_active": true,
+            "views": 1200,
+            "likes": 350,
+            "rating": 4.7,
+            "review_count": 45,
+            "created_at": "2023-01-15T10:30:00Z",
+            "updated_at": "2023-05-20T14:45:00Z"
+        },
+        // More products...
+    ]
+}
+
+-----------------------------------------------------------------------------
+### Dashboard Analytics
+-----------------------------------------------------------------------------
+URL: /api/dashboard/analytics/
+Method: GET
+Query Parameters:
+- period: Time period (e.g., "7d", "30d", "90d", "1y")
+Response JSON:
+{
+    "period": "30d",
+    "views": {
+        "total": 25000,
+        "change": 15, // Percentage change from previous period
+        "chart_data": [
+            {"date": "2023-05-15", "value": 800},
+            {"date": "2023-05-16", "value": 750},
+            // More data points...
+        ]
+    },
+    "likes": {
+        "total": 3500,
+        "change": 10,
+        "chart_data": [
+            {"date": "2023-05-15", "value": 120},
+            {"date": "2023-05-16", "value": 110},
+            // More data points...
+        ]
+    },
+    "followers": {
+        "total": 1500,
+        "change": 8,
+        "chart_data": [
+            {"date": "2023-05-15", "value": 50},
+            {"date": "2023-05-16", "value": 48},
+            // More data points...
+        ]
+    },
+    "reviews": {
+        "total": 350,
+        "change": 5,
+        "average_rating": 4.8,
+        "rating_distribution": {
+            "5": 250,
+            "4": 70,
+            "3": 20,
+            "2": 7,
+            "1": 3
+        },
+        "chart_data": [
+            {"date": "2023-05-15", "value": 12},
+            {"date": "2023-05-16", "value": 10},
+            // More data points...
+        ]
+    },
+    "top_products": [
+        {
+            "id": "product_id_1",
+            "name": "Top Product 1",
+            "views": 1200,
+            "likes": 350,
+            "rating": 4.7
+        },
+        // More products...
+    ],
+    "top_categories": [
+        {
+            "id": "category_id_1",
+            "name": "Top Category 1",
+            "product_count": 45,
+            "view_count": 12000
+        },
+        // More categories...
+    ]
+}
+
+-----------------------------------------------------------------------------
+### Dashboard Shop Settings
+-----------------------------------------------------------------------------
+URL: /api/dashboard/shop-settings/
+Method: GET
+Response JSON:
+{
+    "id": "shop_id",
+    "name": "My Shop",
+    "description": "Shop description",
+    "logo_url": "https://example.com/myshop_logo.jpg",
+    "banner_url": "https://example.com/myshop_banner.jpg",
+    "address": "123 Shop Street, City, Country",
+    "phone": "+1-123-456-7890",
+    "email": "contact@myshop.example.com",
+    "website": "https://myshop.example.com",
+    "social_media": {
+        "facebook": "https://facebook.com/myshop",
+        "twitter": "https://twitter.com/myshop",
+        "instagram": "https://instagram.com/myshop"
+    },
+    "business_hours": [
+        {"day": "Monday", "open": "09:00", "close": "18:00"},
+        {"day": "Tuesday", "open": "09:00", "close": "18:00"},
+        {"day": "Wednesday", "open": "09:00", "close": "18:00"},
+        {"day": "Thursday", "open": "09:00", "close": "18:00"},
+        {"day": "Friday", "open": "09:00", "close": "18:00"},
+        {"day": "Saturday", "open": "10:00", "close": "16:00"},
+        {"day": "Sunday", "open": "Closed", "close": "Closed"}
+    ]
+}
+
+-----------------------------------------------------------------------------
+### Update Dashboard Shop Settings
+-----------------------------------------------------------------------------
+URL: /api/dashboard/shop-settings/
+Method: PUT
+Request JSON:
+{
+    "name": "Updated Shop Name",
+    "description": "Updated shop description",
+    "logo_url": "https://example.com/updated_logo.jpg",
+    "banner_url": "https://example.com/updated_banner.jpg",
+    "address": "456 Updated Street, City, Country",
+    "phone": "+1-234-567-8901",
+    "email": "updated@myshop.example.com",
+    "website": "https://updated-myshop.example.com",
+    "social_media": {
+        "facebook": "https://facebook.com/updated-myshop",
+        "twitter": "https://twitter.com/updated-myshop",
+        "instagram": "https://instagram.com/updated-myshop"
+    },
+    "business_hours": [
+        {"day": "Monday", "open": "10:00", "close": "19:00"},
+        {"day": "Tuesday", "open": "10:00", "close": "19:00"},
+        {"day": "Wednesday", "open": "10:00", "close": "19:00"},
+        {"day": "Thursday", "open": "10:00", "close": "19:00"},
+        {"day": "Friday", "open": "10:00", "close": "19:00"},
+        {"day": "Saturday", "open": "11:00", "close": "17:00"},
+        {"day": "Sunday", "open": "12:00", "close": "16:00"}
+    ]
+}
+Response JSON:
+{
+    "id": "shop_id",
+    "name": "Updated Shop Name",
+    "description": "Updated shop description",
+    "logo_url": "https://example.com/updated_logo.jpg",
+    "banner_url": "https://example.com/updated_banner.jpg",
+    "address": "456 Updated Street, City, Country",
+    "phone": "+1-234-567-8901",
+    "email": "updated@myshop.example.com",
+    "website": "https://updated-myshop.example.com",
+    "social_media": {
+        "facebook": "https://facebook.com/updated-myshop",
+        "twitter": "https://twitter.com/updated-myshop",
+        "instagram": "https://instagram.com/updated-myshop"
+    },
+    "business_hours": [
+        {"day": "Monday", "open": "10:00", "close": "19:00"},
+        {"day": "Tuesday", "open": "10:00", "close": "19:00"},
+        {"day": "Wednesday", "open": "10:00", "close": "19:00"},
+        {"day": "Thursday", "open": "10:00", "close": "19:00"},
+        {"day": "Friday", "open": "10:00", "close": "19:00"},
+        {"day": "Saturday", "open": "11:00", "close": "17:00"},
+        {"day": "Sunday", "open": "12:00", "close": "16:00"}
+    ],
+    "updated_at": "2023-06-15T11:45:00Z"
+}
+
+#############################################################################
+## 8. Comparison Endpoints
+#############################################################################
+
+-----------------------------------------------------------------------------
+### Compare Products
+-----------------------------------------------------------------------------
+URL: /api/comparison/compare/
+Method: POST
+Request JSON:
+{
+    "product_ids": ["product_id_1", "product_id_2", "product_id_3"]
+}
+Response JSON:
+{
+    "products": [
+        {
+            "id": "product_id_1",
+            "name": "Product 1",
+            "price": 150.0,
+            "original_price": 200.0,
+            "discount": 25,
+            "image_url": "https://example.com/product1.jpg",
+            "rating": 4.7,
+            "in_stock": true
+        },
+        {
+            "id": "product_id_2",
+            "name": "Product 2",
+            "price": 180.0,
+            "original_price": 250.0,
+            "discount": 28,
+            "image_url": "https://example.com/product2.jpg",
+            "rating": 4.5,
+            "in_stock": false
+        },
+        {
+            "id": "product_id_3",
+            "name": "Product 3",
+            "price": 120.0,
+            "original_price": 150.0,
+            "discount": 20,
+            "image_url": "https://example.com/product3.jpg",
+            "rating": 4.8,
+            "in_stock": true
+        }
+    ],
+    "comparison": {
+        "price": {
+            "min": 120.0,
+            "max": 200.0,
+            "average": 150.0
+        },
+        "rating": {
+            "min": 4.5,
+            "max": 4.8,
+            "average": 4.67
+        },
+        "in_stock": {
+            "in_stock": 2,
+            "out_of_stock": 1
+        },
+        "specifications": {
+            "Color": ["Black", "Red", "Blue"],
+            "Weight": ["200g", "300g", "150g"],
+            "Dimensions": ["10x5x2cm", "12x6x3cm", "8x4x1cm"]
+        }
+    }
+}
+
+#############################################################################
+## 9. User Preferences Endpoints
+#############################################################################
+
+-----------------------------------------------------------------------------
+### Get User Preferences
+-----------------------------------------------------------------------------
+URL: /api/user/preferences/
+Method: GET
+Response JSON:
+{
+    "id": "preference_id",
+    "min_price": 100.0,
+    "max_price": 1000.0,
+    "brand_preferences": [
+        {
+            "id": "brand_preference_id_1",
+            "brand": {
+                "id": "brand_id_1",
+                "name": "Brand 1",
+                "logo_url": "https://example.com/brand1_logo.jpg"
+            },
+            "created_at": "2023-05-15T10:30:00Z"
+        },
+        {
+            "id": "brand_preference_id_2",
+            "brand": {
+                "id": "brand_id_2",
+                "name": "Brand 2",
+                "logo_url": "https://example.com/brand2_logo.jpg"
+            },
+            "created_at": "2023-05-16T11:45:00Z"
+        }
+    ],
+    "created_at": "2023-05-15T10:30:00Z",
+    "updated_at": "2023-05-16T11:45:00Z"
+}
+
+-----------------------------------------------------------------------------
+### Update User Preferences
+-----------------------------------------------------------------------------
+URL: /api/user/preferences/
+Method: POST
+Request JSON:
+{
+    "min_price": 200.0,
+    "max_price": 2000.0,
+    "preferred_brands": ["brand_id_1", "brand_id_2", "brand_id_3"]
+}
+Response JSON:
+{
+    "id": "preference_id",
+    "min_price": 200.0,
+    "max_price": 2000.0,
+    "brand_preferences": [
+        {
+            "id": "brand_preference_id_1",
+            "brand": {
+                "id": "brand_id_1",
+                "name": "Brand 1",
+                "logo_url": "https://example.com/brand1_logo.jpg"
+            },
+            "created_at": "2023-05-15T10:30:00Z"
+        },
+        {
+            "id": "brand_preference_id_2",
+            "brand": {
+                "id": "brand_id_2",
+                "name": "Brand 2",
+                "logo_url": "https://example.com/brand2_logo.jpg"
+            },
+            "created_at": "2023-05-16T11:45:00Z"
+        },
+        {
+            "id": "brand_preference_id_3",
+            "brand": {
+                "id": "brand_id_3",
+                "name": "Brand 3",
+                "logo_url": "https://example.com/brand3_logo.jpg"
+            },
+            "created_at": "2023-06-15T10:30:00Z"
+        }
+    ],
+    "created_at": "2023-05-15T10:30:00Z",
+    "updated_at": "2023-06-15T10:30:00Z"
+}
+
+-----------------------------------------------------------------------------
+### Toggle Brand Preference
+-----------------------------------------------------------------------------
+URL: /api/user/preferences/brands/toggle/{brand_id}/
+Method: POST
+Response JSON:
+{
+    "message": "تمت إضافة العلامة التجارية إلى التفضيلات بنجاح.",
+    "is_preferred": true
+}
+or
+{
+    "message": "تمت إزالة العلامة التجارية من التفضيلات بنجاح.",
+    "is_preferred": false
+}
+
+-----------------------------------------------------------------------------
+### Get Brand Preference Status
+-----------------------------------------------------------------------------
+URL: /api/user/preferences/brands/status/{brand_id}/
+Method: GET
+Response JSON:
+{
+    "is_preferred": true
+}
+
+#############################################################################
+## 10. Favorites Endpoints
+#############################################################################
+
+-----------------------------------------------------------------------------
+### List User's Favorite Products
+-----------------------------------------------------------------------------
+URL: /api/user/favorites/
+Method: GET
+Response JSON:
+[
+    {
+        "id": "product_id_1",
+        "name": "Favorite Product 1",
+        "description": "Product description",
+        "price": 150.0,
+        "original_price": 200.0,
+        "discount": 25,
+        "category": {
+            "id": "category_id",
+            "name": "Category Name"
+        },
+        "brand": {
+            "id": "brand_id",
+            "name": "Brand Name"
+        },
+        "shop_name": "Shop Name",
+        "image_url": "https://example.com/image.jpg",
+        "in_stock": true,
+        "rating": 4.5,
+        "is_active": true
+    },
+    {
+        "id": "product_id_2",
+        "name": "Favorite Product 2",
+        "description": "Product description",
+        "price": 180.0,
+        "original_price": 220.0,
+        "discount": 18,
+        "category": {
+            "id": "category_id",
+            "name": "Category Name"
+        },
+        "brand": {
+            "id": "brand_id",
+            "name": "Brand Name"
+        },
+        "shop_name": "Shop Name",
+        "image_url": "https://example.com/image2.jpg",
+        "in_stock": true,
+        "rating": 4.7,
+        "is_active": true
+    }
+]
+
+-----------------------------------------------------------------------------
+### Toggle Product as Favorite
+-----------------------------------------------------------------------------
+URL: /api/user/favorites/toggle/{product_id}/
+Method: POST
+Response JSON:
+{
+    "message": "تمت إضافة المنتج إلى المفضلة بنجاح.",
+    "is_favorite": true
+}
+or
+{
+    "message": "تمت إزالة المنتج من المفضلة بنجاح.",
+    "is_favorite": false
+}
+
+-----------------------------------------------------------------------------
+### Get Product Favorite Status
+-----------------------------------------------------------------------------
+URL: /api/user/favorites/status/{product_id}/
+Method: GET
+Response JSON:
+{
+    "is_favorite": true
+}
+
+#############################################################################
+## 11. Verification Endpoints
+#############################################################################
+
+-----------------------------------------------------------------------------
+### Send Email Verification
+-----------------------------------------------------------------------------
+URL: /api/verification/verify-email/send/
+Method: POST
+Response JSON:
+{
+    "message": "تم إرسال رسالة التحقق إلى بريدك الإلكتروني."
+}
+
+-----------------------------------------------------------------------------
+### Confirm Email Verification
+-----------------------------------------------------------------------------
+URL: /api/verification/verify-email/confirm/{token}/
+Method: GET
+Response JSON:
+{
+    "message": "تم تفعيل البريد الإلكتروني بنجاح."
+}
+
+-----------------------------------------------------------------------------
+### Send Action Verification
+-----------------------------------------------------------------------------
+URL: /api/verification/verify-action/send/
+Method: POST
+Request JSON:
+{
+    "action_type": "update_stock", // Options: "delete_product", "bulk_delete", "update_stock", "change_password"
+    "object_id": "product_id" // Optional, depends on action type
+}
+Response JSON:
+{
+    "message": "تم إرسال رسالة التحقق إلى بريدك الإلكتروني."
+}
+
+-----------------------------------------------------------------------------
+### Confirm Action Verification
+-----------------------------------------------------------------------------
+URL: /api/verification/verify-action/confirm/{token}/
+Method: GET
+Response JSON:
+{
+    "message": "تم تأكيد الإجراء بنجاح.",
+    "action_type": "update_stock",
+    "object_id": "product_id",
+    "user_id": "user_id"
+}
+
+#############################################################################
+## 12. Inventory Update Endpoints
+#############################################################################
+
+-----------------------------------------------------------------------------
+### Update Product Inventory
+-----------------------------------------------------------------------------
+URL: /api/products/{product_id}/inventory/
+Method: POST
+Request JSON:
+{
+    "in_stock": true
+}
+Response JSON:
+{
+    "message": "تم تحديث حالة المخزون بنجاح إلى متوفر.",
+    "in_stock": true
+}
+
+-----------------------------------------------------------------------------
+### Bulk Update Inventory
+-----------------------------------------------------------------------------
+URL: /api/products/bulk-inventory/
+Method: POST
+Request JSON:
+{
+    "product_ids": ["product_id_1", "product_id_2", "product_id_3"],
+    "in_stock": true,
+    "require_verification": false // Optional, default is false
+}
+Response JSON:
+{
+    "message": "تم تحديث حالة المخزون لـ 3 منتج بنجاح.",
+    "updated_products": [
+        {
+            "id": "product_id_1",
+            "name": "Product 1",
+            "in_stock": true
+        },
+        {
+            "id": "product_id_2",
+            "name": "Product 2",
+            "in_stock": true
+        },
+        {
+            "id": "product_id_3",
+            "name": "Product 3",
+            "in_stock": true
+        }
+    ],
+    "not_found": [],
+    "not_owned": []
+}
+or (if verification is required)
+{
+    "message": "تم إرسال رابط التحقق إلى بريدك الإلكتروني.",
+    "require_verification": true
+}
+
+-----------------------------------------------------------------------------
+### Verified Inventory Update
+-----------------------------------------------------------------------------
+URL: /api/products/verified-inventory/{token_id}/
+Method: POST
+Request JSON:
+{
+    "in_stock": true
+}
+Response JSON:
+{
+    "message": "تم تحديث حالة المخزون بنجاح بعد التحقق.",
+    "updated_products": [
+        {
+            "id": "product_id_1",
+            "name": "Product 1",
+            "in_stock": true
+        },
+        {
+            "id": "product_id_2",
+            "name": "Product 2",
+            "in_stock": true
+        }
+    ]
+}
+
+#############################################################################
+## 13. Recommendations Endpoints
+#############################################################################
+
+-----------------------------------------------------------------------------
+### Get Recommendations
+-----------------------------------------------------------------------------
+URL: /api/recommendations/
+Method: GET
+Query Parameters:
+- limit: Number of recommendations to return (default: 10)
+Response JSON:
+{
+    "recommendations": [
+        {
+            "id": "product_id_1",
+            "name": "Recommended Product 1",
+            "price": 150.0,
+            "original_price": 200.0,
+            "discount": 25,
+            "image_url": "https://example.com/product1.jpg",
+            "rating": 4.7,
+            "in_stock": true,
+            "recommendation_score": 0.95,
+            "recommendation_type": "preferred"
+        },
+        {
+            "id": "product_id_2",
+            "name": "Recommended Product 2",
+            "price": 180.0,
+            "original_price": 220.0,
+            "discount": 18,
+            "image_url": "https://example.com/product2.jpg",
+            "rating": 4.5,
+            "in_stock": true,
+            "recommendation_score": 0.92,
+            "recommendation_type": "trending"
+        }
+    ]
+}
+
+-----------------------------------------------------------------------------
+### Get Hybrid Recommendations
+-----------------------------------------------------------------------------
+URL: /api/recommendations/hybrid/
+Method: GET
+Query Parameters:
+- limit: Number of recommendations to return (default: 10)
+Response JSON:
+{
+    "user_based": [
+        {
+            "id": "product_id_1",
+            "name": "User-Based Recommendation 1",
+            "price": 150.0,
+            "image_url": "https://example.com/product1.jpg",
+            "rating": 4.7,
+            "recommendation_score": 0.95
+        }
+    ],
+    "content_based": [
+        {
+            "id": "product_id_2",
+            "name": "Content-Based Recommendation 1",
+            "price": 180.0,
+            "image_url": "https://example.com/product2.jpg",
+            "rating": 4.5,
+            "recommendation_score": 0.92
+        }
+    ],
+    "trending": [
+        {
+            "id": "product_id_3",
+            "name": "Trending Product 1",
+            "price": 120.0,
+            "image_url": "https://example.com/product3.jpg",
+            "rating": 4.8,
+            "recommendation_score": 0.90
+        }
+    ]
+}
+
+-----------------------------------------------------------------------------
+### Track User Behavior
+-----------------------------------------------------------------------------
+URL: /api/recommendations/track-behavior/
+Method: POST
+Request JSON:
+{
+    "product_id": "product_id",
+    "action": "view" // Options: "view", "like", "purchase"
+}
+Response JSON:
+{
+    "message": "تم تسجيل السلوك بنجاح.",
+    "product_id": "product_id",
+    "action": "view"
+}
+
+#############################################################################
+## 14. Notifications Endpoints
+#############################################################################
+
+-----------------------------------------------------------------------------
+### List Notifications
+-----------------------------------------------------------------------------
+URL: /api/notifications/
+Method: GET
+Query Parameters:
+- type: Filter by notification type (e.g., "promotion", "general", "inventory")
+- is_read: Filter by read status ("true" or "false")
+- limit: Number of notifications to return
+Response JSON:
+[
+    {
+        "id": 1,
+        "recipient": "user_id",
+        "recipient_username": "username",
+        "content": "محتوى الإشعار الأول",
+        "notification_type": "general",
+        "is_read": false,
+        "created_at": "2023-06-15T10:30:00Z",
+        "related_id": "product_id_1"
+    },
+    {
+        "id": 2,
+        "recipient": "user_id",
+        "recipient_username": "username",
+        "content": "محتوى الإشعار الثاني",
+        "notification_type": "inventory",
+        "is_read": true,
+        "created_at": "2023-06-14T15:45:00Z",
+        "related_id": "product_id_2"
+    }
+]
+
+-----------------------------------------------------------------------------
+### Delete All Notifications
+-----------------------------------------------------------------------------
+URL: /api/notifications/
+Method: DELETE
+Response: 204 No Content
+
+-----------------------------------------------------------------------------
+### Get Notification Detail
+-----------------------------------------------------------------------------
+URL: /api/notifications/{notification_id}/
+Method: GET
+Response JSON:
+{
+    "id": 1,
+    "recipient": "user_id",
+    "recipient_username": "username",
+    "content": "محتوى الإشعار",
+    "notification_type": "general",
+    "is_read": false,
+    "created_at": "2023-06-15T10:30:00Z",
+    "related_id": "product_id_1"
+}
+
+-----------------------------------------------------------------------------
+### Delete Notification
+-----------------------------------------------------------------------------
+URL: /api/notifications/{notification_id}/
+Method: DELETE
+Response: 204 No Content
+
+-----------------------------------------------------------------------------
+### Mark All Notifications as Read
+-----------------------------------------------------------------------------
+URL: /api/notifications/mark-all-read/
+Method: PUT
+Response JSON:
+{
+    "message": "تم تعيين جميع الإشعارات كمقروءة."
+}
+
+-----------------------------------------------------------------------------
+### Generate AI Notifications
+-----------------------------------------------------------------------------
+URL: /api/notifications/generate-ai/
+Method: POST
+Response JSON:
+{
+    "message": "تم توليد الإشعارات بنجاح.",
+    "count": 3,
+    "notifications": [
+        {
+            "id": 1,
+            "recipient": "user_id",
+            "recipient_username": "username",
+            "content": "منتجاتك الأكثر مشاهدة: منتج 1، منتج 2، منتج 3. استفد من شعبيتها بإضافة المزيد من المعلومات والمواصفات!",
+            "notification_type": "general",
+            "is_read": false,
+            "created_at": "2023-06-15T10:30:00Z",
+            "related_id": null
+        },
+        {
+            "id": 2,
+            "recipient": "user_id",
+            "recipient_username": "username",
+            "content": "لديك 5 منتجات غير نشطة. قم بتفعيلها لزيادة فرص المبيعات!",
+            "notification_type": "inventory",
+            "is_read": false,
+            "created_at": "2023-06-15T10:30:00Z",
+            "related_id": null
+        },
+        {
+            "id": 3,
+            "recipient": "user_id",
+            "recipient_username": "username",
+            "content": "لديك 3 تقييمات جديدة على منتجاتك. اطلع عليها الآن!",
+            "notification_type": "general",
+            "is_read": false,
+            "created_at": "2023-06-15T10:30:00Z",
+            "related_id": null
+        }
+    ]
+}
+
+#############################################################################
+# End of Best In Click API Endpoints Documentation
+#############################################################################

@@ -16,7 +16,7 @@ SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'fallback-secret-key')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     # REST framework
     'rest_framework',
     'rest_framework.authtoken',
+    'corsheaders',  # CORS headers
 
     #APP IN PROJECT
     'core',
@@ -40,14 +41,22 @@ INSTALLED_APPS = [
     'reviews',
     'recommendations',
     'comparison',
+    'realtime',  # إضافة تطبيق الاتصالات في الوقت الحقيقي
+
+    # Channels
+    'channels',
+
 
 
     'django.contrib.sites',  # Required for authentication and allauth
+
+    'django_extensions',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',  # CORS middleware - should be placed before CommonMiddleware
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -83,7 +92,14 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'binc_b.wsgi.application'
+ASGI_APPLICATION = 'binc_b.asgi.application'
 
+# Channels
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+    },
+}
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
@@ -127,7 +143,7 @@ TIME_ZONE = 'Asia/Riyadh'  # ضبط المنطقة الزمنية
 USE_I18N = True
 
 
-USE_TZ = True  # تأكد من أن هذا الخيار مفعّل
+USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
@@ -138,6 +154,10 @@ STATIC_URL = 'static/'
 STATICFILES_DIRS = [
     BASE_DIR / 'static',  # Ensure this directory exists
 ]
+
+# Media files (Uploaded files)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
@@ -168,3 +188,52 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',  # الافتراضي
     'core.backends.EmailBackend',  # إضافة دعم تسجيل الدخول بالبريد الإلكتروني
 ]
+
+# CORS settings
+CORS_ALLOW_ALL_ORIGINS = True  # في بيئة التطوير فقط، لا تستخدم هذا في الإنتاج
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
+
+# Email settings
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # For development
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'  # For production
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'your-email@gmail.com'  # Replace with your email
+EMAIL_HOST_PASSWORD = 'your-password'  # Replace with your password or app password
+DEFAULT_FROM_EMAIL = 'no-reply@comparison-platform.com'
+
+# Frontend URL for email verification links
+FRONTEND_URL = 'http://localhost:3000'  # Replace with your frontend URL
+
+# Email settings
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # For development
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'  # For production
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'your-email@gmail.com'  # Replace with your email
+EMAIL_HOST_PASSWORD = 'your-password'  # Replace with your password or app password
+DEFAULT_FROM_EMAIL = 'no-reply@comparison-platform.com'
+
+# Frontend URL for email verification links
+FRONTEND_URL = 'http://localhost:3000'  # Replace with your frontend URL

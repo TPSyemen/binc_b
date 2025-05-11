@@ -4,6 +4,8 @@ from .views import (
     ProductDeleteView, FeaturedProductsView, ProductSearchView, RecentlyViewedProductsView,
     SimilarProductsView
 )
+from .views_popular import PopularProductsView
+from .views_public_categories import PublicCategoriesView
 
 urlpatterns = [
     path('', ProductListView.as_view(), name='product-list'),
@@ -15,4 +17,6 @@ urlpatterns = [
     path('search/', ProductSearchView.as_view(), name='product-search'),
     path('recently-viewed/', RecentlyViewedProductsView.as_view(), name='recently-viewed-products'),
     path('<uuid:product_id>/similar/', SimilarProductsView.as_view(), name='similar-products'),
+    path('popular/', PopularProductsView.as_view(), name='popular-products'),
+    path('categories/', PublicCategoriesView.as_view(), name='public-categories'),
 ]

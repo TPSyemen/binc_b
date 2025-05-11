@@ -2,11 +2,11 @@ from django.contrib.auth.backends import BaseBackend
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
-
+# -------------------------------------------------------------------------
+#    use to allow login using email and password
+# ------------------------------------------------------------------------------
 class EmailBackend(BaseBackend):
-    """
-    Custom authentication backend to allow login using email and password.
-    """
+
     def authenticate(self, request, username=None, password=None, **kwargs):
         try:
             user = User.objects.get(email=username)

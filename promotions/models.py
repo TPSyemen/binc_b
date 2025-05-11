@@ -1,7 +1,9 @@
 from django.db import models
 from core.models import Product, User
 from django.utils.timezone import now
-
+# -----------------------------------------------------------------
+#                   Promotion
+# -----------------------------------------------------------------
 class Promotion(models.Model):
     name = models.CharField(max_length=255, verbose_name="Promotion Name")
     description = models.TextField(blank=True, null=True, verbose_name="Description")
@@ -11,7 +13,9 @@ class Promotion(models.Model):
 
     def __str__(self):
         return self.name
-
+# -----------------------------------------------------------------
+#                       Discount
+# -----------------------------------------------------------------
 class DiscountCode(models.Model):
     code = models.CharField(max_length=50, unique=True, verbose_name="Discount Code")
     discount_percentage = models.DecimalField(max_digits=5, decimal_places=2, verbose_name="Discount Percentage")

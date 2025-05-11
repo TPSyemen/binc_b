@@ -15,9 +15,16 @@ class ComparisonView(APIView):
 
     def get(self, request, product_id):
         product = get_object_or_404(Product, id=product_id, is_active=True)
+
+        # Convertir Decimal a float para operaciones matemáticas
+        price_float = float(product.price)
+        min_price = price_float * 0.8
+        max_price = price_float * 1.2
+
         similar_products = Product.objects.filter(
             category=product.category,
-            price__range=(product.price * 0.8, product.price * 1.2),
+            price__gte=min_price,
+            price__lte=max_price,
             is_active=True
         ).exclude(id=product.id).order_by('-rating', '-views')[:5]
 

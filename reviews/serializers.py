@@ -1,7 +1,9 @@
 from rest_framework import serializers
 from core.models import User
 from .models import Review
-
+# ----------------------------------------------------------------
+#                       Review User Serializer
+# ----------------------------------------------------------------
 class ReviewUserSerializer(serializers.ModelSerializer):
     """Serializer for user information in reviews."""
     name = serializers.SerializerMethodField()
@@ -12,7 +14,9 @@ class ReviewUserSerializer(serializers.ModelSerializer):
 
     def get_name(self, obj):
         return f"{obj.first_name} {obj.last_name}".strip() or obj.email
-
+# ----------------------------------------------------------------
+#                   Review Serializer
+# ----------------------------------------------------------------
 class ReviewSerializer(serializers.ModelSerializer):
     """Serializer for the Review model."""
     user = ReviewUserSerializer(read_only=True)
@@ -21,7 +25,9 @@ class ReviewSerializer(serializers.ModelSerializer):
         model = Review
         fields = ('id', 'user', 'rating', 'comment', 'created_at')
         read_only_fields = ('id', 'user', 'created_at')
-
+# ----------------------------------------------------------------
+#                   Create Review Serializer
+# ----------------------------------------------------------------
 class CreateReviewSerializer(serializers.ModelSerializer):
     """Serializer for creating a review."""
 
