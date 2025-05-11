@@ -1,0 +1,412 @@
+# Database Schema for E-commerce Application
+
+## 1. Users Table
+- id (Primary Key)
+- username
+- email
+- password_hash
+- first_name
+- last_name
+- phone_number
+- avatar_url
+- address_line1
+- address_line2
+- city
+- state
+- postal_code
+- country
+- is_active
+- is_verified
+- is_admin
+- created_at
+- updated_at
+- last_login
+
+## 2. Products Table
+- id (Primary Key)
+- name
+- description
+- short_description
+- price
+- original_price
+- discount
+- sku
+- quantity
+- is_active
+- is_featured
+- category_id (Foreign Key)
+- brand_id (Foreign Key)
+- shop_id (Foreign Key)
+- created_at
+- updated_at
+
+## 3. Product_Images Table
+- id (Primary Key)
+- product_id (Foreign Key)
+- image_url
+- alt_text
+- is_primary
+- display_order
+- created_at
+
+## 4. Product_Attributes Table
+- id (Primary Key)
+- product_id (Foreign Key)
+- attribute_name
+- attribute_value
+- display_order
+
+## 5. Product_Variants Table
+- id (Primary Key)
+- product_id (Foreign Key)
+- sku
+- name
+- price
+- quantity
+- is_active
+- created_at
+- updated_at
+
+## 6. Product_Variant_Attributes Table
+- id (Primary Key)
+- variant_id (Foreign Key)
+- attribute_name
+- attribute_value
+
+## 7. Categories Table
+- id (Primary Key)
+- name
+- description
+- image_url
+- parent_id (Foreign Key, self-referential)
+- is_active
+- display_order
+- created_at
+- updated_at
+
+## 8. Brands Table
+- id (Primary Key)
+- name
+- description
+- logo_url
+- banner_url
+- website
+- founded_year
+- headquarters
+- is_active
+- created_at
+- updated_at
+
+## 9. Brand_Social_Media Table
+- id (Primary Key)
+- brand_id (Foreign Key)
+- platform
+- url
+
+## 10. Shops Table
+- id (Primary Key)
+- name
+- description
+- logo_url
+- banner_url
+- owner_id (Foreign Key to Users)
+- address
+- city
+- state
+- postal_code
+- country
+- phone
+- email
+- website
+- is_active
+- created_at
+- updated_at
+
+## 11. Shop_Social_Media Table
+- id (Primary Key)
+- shop_id (Foreign Key)
+- platform
+- url
+
+## 12. Shop_Business_Hours Table
+- id (Primary Key)
+- shop_id (Foreign Key)
+- day
+- open_time
+- close_time
+- is_closed
+
+## 13. Shop_Followers Table
+- id (Primary Key)
+- shop_id (Foreign Key)
+- user_id (Foreign Key)
+- followed_at
+
+## 14. Reviews Table
+- id (Primary Key)
+- product_id (Foreign Key)
+- user_id (Foreign Key)
+- rating
+- title
+- content
+- pros
+- cons
+- verified_purchase
+- helpful_votes
+- created_at
+- updated_at
+
+## 15. Review_Images Table
+- id (Primary Key)
+- review_id (Foreign Key)
+- image_url
+- created_at
+
+## 16. Review_Comments Table
+- id (Primary Key)
+- review_id (Foreign Key)
+- user_id (Foreign Key)
+- content
+- created_at
+- updated_at
+
+## 17. Review_Votes Table
+- id (Primary Key)
+- review_id (Foreign Key)
+- user_id (Foreign Key)
+- is_helpful
+- voted_at
+
+## 18. Orders Table
+- id (Primary Key)
+- user_id (Foreign Key)
+- order_number
+- status
+- total_amount
+- subtotal
+- tax
+- shipping_fee
+- discount_amount
+- payment_method
+- payment_status
+- shipping_address_id (Foreign Key)
+- billing_address_id (Foreign Key)
+- notes
+- created_at
+- updated_at
+
+## 19. Order_Items Table
+- id (Primary Key)
+- order_id (Foreign Key)
+- product_id (Foreign Key)
+- variant_id (Foreign Key, nullable)
+- quantity
+- price
+- discount
+- total
+- created_at
+
+## 20. Addresses Table
+- id (Primary Key)
+- user_id (Foreign Key)
+- address_type (shipping/billing)
+- first_name
+- last_name
+- address_line1
+- address_line2
+- city
+- state
+- postal_code
+- country
+- phone_number
+- is_default
+- created_at
+- updated_at
+
+## 21. Wishlists Table
+- id (Primary Key)
+- user_id (Foreign Key)
+- name
+- is_public
+- created_at
+- updated_at
+
+## 22. Wishlist_Items Table
+- id (Primary Key)
+- wishlist_id (Foreign Key)
+- product_id (Foreign Key)
+- added_at
+
+## 23. Carts Table
+- id (Primary Key)
+- user_id (Foreign Key, nullable)
+- session_id
+- created_at
+- updated_at
+
+## 24. Cart_Items Table
+- id (Primary Key)
+- cart_id (Foreign Key)
+- product_id (Foreign Key)
+- variant_id (Foreign Key, nullable)
+- quantity
+- added_at
+- updated_at
+
+## 25. Product_Views Table
+- id (Primary Key)
+- product_id (Foreign Key)
+- user_id (Foreign Key, nullable)
+- session_id (nullable)
+- viewed_at
+- ip_address
+
+## 26. Price_History Table
+- id (Primary Key)
+- product_id (Foreign Key)
+- price
+- effective_date
+- created_at
+
+## 27. Coupons Table
+- id (Primary Key)
+- code
+- description
+- discount_type (percentage/fixed)
+- discount_value
+- minimum_order_amount
+- is_active
+- start_date
+- end_date
+- usage_limit
+- usage_count
+- created_at
+- updated_at
+
+## 28. User_Coupons Table
+- id (Primary Key)
+- user_id (Foreign Key)
+- coupon_id (Foreign Key)
+- is_used
+- used_at
+- assigned_at
+
+## 29. Notifications Table
+- id (Primary Key)
+- user_id (Foreign Key)
+- type
+- title
+- message
+- is_read
+- related_id
+- related_type
+- created_at
+
+## 30. Tags Table
+- id (Primary Key)
+- name
+- slug
+- created_at
+
+## 31. Product_Tags Table
+- id (Primary Key)
+- product_id (Foreign Key)
+- tag_id (Foreign Key)
+- created_at
+
+## 32. Shop_Analytics Table
+- id (Primary Key)
+- shop_id (Foreign Key)
+- date
+- views
+- likes
+- followers
+- orders
+- revenue
+- created_at
+
+## 33. Product_Analytics Table
+- id (Primary Key)
+- product_id (Foreign Key)
+- date
+- views
+- likes
+- cart_adds
+- purchases
+- revenue
+- created_at
+
+## 34. User_Activity_Log Table
+- id (Primary Key)
+- user_id (Foreign Key)
+- activity_type
+- description
+- ip_address
+- user_agent
+- created_at
+
+## 35. Payment_Transactions Table
+- id (Primary Key)
+- order_id (Foreign Key)
+- transaction_id
+- payment_method
+- amount
+- currency
+- status
+- gateway_response
+- created_at
+- updated_at
+
+## 36. Shipping_Methods Table
+- id (Primary Key)
+- name
+- description
+- price
+- estimated_delivery_time
+- is_active
+- created_at
+- updated_at
+
+## 37. Order_Shipping Table
+- id (Primary Key)
+- order_id (Foreign Key)
+- shipping_method_id (Foreign Key)
+- tracking_number
+- carrier
+- status
+- shipped_at
+- delivered_at
+- created_at
+- updated_at
+
+## 38. Product_Questions Table
+- id (Primary Key)
+- product_id (Foreign Key)
+- user_id (Foreign Key)
+- question
+- is_answered
+- created_at
+- updated_at
+
+## 39. Product_Answers Table
+- id (Primary Key)
+- question_id (Foreign Key)
+- user_id (Foreign Key)
+- answer
+- is_from_seller
+- helpful_votes
+- created_at
+- updated_at
+
+## 40. Product_Comparisons Table
+- id (Primary Key)
+- user_id (Foreign Key, nullable)
+- session_id (nullable)
+- created_at
+- updated_at
+
+## 41. Product_Comparison_Items Table
+- id (Primary Key)
+- comparison_id (Foreign Key)
+- product_id (Foreign Key)
+- added_at
