@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: binc-b
+    env: python
+    buildCommand: ./render_build.sh
+    startCommand: ./render_start.sh
+    envVars:
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: False
+      - key: PYTHON_VERSION
+        value: 3.11.11
+    autoDeploy: true
