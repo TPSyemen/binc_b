@@ -79,7 +79,7 @@ Response JSON:
 -----------------------------------------------------------------------------
 ### Reset Password Request
 -----------------------------------------------------------------------------
-URL: /api/auth/reset-password-request/
+URL: /api/auth/reset-password-request/ ##########
 Method: POST
 Request JSON:
 {
@@ -93,7 +93,7 @@ Response JSON:
 -----------------------------------------------------------------------------
 ### Reset Password Confirm
 -----------------------------------------------------------------------------
-URL: /api/auth/reset-password-confirm/
+URL: /api/auth/reset-password-confirm/ ##########
 Method: POST
 Request JSON:
 {
@@ -156,7 +156,7 @@ Response JSON:
 -----------------------------------------------------------------------------
 ### Product Detail
 -----------------------------------------------------------------------------
-URL: /products/{product_id}/
+URL: /products/{product_id}/######
 Method: GET
 Response JSON:
 {
@@ -258,7 +258,7 @@ Response JSON:
 -----------------------------------------------------------------------------
 ### Update Product
 -----------------------------------------------------------------------------
-URL: /products/{product_id}/update/
+URL: /products/{product_id}/update/ #############
 Method: PUT
 Request JSON:
 {
@@ -308,7 +308,7 @@ Response JSON:
 -----------------------------------------------------------------------------
 ### Delete Product
 -----------------------------------------------------------------------------
-URL: /products/{product_id}/delete/
+URL: /products/{product_id}/delete/  #############
 Method: DELETE
 Response JSON:
 {
@@ -318,7 +318,7 @@ Response JSON:
 -----------------------------------------------------------------------------
 ### Featured Products
 -----------------------------------------------------------------------------
-URL: /products/featured/
+URL: /products/featured/  #############
 Method: GET
 Query Parameters:
 - limit: Number of products to return
@@ -410,7 +410,7 @@ Response JSON:
 -----------------------------------------------------------------------------
 ### Similar Products
 -----------------------------------------------------------------------------
-URL: /products/{product_id}/similar/
+URL: /products/{product_id}/similar/  ######
 Method: GET
 Query Parameters:
 - limit: Number of products to return

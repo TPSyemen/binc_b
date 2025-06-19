@@ -58,6 +58,9 @@ INSTALLED_APPS = [
     'django_extensions',
 ]
 
+# Site ID for django.contrib.sites
+SITE_ID = 1
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',  # Add whitenoise for static files
