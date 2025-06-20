@@ -134,7 +134,20 @@
 - **Headers:** Authorization: Bearer <access_token>
 - **مثال استجابة:**
 ```json
-{"preferred": [ { ... } ], "liked": [ { ... } ], "new": [ { ... } ], "popular": [ { ... } ]}
+{
+  "preferred": [
+    {"id": "1", "name": "iPhone 15 Pro", "brand": "Apple", "score": 92.5, "is_featured": true}
+  ],
+  "liked": [
+    {"id": "2", "name": "Galaxy S24 Ultra", "brand": "Samsung", "score": 89.0}
+  ],
+  "new": [
+    {"id": "3", "name": "Pixel 9", "brand": "Google", "score": 85.0}
+  ],
+  "popular": [
+    {"id": "4", "name": "Redmi Note 13", "brand": "Xiaomi", "score": 80.0}
+  ]
+}
 ```
 
 ### 2. التوصيات الهجينة
@@ -152,7 +165,10 @@
 - **Headers:** Authorization: Bearer <access_token>, Content-Type: application/json
 - **Body:**
 ```json
-{"product_id": "...", "action": "view | like | purchase"}
+{
+  "product_id": "معرف المنتج",
+  "action": "view"  // أو "like" أو "purchase"
+}
 ```
 - **مثال استجابة:**
 ```json
@@ -169,15 +185,16 @@
 - **Headers:** Authorization: Bearer <access_token>, Content-Type: application/json
 - **Body:**
 ```json
-{"product_id": "...", "rating": 5, "comment": "..."}
+{"product_id": "...", "comment": "..."}
 ```
+- **ملاحظة:** لا يمكن إرسال rating، حيث يتم توليده تلقائيًا من تحليل نص التعليق.
 - **مثال استجابة:**
 ```json
 {"id": "...", "product": "...", "rating": 5, "comment": "...", ...}
 ```
 
 ### 2. قائمة مراجعات منتج
-- **URL:** `/reviews/product/{product_id}/`
+- **URL:** `/reviews/products/{product_id}/reviews/`
 - **Method:** `GET`
 - **مثال استجابة:**
 ```json

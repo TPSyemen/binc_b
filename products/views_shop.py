@@ -82,3 +82,31 @@ class ShopRegisterView(APIView):
                     status=status.HTTP_201_CREATED
                 )
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class ShopListView(APIView):
+    """عرض جميع المتاجر مع بيانات مختصرة (id, name, logo)."""
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request):
+        from core.models import Shop
+        shops = Shop.objects.all()
+        data = [
+            {
+                "id": str(shop.id),
+                "name": shop.name,
+                "logo": shop.logo.url if shop.logo else None
+            }
+            for shop in shops
+        ]
+        return Response(data)
+
+class ShopDetailView(APIView):
+    """عرض تفاصيل متجر بناءً على معرف المتجر."""
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request, pk):
+        from core.models import Shop
+        shop = get_object_or_404(Shop, pk=pk)
+        from .serializers import ShopSerializer
+        serializer = ShopSerializer(shop)
+        return Response(serializer.data)

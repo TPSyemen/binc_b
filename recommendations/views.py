@@ -34,17 +34,21 @@ class RecommendationView(APIView):
                 user=user, action='like'
             ).values_list('product_id', flat=True).order_by('-timestamp')[:10])
 
+            # إضافة المنتجات التي قام المستخدم بتقييمها
+            from reviews.models import Review
+            rated_products = list(Review.objects.filter(
+                user=user
+            ).values_list('product_id', flat=True).order_by('-created_at')[:10])
+
             # Prepare user data for recommendations
             user_data = {
                 'viewed_products': viewed_products,
-                'liked_products': liked_products
+                'liked_products': liked_products,
+                'rated_products': rated_products
             }
 
-            # Ensure models are trained
-            self._ensure_models_trained()
-
-            # Get AI-powered personalized recommendations
-            ai_recommendations = recommendation_service.get_personalized_recommendations(
+            # استدعاء خدمة التوصيات بالبيانات الصحيحة
+            ai_recommendations = recommendation_service.get_recommendations(
                 user.id, user_data, n=20
             )
 
@@ -54,20 +58,21 @@ class RecommendationView(APIView):
 
             # Fetch liked products from AI recommendations
             liked_product_ids = ai_recommendations.get('liked', [])
-            liked_products = Product.objects.filter(id__in=liked_product_ids)
+            # إضافة جميع المنتجات التي أعجب بها المستخدم حتى لو لم تظهر في الذكاء الاصطناعي
+            all_liked_ids = list(set(liked_product_ids) | set(liked_products))
+            liked_products = Product.objects.filter(id__in=all_liked_ids)
 
-            # If AI recommendations are insufficient, fall back to basic recommendations
+            # Fallback: Preferred products based فقط على المشاهدات
             if len(preferred_products) < 5:
-                # Fallback: Preferred products based on previous interactions
                 fallback_preferred = Product.objects.filter(
-                    reviews__user=user
+                    id__in=viewed_products
                 ).distinct()[:10]
                 preferred_products = list(preferred_products) + list(fallback_preferred)
 
+            # Fallback: Liked products فقط من الإعجابات
             if len(liked_products) < 5:
-                # Fallback: Liked products
                 fallback_liked = Product.objects.filter(
-                    likes__gt=0, reviews__user=user
+                    id__in=liked_products
                 ).distinct()[:10]
                 liked_products = list(liked_products) + list(fallback_liked)
 

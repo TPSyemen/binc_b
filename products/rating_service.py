@@ -18,22 +18,26 @@ class AutomaticRatingService:
         حساب تقييم المنتج بناءً على:
         1. تفاعلات المستخدمين (إعجاب/عدم إعجاب/محايد)
         2. سمعة العلامة التجارية
-        3. تحليل وصف المنتج
+        3. عدد المشاهدات
+        4. تحليل وصف المنتج
         """
         try:
             product = Product.objects.get(id=product_id)
 
-            # 1. حساب تقييم بناءً على تفاعلات المستخدمين (60% من التقييم النهائي)
+            # 1. حساب تقييم بناءً على تفاعلات المستخدمين (40% من التقييم النهائي)
             user_rating = self._calculate_user_reaction_rating(product)
 
             # 2. حساب تقييم بناءً على سمعة العلامة التجارية (20% من التقييم النهائي)
             brand_rating = self._calculate_brand_rating(product.brand)
 
-            # 3. حساب تقييم بناءً على تحليل وصف المنتج (20% من التقييم النهائي)
+            # 3. حساب تقييم بناءً على عدد المشاهدات (20% من التقييم النهائي)
+            views_rating = self._calculate_views_rating(product.views)
+
+            # 4. حساب تقييم بناءً على تحليل وصف المنتج (20% من التقييم النهائي)
             description_rating = self._analyze_product_description(product.description)
 
             # حساب التقييم النهائي (مرجح)
-            final_rating = (user_rating * 0.6) + (brand_rating * 0.2) + (description_rating * 0.2)
+            final_rating = (user_rating * 0.4) + (brand_rating * 0.2) + (views_rating * 0.2) + (description_rating * 0.2)
 
             # تحديث تقييم المنتج (بدون إخطار المالك)
             product.rating = round(final_rating, 2)
@@ -71,6 +75,19 @@ class AutomaticRatingService:
 
         return brand_avg_rating
 
+    def _calculate_views_rating(self, views):
+        """تحويل عدد المشاهدات إلى تقييم (1 إلى 5) بناءً على توزيع منطقي"""
+        if views >= 1000:
+            return 5.0
+        elif views >= 500:
+            return 4.0
+        elif views >= 100:
+            return 3.0
+        elif views >= 10:
+            return 2.0
+        else:
+            return 1.0
+
     def _analyze_product_description(self, description):
         """تحليل وصف المنتج لتقدير جودته"""
         if not description:
@@ -79,18 +96,11 @@ class AutomaticRatingService:
         # تقييم طول الوصف (وصف أطول = تقييم أفضل، حتى حد معين)
         length_score = min(5, max(1, len(description) / 100))
 
-        # يمكن استخدام تحليل المشاعر إذا كان متاح<|im_start|>
-        sentiment_score = 2.5
-        if hasattr(self.recommendation_service, 'sentiment_analyzer'):
-            try:
-                sentiment = self.recommendation_service.sentiment_analyzer.polarity_scores(description)
-                # تحويل نتيجة المشاعر (-1 إلى 1) إلى مقياس (1 إلى 5)
-                sentiment_score = ((sentiment['compound'] + 1) / 2) * 4 + 1
-            except:
-                pass
+        # يمكن استخدام تحليل المشاعر إذا كان متاحًا ومناسبًا
+        # على سبيل المثال، إذا كانت هناك مكتبة لتحليل المشاعر، يمكن استخدامها هنا
+        sentiment_score = 2.5  # افتراضي محايد
 
-        # المتوسط بين طول الوصف وتحليل المشاعر
+        # دمج تقييم الطول مع تقييم المشاعر
         return (length_score + sentiment_score) / 2
 
-# إنشاء نسخة عامة من الخدمة
 rating_service = AutomaticRatingService()
