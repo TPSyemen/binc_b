@@ -12,6 +12,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from .serializers import RegisterSerializer, LoginSerializer
 from .email_service import send_verification_email
+from rest_framework import viewsets
 
 User = get_user_model()
 
@@ -161,3 +162,40 @@ class AccessPointLoginAPIView(APIView):
 
     def delete(self, request, *args, **kwargs):
         return Response({"error": "Only POST method is allowed."}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+# ---------------------------------------------------------------------------------
+#                   User API ViewSet
+# ---------------------------------------------------------------------------------
+class UserSerializer(RegisterSerializer):
+    class Meta(RegisterSerializer.Meta):
+        fields = ['id', 'username', 'email', 'user_type', 'is_active']
+        read_only_fields = ['id']
+
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [permissions.IsAdminUser]
+
+    def get_permissions(self):
+        # Only admin can delete/update/create, others can only view
+        if self.action in ['list', 'retrieve']:
+            return [permissions.IsAuthenticated()]
+        return [permissions.IsAdminUser()]
+
+    def update(self, request, *args, **kwargs):
+        kwargs['partial'] = True  # دعم التحديث الجزئي دائماً
+        return super().update(request, *args, **kwargs)
+
+    def perform_create(self, serializer):
+        password = self.request.data.get('password')
+        user = serializer.save()
+        if password:
+            user.set_password(password)
+            user.save()
+
+    def perform_update(self, serializer):
+        password = self.request.data.get('password')
+        user = serializer.save()
+        if password:
+            user.set_password(password)
+            user.save()

@@ -119,20 +119,25 @@ class ProductDetailSerializer(serializers.ModelSerializer):
 #                   Shop Serializer
 #----------------------------------------------------------------
 class ShopSerializer(serializers.ModelSerializer):
-    owner_name = serializers.SerializerMethodField()
+    owner = serializers.SerializerMethodField()
     product_count = serializers.SerializerMethodField()
     completion_percentage = serializers.SerializerMethodField()
 
     class Meta:
         model = Shop
         fields = ('id', 'name', 'address', 'description', 'logo', 'banner', 'url',
-                 'phone', 'email', 'social_media', 'owner_name', 'product_count',
+                 'phone', 'email', 'social_media', 'owner', 'product_count',
                  'completion_percentage')
-        read_only_fields = ('id', 'owner_name', 'product_count', 'completion_percentage')
+        read_only_fields = ('id', 'owner', 'product_count', 'completion_percentage')
 
-    def get_owner_name(self, obj):
+    def get_owner(self, obj):
         if obj.owner and obj.owner.user:
-            return obj.owner.user.username
+            return {
+                'id': str(obj.owner.user.id),  # يجب أن يكون معرف المستخدم
+                'username': obj.owner.user.username,
+                'email': obj.owner.user.email,
+                'is_active': obj.owner.user.is_active
+            }
         return None
 
     def get_product_count(self, obj):

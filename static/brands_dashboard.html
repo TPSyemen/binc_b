@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة العلامات التجارية</title>
+    <meta name="description" content="إدارة العلامات التجارية: أضف، عدل، أو احذف العلامات التجارية بسهولة من لوحة التحكم الموحدة.">
+    <link rel="stylesheet" href="/static/dashboard_style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        .navbar {
+            background: linear-gradient(90deg, #1976d2 0%, #0d47a1 100%);
+            color: #fff;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 68px;
+            box-shadow: 0 4px 18px rgba(30,60,120,0.13);
+            border-radius: 0 0 18px 18px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            z-index: 100;
+        }
+        body { padding-top: 80px !important; }
+        .navbar .brand {
+            font-size: 1.6em;
+            font-weight: bold;
+            padding: 0 40px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            letter-spacing: 1px;
+        }
+        .navbar .brand .icon {
+            font-size: 2em;
+            margin-left: 8px;
+            filter: drop-shadow(0 2px 4px #0d47a1aa);
+        }
+        .navbar .menu {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0 32px;
+        }
+        .navbar .menu button {
+            background: rgba(255,255,255,0.13);
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5em;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.2s;
+            box-shadow: 0 2px 8px rgba(30,60,120,0.10);
+        }
+        .navbar .menu button:hover {
+            background: #fff;
+            color: #1976d2;
+            transform: translateY(-2px) scale(1.08);
+        }
+        @media (max-width: 700px) {
+            .navbar .brand { font-size: 1.1em; padding: 0 10px; }
+            .navbar .menu { padding: 0 8px; }
+        }
+        .icon-btn { background: none; border: none; font-size: 1.2em; cursor: pointer; margin: 0 2px; }
+        .icon-btn.edit { color: #1976d2; }
+        .icon-btn.delete { color: #b71c1c; }
+        .icon-btn.edit:hover { color: #0d47a1; }
+        .icon-btn.delete:hover { color: #d32f2f; }
+        .form-popup { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(30,60,120,0.13); z-index: 1001; align-items: center; justify-content: center; }
+        .form-popup.active { display: flex; }
+        .form-box { background: #fff; border-radius: 12px; box-shadow: 0 4px 24px rgba(30,60,120,0.13); padding: 32px 24px; min-width: 320px; }
+        .form-box label { display: block; margin-bottom: 6px; color: #263238; }
+        .form-box input { width: 100%; margin-bottom: 14px; padding: 8px; border-radius: 6px; border: 1px solid #bdbdbd; font-size: 1em; background: #f7fafd; }
+        .form-box .form-actions { display: flex; justify-content: flex-end; gap: 10px; }
+        .form-box button { background: #1976d2; color: #fff; border: none; border-radius: 6px; padding: 8px 20px; font-size: 1em; cursor: pointer; }
+        .form-box button.cancel { background: #bdbdbd; color: #263238; }
+        .form-box button:hover:not(.cancel) { background: #0d47a1; }
+        .error { color: #b71c1c; text-align: center; margin-bottom: 12px; }
+        .success { color: #388e3c; text-align: center; margin-bottom: 12px; }
+        @media (max-width: 700px) { .dashboard { padding: 10px 2px; } .form-box { min-width: 90vw; } }
+        .crud-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #fff;
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 2px 12px rgba(30,60,120,0.07);
+            font-size: 1.08em;
+        }
+        .crud-table thead {
+            background: linear-gradient(90deg, #1976d2 0%, #0d47a1 100%);
+            color: #fff;
+        }
+        .crud-table th, .crud-table td {
+            padding: 16px 10px;
+            text-align: center;
+        }
+        .crud-table th {
+            font-size: 1.1em;
+            letter-spacing: 1px;
+            border-bottom: 2px solid #1976d2;
+        }
+        .crud-table tbody tr {
+            transition: background 0.18s;
+        }
+        .crud-table tbody tr:nth-child(even) {
+            background: #f4f7fb;
+        }
+        .crud-table tbody tr:nth-child(odd) {
+            background: #fafdff;
+        }
+        .crud-table tbody tr:hover {
+            background: #e3e7ee;
+            box-shadow: 0 2px 8px #1976d22a;
+        }
+        .crud-table td {
+            border-bottom: 1px solid #e3e7ee;
+        }
+        @media (max-width: 700px) {
+            .crud-table th, .crud-table td { padding: 10px 4px; font-size: 0.98em; }
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <span class="brand"><span class="icon">🏪</span> إدارة العلامات التجارية</span>
+        <div class="menu">
+            <button title="الرئيسية" onclick="window.location.href='/apps-dashboard/'"><span>🏠</span></button>
+            <button title="خروج" onclick="logout()" style="background:#b71c1c;"><span>🔓</span></button>
+        </div>
+    </div>
+    <div class="dashboard">
+        <h1><span style="font-size:1.2em;vertical-align:middle;">🏷️</span> العلامات التجارية <span style="font-size:0.7em;color:#1976d2;">(CRUD)</span></h1>
+        <div class="actions">
+            <button class="add-btn" onclick="openForm()"><span style="font-size:1.1em;">➕</span> إضافة علامة تجارية</button>
+        </div>
+        <div style="width:100%;overflow-x:auto;">
+            <table id="brandsTable" class="crud-table" style="width:100%;min-width:700px;">
+                <thead>
+                    <tr><th>🏪</th><th>📦</th><th>⭐</th><th>⚙️</th></tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+    <div class="form-popup" id="formPopup">
+        <form class="form-box" onsubmit="return saveBrand(event)">
+            <div id="formError" class="error"></div>
+            <label>🏷️ الاسم</label>
+            <input type="text" id="formName" required>
+            <label>⭐ التقييم</label>
+            <input type="number" id="formRating" min="0" max="5" step="0.01" required>
+            <label>🔥 الشعبية</label>
+            <input type="number" id="formPopularity" min="0" max="100" step="0.01" required>
+            <div class="form-actions">
+                <button type="button" class="cancel" onclick="closeForm()">إلغاء</button>
+                <button type="submit">حفظ</button>
+            </div>
+        </form>
+    </div>
+    <script>
+        let allBrands = [];
+        let editId = null;
+        async function fetchBrands() {
+            const token = localStorage.getItem('access_token');
+            const res = await fetch('/api/brands/', {
+                headers: token ? { 'Authorization': 'Bearer ' + token } : {}
+            });
+            const data = await res.json();
+            allBrands = data;
+            renderBrands();
+        }
+        function renderBrands() {
+            const tbody = document.querySelector('#brandsTable tbody');
+            tbody.innerHTML = '';
+            allBrands.forEach(b => {
+                tbody.innerHTML += `<tr style="cursor:pointer;" onclick="editBrand('${b.id}')">
+                    <td><span style='font-size:1.1em;'>🏷️</span> ${b.name}</td>
+                    <td><span style='font-size:1.1em;'>📦</span> ${b.product_count}</td>
+                    <td><span style='font-size:1.1em;'>⭐</span> ${b.rating}</td>
+                    <td>
+                        <button class="icon-btn delete" title="حذف" onclick="event.stopPropagation();deleteBrand('${b.id}');return false;">🗑️</button>
+                    </td>
+                </tr>`;
+            });
+            if(allBrands.length === 0) tbody.innerHTML = '<tr><td colspan="4">لا توجد علامات تجارية</td></tr>';
+        }
+        function openForm(id = null) {
+            editId = id;
+            document.getElementById('formError').textContent = '';
+            if(id) {
+                const b = allBrands.find(x => x.id === id);
+                document.getElementById('formName').value = b.name;
+                document.getElementById('formRating').value = b.rating;
+                document.getElementById('formPopularity').value = b.popularity;
+            } else {
+                document.getElementById('formName').value = '';
+                document.getElementById('formRating').value = '';
+                document.getElementById('formPopularity').value = '';
+            }
+            document.getElementById('formPopup').classList.add('active');
+        }
+        function closeForm() {
+            document.getElementById('formPopup').classList.remove('active');
+        }
+        async function saveBrand(e) {
+            e.preventDefault();
+            const name = document.getElementById('formName').value.trim();
+            const rating = document.getElementById('formRating').value;
+            const popularity = document.getElementById('formPopularity').value;
+            if(!name || rating === '' || popularity === '') {
+                document.getElementById('formError').textContent = 'يرجى تعبئة جميع الحقول';
+                return false;
+            }
+            const token = localStorage.getItem('access_token');
+            let url = '/api/brands/';
+            let method = 'POST';
+            if(editId) {
+                url += editId + '/';
+                method = 'PUT';
+            }
+            const res = await fetch(url, {
+                method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                },
+                body: JSON.stringify({ name, rating, popularity })
+            });
+            if(res.ok) {
+                closeForm();
+                fetchBrands();
+            } else {
+                document.getElementById('formError').textContent = 'فشل الحفظ. ربما الاسم مستخدم مسبقاً أو هناك خطأ.';
+            }
+        }
+        async function deleteBrand(id) {
+            if(!confirm('هل أنت متأكد من حذف العلامة التجارية؟')) return;
+            const token = localStorage.getItem('access_token');
+            const res = await fetch('/api/brands/' + id + '/', {
+                method: 'DELETE',
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            if(res.ok) fetchBrands();
+        }
+        function logout() {
+            localStorage.removeItem('dashboard_logged_in');
+            localStorage.removeItem('dashboard_email');
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('refresh_token');
+            window.location.href = '/static/login.html';
+        }
+        function editBrand(id) {
+            openForm(id);
+        }
+        fetchBrands();
+    </script>
+</body>
+</html>

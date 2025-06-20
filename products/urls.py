@@ -5,6 +5,7 @@ Defines product-related API endpoints (list, detail, create, update, etc.).
 """
 
 from django.urls import path
+from rest_framework.routers import DefaultRouter
 
 from .views import (
     ProductListView,
@@ -20,6 +21,10 @@ from .views import (
 )
 from .views_popular import PopularProductsView
 from .views_public_categories import PublicCategoriesView
+from .views import BrandViewSet
+
+router = DefaultRouter()
+router.register(r"brands", BrandViewSet, basename="brand")
 
 urlpatterns = [
     path("", ProductListView.as_view(), name="product-list"),
@@ -43,3 +48,5 @@ urlpatterns = [
         name="product-price-history",
     ),
 ]
+
+urlpatterns += router.urls

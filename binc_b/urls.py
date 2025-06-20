@@ -46,6 +46,10 @@ urlpatterns = [
     path('api/products/', include('products.urls_reviews_stats')),
     path('login/', lambda r: open_dashboard_page(r, 'login.html'), name='login'),
     path('api/shops/admin/', AdminShopListView.as_view(), name='admin-shop-list'),
+    path('brands-dashboard/', lambda r: open_dashboard_page(r, 'brands_dashboard.html'), name='brands-dashboard'),
+    path('api/brands/', include('products.urls_brands')),
+    path('categories-dashboard/', lambda r: open_dashboard_page(r, 'categories_dashboard.html'), name='categories-dashboard'),
+    path('api/categories/', include('products.urls_categories')),
 ]
 
 if settings.DEBUG:

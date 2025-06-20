@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>بروفايل المتجر</title>
+    <meta name="description" content="تفاصيل المتجر: استعرض بيانات المتجر، مالكه، وإحصائيات المنتجات المرتبطة به بشكل احترافي.">
+    <link rel="stylesheet" href="/static/dashboard_style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body { background: #f6f8fa; }
+        .navbar {
+            background: linear-gradient(90deg, #1976d2 0%, #0d47a1 100%);
+            color: #fff;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 68px;
+            box-shadow: 0 4px 18px rgba(30,60,120,0.13);
+            border-radius: 0 0 18px 18px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            z-index: 100;
+        }
+        body { padding-top: 80px !important; }
+        .navbar .brand { font-size: 1.6em; font-weight: bold; padding: 0 40px; display: flex; align-items: center; gap: 12px; letter-spacing: 1px; }
+        .navbar .brand .icon { font-size: 2em; margin-left: 8px; filter: drop-shadow(0 2px 4px #0d47a1aa); }
+        .navbar .menu { display: flex; align-items: center; gap: 12px; padding: 0 32px; }
+        .navbar .menu button { background: rgba(255,255,255,0.13); color: #fff; border: none; border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; font-size: 1.5em; cursor: pointer; transition: background 0.2s, transform 0.2s; box-shadow: 0 2px 8px rgba(30,60,120,0.10); }
+        .navbar .menu button:hover { background: #fff; color: #1976d2; transform: translateY(-2px) scale(1.08); }
+        @media (max-width: 700px) { .navbar .brand { font-size: 1.1em; padding: 0 10px; } .navbar .menu { padding: 0 8px; } }
+        .shop-profile { max-width: 900px; margin: 40px auto; background: #fff; border-radius: 18px; box-shadow: 0 6px 32px rgba(30,60,120,0.10); padding: 36px 28px; }
+        .shop-header { display: flex; align-items: center; gap: 32px; margin-bottom: 24px; }
+        .shop-header img { width: 120px; height: 120px; border-radius: 16px; object-fit: cover; background: #e3e7ee; }
+        .shop-info { flex: 1; }
+        .shop-info h2 { color: #0d47a1; margin: 0 0 8px 0; }
+        .shop-info .status { display: inline-block; padding: 4px 16px; border-radius: 8px; font-size: 1em; background: #e3f7e3; color: #388e3c; margin-right: 8px; }
+        .shop-info .status.inactive { background: #ffeaea; color: #b71c1c; }
+        .shop-details-row { margin-bottom: 8px; color: #374151; }
+        .section-title { color: #1976d2; font-size: 1.2em; margin: 32px 0 12px 0; border-bottom: 1px solid #e3e7ee; padding-bottom: 4px; }
+        .owner-box { background: #f4f7fb; border-radius: 10px; padding: 14px 18px; margin-bottom: 18px; }
+        .products-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px; }
+        .product-card { background: #f7fafd; border-radius: 12px; box-shadow: 0 2px 8px rgba(30,60,120,0.07); padding: 18px; text-align: center; }
+        .product-card img { width: 80px; height: 80px; border-radius: 8px; object-fit: cover; margin-bottom: 8px; background: #e3e7ee; }
+        .product-card .name { font-weight: bold; color: #0d47a1; margin-bottom: 4px; }
+        .product-card .price { color: #388e3c; font-weight: bold; }
+        .product-card .status { font-size: 0.95em; margin-top: 4px; }
+        .shop-stats-modern { display: flex; gap: 18px; margin: 24px 0 18px 0; flex-wrap: wrap; justify-content: flex-start; }
+        .stat-card { background: #f4f7fb; border-radius: 12px; padding: 18px 24px; min-width: 120px; text-align: center; box-shadow: 0 2px 8px rgba(30,60,120,0.07); margin-bottom: 8px; }
+        .stat-label { color: #1976d2; font-size: 1em; margin-bottom: 6px; }
+        .stat-value { font-size: 1.5em; font-weight: bold; color: #0d47a1; }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <span class="brand"><span class="icon">🏪</span> بروفايل المتجر</span>
+        <div class="menu">
+            <button title="رجوع" onclick="window.history.back()"><span>🔙</span></button>
+            <button title="الرئيسية" onclick="window.location.href='/apps-dashboard/'"><span>🏠</span></button>
+            <button title="خروج" onclick="logout()" style="background:#b71c1c;"><span>🔓</span></button>
+        </div>
+    </div>
+    <div class="shop-profile" id="shop-profile">
+        <div id="shop-content">جاري التحميل...</div>
+    </div>
+    <script src="/static/dashboard_protect.js"></script>
+    <script>
+    async function fetchShopDetail() {
+        const params = new URLSearchParams(window.location.search);
+        const shopId = params.get('id');
+        if (!shopId) {
+            document.getElementById('shop-content').textContent = 'لم يتم تحديد معرف المتجر.';
+            return;
+        }
+        const token = localStorage.getItem('access_token');
+        try {
+            console.log('جلب بيانات المتجر:', shopId);
+            const res = await fetch(`/api/shop/${shopId}/`, {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            console.log('استجابة المتجر:', res.status);
+            if (!res.ok) throw new Error('فشل في جلب تفاصيل المتجر');
+            const shop = await res.json();
+            console.log('بيانات المتجر:', shop);
+            // جلب المنتجات التابعة للمتجر (فلترة عبر كويري المنتجات)
+            let products = [];
+            try {
+                const prodRes = await fetch(`/api/products/?shop_id=${shopId}`, {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                console.log('استجابة المنتجات:', prodRes.status);
+                if (prodRes.ok) {
+                    const prodData = await prodRes.json();
+                    console.log('بيانات المنتجات:', prodData);
+                    // إذا كانت الاستجابة مصفوفة مباشرة أو results
+                    products = Array.isArray(prodData) ? prodData : (prodData.results || []);
+                } else {
+                    console.log('فشل في جلب المنتجات');
+                }
+            } catch (err) {
+                console.log('خطأ في جلب المنتجات:', err);
+            }
+            // حساب الإحصائيات من المنتجات
+            const stats = {
+                total: products.length,
+                likes: products.reduce((sum, p) => sum + (parseInt(p.likes)||0), 0),
+                dislikes: products.reduce((sum, p) => sum + (parseInt(p.dislikes)||0), 0),
+                neutrals: products.reduce((sum, p) => sum + (parseInt(p.neutrals)||0), 0),
+                views: products.reduce((sum, p) => sum + (parseInt(p.views)||0), 0),
+                reviews: products.reduce((sum, p) => sum + (parseInt(p.reviews_count||0)), 0),
+                avg_rating: products.length ? (products.reduce((sum, p) => sum + (parseFloat(p.rating)||0), 0) / products.length).toFixed(2) : '0.00',
+            };
+            // بناء واجهة البروفايل
+            document.getElementById('shop-content').innerHTML = `
+                <div class="shop-header">
+                    <img src="${shop.logo || '/media/shop_logos/default.png'}" onerror="this.onerror=null;this.src='/media/shop_logos/default.png';">
+                    <div class="shop-info">
+                        <h2>${shop.name || ''}</h2>
+                        <div class="shop-details-row">${shop.description || ''}</div>
+                        <div class="shop-details-row"><b>البريد:</b> ${shop.email || ''}</div>
+                        <div class="shop-details-row"><b>الهاتف:</b> ${shop.phone || ''}</div>
+                        <div class="shop-details-row"><b>العنوان:</b> ${shop.address || ''}</div>
+                        <div class="shop-details-row"><b>الموقع:</b> <a href="${shop.website || '#'}" target="_blank">${shop.website || ''}</a></div>
+                        <div class="shop-details-row"><b>تاريخ الإنشاء:</b> ${shop.created_at || ''}</div>
+                    </div>
+                </div>
+                <div class="shop-stats-modern">
+                    <div class="stat-card"><div class="stat-label">عدد المنتجات</div><div class="stat-value">${stats.total}</div></div>
+                    <div class="stat-card"><div class="stat-label">الإعجابات</div><div class="stat-value">${stats.likes}</div></div>
+                    <div class="stat-card"><div class="stat-label">عدم الإعجاب</div><div class="stat-value">${stats.dislikes}</div></div>
+                    <div class="stat-card"><div class="stat-label">المحايدون</div><div class="stat-value">${stats.neutrals}</div></div>
+                    <div class="stat-card"><div class="stat-label">المشاهدات</div><div class="stat-value">${stats.views}</div></div>
+                    <div class="stat-card"><div class="stat-label">متوسط التقييم</div><div class="stat-value">${stats.avg_rating} ★</div></div>
+                </div>
+                <div class="section-title">بيانات المالك</div>
+                <div class="owner-box">
+                    <b>الاسم:</b> <a href="/static/user_profile.html?id=${shop.owner?.id || ''}" style="color:#1976d2;text-decoration:underline;cursor:pointer;">${shop.owner?.username || shop.owner_name || '-'}</a><br>
+                    <b>البريد:</b> ${shop.owner?.email || '-'}<br>
+                    <div style="margin-top:10px;display:flex;gap:10px;">
+                        <button onclick="deleteOwner('${shop.owner?.id || ''}');return false;" style="background:#b71c1c;color:#fff;">حذف المالك</button>
+                        <button onclick="toggleOwnerActive('${shop.owner?.id || ''}', ${shop.owner?.is_active ? 'true' : 'false'});return false;" style="background:${shop.owner?.is_active ? '#bdbdbd' : '#388e3c'};color:#fff;">
+                            ${shop.owner?.is_active ? 'تعطيل المالك' : 'تفعيل المالك'}
+                        </button>
+                    </div>
+                </div>
+                <div class="section-title">المنتجات</div>
+                <div class="products-list">
+                    ${products.map(p => `
+                        <div class="product-card" onclick="window.location.href='/static/product_detail.html?id=${p.id}'" style="cursor:pointer;">
+                            <img src="${p.image_url || '/static/no-image.png'}" onerror="this.onerror=null;this.src='/static/no-image.png';">
+                            <div class="name">${p.name}</div>
+                            <div class="price">${p.price} ر.س</div>
+                            <div class="status">${p.is_active ? 'متاح' : 'غير متاح'}</div>
+                        </div>
+                    `).join('')}
+                </div>
+                <div style="margin-top:32px;text-align:center;display:flex;justify-content:center;gap:18px;">
+                    <button onclick="deleteShop('${shop.id}')" style="background:#b71c1c;color:#fff;padding:12px 32px;font-size:1.1em;border-radius:10px;">حذف المتجر</button>
+                    <button onclick="toggleAllProducts('${shop.id}', ${products.length > 0 ? (products.every(p => p.is_active) ? 'true' : 'false') : 'true'})" style="background:#1976d2;color:#fff;padding:12px 32px;font-size:1.1em;border-radius:10px;">
+                        ${products.length > 0 && products.every(p => p.is_active) ? 'تعطيل جميع المنتجات' : 'تفعيل جميع المنتجات'}
+                    </button>
+                </div>
+                <div style="color:#b71c1c;font-size:0.95em;margin-top:8px;">تنبيه: حذف المتجر سيؤدي إلى حذف جميع المنتجات المرتبطة به بشكل نهائي!</div>
+            `;
+        } catch (e) {
+            document.getElementById('shop-content').textContent = 'حدث خطأ في جلب البيانات.';
+            console.log('خطأ في جلب بيانات المتجر:', e);
+        }
+    }
+    fetchShopDetail();
+    window.deleteOwner = async function(ownerId) {
+        if(!ownerId) return;
+        if(!confirm('تنبيه: حذف المالك سيؤدي إلى حذف المتجر وجميع المنتجات المرتبطة به بشكل نهائي. هل أنت متأكد من المتابعة؟')) return;
+        const token = localStorage.getItem('access_token');
+        try {
+            const res = await fetch(`/api/auth/users/${ownerId}/`, {
+                method: 'DELETE',
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            if(res.ok) {
+                alert('تم حذف المالك والمتجر وجميع المنتجات المرتبطة بنجاح.');
+                window.location.href = '/shops-dashboard/';
+            }
+        } catch(e) { alert('حدث خطأ أثناء حذف المالك!'); }
+    }
+    window.toggleOwnerActive = async function(ownerId, isActive) {
+        if(!ownerId) return;
+        const token = localStorage.getItem('access_token');
+        try {
+            const res = await fetch(`/api/auth/users/${ownerId}/`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                body: JSON.stringify({ is_active: !isActive })
+            });
+            if(res.ok) window.location.reload();
+        } catch(e) { alert('حدث خطأ أثناء تحديث حالة المالك!'); }
+    }
+    window.deleteShop = async function(shopId) {
+        if(!shopId) return;
+        if(!confirm('تنبيه: حذف المتجر سيؤدي إلى حذف جميع المنتجات المرتبطة به بشكل نهائي. هل أنت متأكد من المتابعة؟')) return;
+        const token = localStorage.getItem('access_token');
+        try {
+            const res = await fetch(`/api/shop/${shopId}/`, {
+                method: 'DELETE',
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            if(res.ok) {
+                alert('تم حذف المتجر وجميع المنتجات المرتبطة بنجاح.');
+                window.location.href = '/shops-dashboard/';
+            }
+        } catch(e) { alert('حدث خطأ أثناء حذف المتجر!'); }
+    }
+    window.toggleAllProducts = async function(shopId, allActive) {
+        if(!shopId) return;
+        const token = localStorage.getItem('access_token');
+        const action = allActive ? 'تعطيل' : 'تفعيل';
+        if(!confirm(`هل أنت متأكد من ${action} جميع المنتجات المرتبطة بهذا المتجر؟`)) return;
+        try {
+            const res = await fetch(`/api/shop/${shopId}/toggle-products/`, {
+                method: 'POST',
+                headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ is_active: !allActive })
+            });
+            if(res.ok) {
+                alert(`تم ${action} جميع المنتجات بنجاح.`);
+                window.location.reload();
+            } else {
+                alert('حدث خطأ أثناء تنفيذ العملية!');
+            }
+        } catch(e) { alert('حدث خطأ أثناء تنفيذ العملية!'); }
+    }
+    </script>
+</body>
+</html>

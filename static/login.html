@@ -127,12 +127,12 @@
         //     localStorage.removeItem('dashboard_logged_in');
         //     localStorage.removeItem('dashboard_email');
         // });
-        // إعادة المستخدم للصفحة المطلوبة بعد تسجيل الدخول
-        var redirect = localStorage.getItem('dashboard_redirect');
-        if(redirect) {
-            localStorage.removeItem('dashboard_redirect');
-            window.location.href = redirect;
-        }
+        // إعادة المستخدم للصفحة المطلوبة بعد تسجيل الدخول (يجب أن يكون فقط بعد نجاح تسجيل الدخول)
+        // var redirect = localStorage.getItem('dashboard_redirect');
+        // if(redirect) {
+        //     localStorage.removeItem('dashboard_redirect');
+        //     window.location.href = redirect;
+        // }
     </script>
 </body>
 </html>

@@ -39,9 +39,58 @@
         </div>
     </div>
     <script>
-        if (!localStorage.getItem('isLoggedIn')) {
-            window.location.href = '/login/';
+    async function fetchPreferences() {
+        const token = localStorage.getItem('access_token');
+        const tbody = document.getElementById('preferences-table-body');
+        tbody.innerHTML = '<tr><td colspan="6">جاري التحميل...</td></tr>';
+        try {
+            const res = await fetch('/api/user/preferences/', {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            if (!res.ok) throw new Error('فشل في جلب التفضيلات');
+            const prefs = await res.json();
+            tbody.innerHTML = '';
+            if (!prefs || Object.keys(prefs).length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6">لا توجد تفضيلات</td></tr>';
+                return;
+            }
+            // مثال: عرض تفضيلات السعر والعلامات التجارية
+            tbody.innerHTML += `
+                <tr>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>السعر الأدنى</td>
+                    <td>${prefs.min_price || ''}</td>
+                    <td>${prefs.created_at || ''}</td>
+                    <td></td>
+                </tr>`;
+            tbody.innerHTML += `
+                <tr>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>السعر الأعلى</td>
+                    <td>${prefs.max_price || ''}</td>
+                    <td>${prefs.created_at || ''}</td>
+                    <td></td>
+                </tr>`;
+            if (prefs.brand_preferences && Array.isArray(prefs.brand_preferences)) {
+                for (const bp of prefs.brand_preferences) {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>-</td>
+                            <td>-</td>
+                            <td>علامة مفضلة</td>
+                            <td>${bp.brand?.name || ''}</td>
+                            <td>${bp.created_at || ''}</td>
+                            <td></td>
+                        </tr>`;
+                }
+            }
+        } catch (e) {
+            tbody.innerHTML = '<tr><td colspan="6">حدث خطأ في جلب البيانات</td></tr>';
         }
+    }
+    fetchPreferences();
     </script>
 </body>
 </html>

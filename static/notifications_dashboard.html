@@ -39,9 +39,40 @@
         </div>
     </div>
     <script>
-        if (!localStorage.getItem('isLoggedIn')) {
-            window.location.href = '/login/';
+    async function fetchNotifications() {
+        const token = localStorage.getItem('access_token');
+        const tbody = document.getElementById('notifications-table-body');
+        tbody.innerHTML = '<tr><td colspan="6">جاري التحميل...</td></tr>';
+        try {
+            const res = await fetch('/api/notifications/', {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            if (!res.ok) throw new Error('فشل في جلب الإشعارات');
+            const notifs = await res.json();
+            if (!Array.isArray(notifs) || notifs.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6">لا توجد إشعارات</td></tr>';
+                return;
+            }
+            tbody.innerHTML = '';
+            for (const notif of notifs) {
+                tbody.innerHTML += `
+                <tr>
+                    <td>${notif.id || ''}</td>
+                    <td>${notif.user?.email || notif.recipient_username || ''}</td>
+                    <td>${notif.content || notif.body || ''}</td>
+                    <td>${notif.is_read ? 'مقروء' : 'غير مقروء'}</td>
+                    <td>${notif.created_at || ''}</td>
+                    <td>
+                        <button class="edit-btn">تعديل</button>
+                        <button class="delete-btn">حذف</button>
+                    </td>
+                </tr>`;
+            }
+        } catch (e) {
+            tbody.innerHTML = '<tr><td colspan="6">حدث خطأ في جلب البيانات</td></tr>';
         }
+    }
+    fetchNotifications();
     </script>
 </body>
 </html>

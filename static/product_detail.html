@@ -4,9 +4,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>تفاصيل المنتج</title>
+    <meta name="description" content="تفاصيل المنتج: استعرض معلومات المنتج، حالته، وإرسال إشعارات للمالك من لوحة التحكم.">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Cairo', Arial, sans-serif; background: #f6f8fa; margin: 0; }
+        .navbar {
+            background: linear-gradient(90deg, #1976d2 0%, #0d47a1 100%);
+            color: #fff;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 68px;
+            box-shadow: 0 4px 18px rgba(30,60,120,0.13);
+            border-radius: 0 0 18px 18px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            z-index: 100;
+        }
+        body { padding-top: 80px !important; }
+        .navbar .brand { font-size: 1.6em; font-weight: bold; padding: 0 40px; display: flex; align-items: center; gap: 12px; letter-spacing: 1px; }
+        .navbar .brand .icon { font-size: 2em; margin-left: 8px; filter: drop-shadow(0 2px 4px #0d47a1aa); }
+        .navbar .menu { display: flex; align-items: center; gap: 12px; padding: 0 32px; }
+        .navbar .menu button { background: rgba(255,255,255,0.13); color: #fff; border: none; border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; font-size: 1.5em; cursor: pointer; transition: background 0.2s, transform 0.2s; box-shadow: 0 2px 8px rgba(30,60,120,0.10); }
+        .navbar .menu button:hover { background: #fff; color: #1976d2; transform: translateY(-2px) scale(1.08); }
+        @media (max-width: 700px) { .navbar .brand { font-size: 1.1em; padding: 0 10px; } .navbar .menu { padding: 0 8px; } }
         .container { max-width: 700px; margin: 40px auto; background: #fff; border-radius: 18px; box-shadow: 0 6px 32px rgba(30,60,120,0.10); padding: 36px 28px; }
         h2 { color: #0d47a1; text-align: center; }
         .row { display: flex; gap: 24px; margin-bottom: 18px; }
@@ -26,6 +49,14 @@
     </style>
 </head>
 <body>
+    <div class="navbar">
+        <span class="brand"><span class="icon">📦</span> تفاصيل المنتج</span>
+        <div class="menu">
+            <button title="رجوع" onclick="window.history.back()"><span>🔙</span></button>
+            <button title="الرئيسية" onclick="window.location.href='/apps-dashboard/'"><span>🏠</span></button>
+            <button title="خروج" onclick="logout()" style="background:#b71c1c;"><span>🔓</span></button>
+        </div>
+    </div>
     <div class="container">
         <h2>تفاصيل المنتج</h2>
         <div id="productDetails"></div>
@@ -96,7 +127,7 @@
             const d = product;
             let html = `<div class='row'><div class='col'><span class='label'>الاسم:</span> <span class='value'>${d.name}</span></div><div class='col'><span class='label'>السعر:</span> <span class='value'>${d.price}</span></div></div>`;
             html += `<div class='row'><div class='col'><span class='label'>الفئة:</span> <span class='value'>${d.category ? d.category.name : ''}</span></div><div class='col'><span class='label'>البراند:</span> <span class='value'>${d.brand ? d.brand.name : '-'}</span></div></div>`;
-            html += `<div class='row'><div class='col'><span class='label'>المتجر:</span> <span class='value'>${d.shop ? d.shop.name : '-'}</span></div><div class='col'><span class='label'>مالك المتجر:</span> <span class='value'>${d.shop && d.shop.owner_username ? d.shop.owner_username : '-'}</span></div></div>`;
+            html += `<div class='row'><div class='col'><span class='label'>المتجر:</span> <span class='value'>${d.shop && d.shop.id ? `<a href='/static/shop_detail.html?id=${d.shop.id}' style='color:#1976d2;text-decoration:underline;cursor:pointer;'>${d.shop.name}</a>` : (d.shop ? d.shop.name : '-')}</span></div><div class='col'><span class='label'>مالك المتجر:</span> <span class='value'>${d.shop && d.shop.owner_id ? `<a href='/static/user_profile.html?id=${d.shop.owner_id}' style='color:#1976d2;text-decoration:underline;cursor:pointer;'>${d.shop.owner_username}</a>` : (d.shop && d.shop.owner_username ? d.shop.owner_username : '-')}</span></div></div>`;
             html += `<div class='row'><div class='col'><span class='label'>الحالة:</span> <span class='value' id='statusValue'>${d.is_active ? 'نشط' : 'غير نشط'}</span></div><div class='col'><span class='label'>تاريخ الإضافة:</span> <span class='value'>${d.created_at ? d.created_at.split('T')[0] : '-'}</span></div></div>`;
             html += `<div class='row'><div class='col'><span class='label'>الوصف:</span> <span class='value'>${d.description || '-'}</span></div></div>`;
             if(productStats) {
@@ -121,9 +152,13 @@
         }
         document.getElementById('activateBtn').onclick = async function() {
             const activate = !product.is_active;
-            const res = await fetch(`/api/dashboard/admin/products/${product.id}/activate/`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+            const token = localStorage.getItem('access_token');
+            const res = await fetch(`/api/products/${product.id}/update/`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                },
                 body: JSON.stringify({ is_active: activate })
             });
             if(res.ok) {

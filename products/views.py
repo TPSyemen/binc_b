@@ -11,9 +11,10 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.views import View
 from django.http import JsonResponse
+from rest_framework import viewsets
 
-from core.models import Product, Category
-from .serializers import ProductListSerializer, ProductDetailSerializer, CategorySerializer
+from core.models import Product, Category, Brand
+from .serializers import ProductListSerializer, ProductDetailSerializer, CategorySerializer, BrandSerializer
 from products.rating_service import rating_service
 
 
@@ -28,6 +29,7 @@ class ProductListView(APIView):
         print('is_superuser:', getattr(request.user, 'is_superuser', None))
         print('is_staff:', getattr(request.user, 'is_staff', None))
         print('is_authenticated:', request.user.is_authenticated)
+        shop_id = request.GET.get('shop_id')
         if request.user.is_authenticated:
             if request.user.user_type == 'owner':
                 products = Product.objects.filter(shop__owner__user=request.user)
@@ -38,6 +40,9 @@ class ProductListView(APIView):
         else:
             # للمستخدمين غير المسجلين، عرض المنتجات النشطة فقط
             products = Product.objects.filter(is_active=True)
+        # دعم فلترة المنتجات حسب shop_id إذا تم تمريره في الكويري
+        if shop_id:
+            products = products.filter(shop__id=shop_id)
         print('عدد المنتجات المسترجعة:', products.count())
         serializer = ProductListSerializer(products, many=True)
         return Response(serializer.data)
@@ -84,14 +89,23 @@ class ProductCreateView(APIView):
 
 
 class ProductUpdateView(APIView):
-    """Update a product."""
+    """Update a product (يدعم التحديث الجزئي لحالة is_active)."""
     permission_classes = [permissions.IsAuthenticated]
 
     def put(self, request, pk):
         product = get_object_or_404(Product, pk=pk)
         if request.user.user_type == 'owner' and product.shop.owner.user != request.user:
             return Response({'error': 'Unauthorized'}, status=status.HTTP_403_FORBIDDEN)
+        serializer = ProductDetailSerializer(product, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    def patch(self, request, pk):
+        product = get_object_or_404(Product, pk=pk)
+        if request.user.user_type == 'owner' and product.shop.owner.user != request.user:
+            return Response({'error': 'Unauthorized'}, status=status.HTTP_403_FORBIDDEN)
         serializer = ProductDetailSerializer(product, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
@@ -212,3 +226,10 @@ class ProductPriceHistoryView(APIView):
             # إذا لم يوجد تاريخ أسعار، أعد السعر الحالي فقط
             data = [{"date": str(product.last_price_update), "price": float(product.price)}]
         return Response({"product_id": pk, "price_history": data})
+
+
+class BrandViewSet(viewsets.ModelViewSet):
+    """Manage product brands (CRUD)."""
+    queryset = Brand.objects.all()
+    serializer_class = BrandSerializer
+    permission_classes = [permissions.IsAdminUser]

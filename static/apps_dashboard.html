@@ -14,41 +14,61 @@
             padding: 0;
         }
         .navbar {
-            background: #0d47a1;
+            background: linear-gradient(90deg, #1976d2 0%, #0d47a1 100%);
             color: #fff;
             padding: 0;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            height: 56px;
-            box-shadow: 0 2px 8px rgba(30,60,120,0.08);
+            height: 68px;
+            box-shadow: 0 4px 18px rgba(30,60,120,0.13);
+            border-radius: 0 0 18px 18px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            z-index: 100;
         }
+        body { padding-top: 80px !important; }
         .navbar .brand {
-            font-size: 1.3em;
+            font-size: 1.6em;
             font-weight: bold;
-            padding: 0 32px;
+            padding: 0 40px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
             letter-spacing: 1px;
+        }
+        .navbar .brand .icon {
+            font-size: 2em;
+            margin-left: 8px;
+            filter: drop-shadow(0 2px 4px #0d47a1aa);
         }
         .navbar .menu {
             display: flex;
             align-items: center;
-            gap: 18px;
+            gap: 12px;
             padding: 0 32px;
         }
         .navbar .menu button {
-            background: #fff;
-            color: #0d47a1;
-            border: none;
-            border-radius: 6px;
-            padding: 7px 22px;
-            font-size: 1em;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background 0.2s, color 0.2s;
-        }
-        .navbar .menu button.active, .navbar .menu button:hover {
-            background: #1976d2;
+            background: rgba(255,255,255,0.13);
             color: #fff;
+            border: none;
+            border-radius: 50%;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5em;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.2s;
+            box-shadow: 0 2px 8px rgba(30,60,120,0.10);
+        }
+        .navbar .menu button:hover {
+            background: #fff;
+            color: #1976d2;
+            transform: translateY(-2px) scale(1.08);
         }
         .dashboard {
             max-width: 1200px;
@@ -100,7 +120,13 @@
             color: #374151;
             font-size: 0.98em;
         }
+        .dashboard-stats { margin-top: 18px; }
+        .stat-card { background: linear-gradient(120deg,#e3f0ff 0%,#f7fafd 100%); border-radius: 14px; box-shadow: 0 2px 12px rgba(30,60,120,0.07); padding: 24px 32px; min-width: 160px; text-align: center; margin-bottom: 8px; }
+        .stat-label { color: #1976d2; font-size: 1.1em; margin-bottom: 8px; }
+        .stat-value { font-size: 2em; font-weight: bold; color: #0d47a1; }
         @media (max-width: 700px) {
+            .navbar .brand { font-size: 1.1em; padding: 0 10px; }
+            .navbar .menu { padding: 0 8px; }
             .dashboard { padding: 10px 2px; }
             .apps-grid { grid-template-columns: 1fr; }
         }
@@ -108,59 +134,53 @@
 </head>
 <body>
     <div class="navbar">
-        <span class="brand">لوحة تحكم التطبيقات</span>
+        <span class="brand"><span class="icon">🧩</span> لوحة التحكم</span>
         <div class="menu">
-            <button onclick="window.location.href='/'">العودة للداشبورد</button>
-            <button onclick="logout()" style="background:#b71c1c;color:#fff;">تسجيل الخروج</button>
+            <button title="خروج" onclick="logout()" style="background:#b71c1c;"><span>🔓</span></button>
+            <button title="اختبار الواجهات" onclick="window.location.href='/static/api_tester.html'"><span>🧪</span></button>
         </div>
     </div>
     <div class="dashboard">
         <h1>لوحة تحكم جميع التطبيقات</h1>
+        <div class="dashboard-stats" style="display:flex;gap:24px;justify-content:center;margin-bottom:32px;flex-wrap:wrap;">
+            <div class="stat-card">
+                <div class="stat-label">عدد المنتجات</div>
+                <div class="stat-value" id="statProducts">...</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">عدد المتاجر</div>
+                <div class="stat-value" id="statShops">...</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">عدد المستخدمين</div>
+                <div class="stat-value" id="statUsers">...</div>
+            </div>
+        </div>
         <div class="apps-grid">
             <div class="app-card" onclick="window.location.href='/products-dashboard/'">
                 <div class="icon">📦</div>
                 <div class="title">المنتجات</div>
-                <div class="desc">إدارة وعرض جميع المنتجات، إضافة وتعديل وحذف المنتجات.</div>
+                <div class="desc">تفعيل أو تعطيل المنتجات وحذفها فقط. لا يمكن التعديل أو الإضافة من هنا.</div>
             </div>
             <div class="app-card" onclick="window.location.href='/shops-dashboard/'">
                 <div class="icon">🏬</div>
                 <div class="title">المتاجر</div>
-                <div class="desc">إدارة المتاجر، إضافة وتعديل وحذف المتاجر.</div>
+                <div class="desc">تفعيل أو تعطيل المتاجر وحذفها فقط. لا يمكن التعديل أو الإضافة من هنا.</div>
             </div>
-            <div class="app-card" onclick="window.location.href='/recommendations-dashboard/'">
-                <div class="icon">🤖</div>
-                <div class="title">التوصيات</div>
-                <div class="desc">عرض وتوليد التوصيات للمستخدمين.</div>
+            <div class="app-card" onclick="window.location.href='/users-dashboard/'">
+                <div class="icon">👤</div>
+                <div class="title">المستخدمون</div>
+                <div class="desc">تفعيل أو تعطيل المستخدمين وحذفهم فقط. لا يمكن التعديل أو الإضافة من هنا.</div>
             </div>
-            <div class="app-card" onclick="window.location.href='/reviews-dashboard/'">
-                <div class="icon">📝</div>
-                <div class="title">المراجعات</div>
-                <div class="desc">إدارة مراجعات المنتجات، إضافة وتعديل وحذف المراجعات.</div>
+            <div class="app-card" onclick="window.location.href='/brands-dashboard/'">
+                <div class="icon">🏷️</div>
+                <div class="title">العلامات التجارية</div>
+                <div class="desc">إدارة العلامات التجارية بشكل كامل: إضافة، تعديل، أو حذف العلامة التجارية.</div>
             </div>
-            <div class="app-card" onclick="window.location.href='/comparison-dashboard/'">
-                <div class="icon">⚖️</div>
-                <div class="title">المقارنة</div>
-                <div class="desc">مقارنة المنتجات وتحليل الأفضلية.</div>
-            </div>
-            <div class="app-card" onclick="window.location.href='/favorites-dashboard/'">
-                <div class="icon">⭐</div>
-                <div class="title">المفضلة</div>
-                <div class="desc">إدارة المنتجات المفضلة.</div>
-            </div>
-            <div class="app-card" onclick="window.location.href='/preferences-dashboard/'">
-                <div class="icon">⚙️</div>
-                <div class="title">التفضيلات</div>
-                <div class="desc">إدارة تفضيلات المستخدمين.</div>
-            </div>
-            <div class="app-card" onclick="window.location.href='/notifications-dashboard/'">
-                <div class="icon">🔔</div>
-                <div class="title">الإشعارات</div>
-                <div class="desc">عرض وإدارة جميع الإشعارات.</div>
-            </div>
-            <div class="app-card" onclick="window.location.href='/auth-dashboard/'">
-                <div class="icon">🔑</div>
-                <div class="title">المصادقة</div>
-                <div class="desc">إدارة عمليات المصادقة للمستخدمين.</div>
+            <div class="app-card" onclick="window.location.href='/categories-dashboard/'">
+                <div class="icon">🗂️</div>
+                <div class="title">التصنيفات</div>
+                <div class="desc">إدارة التصنيفات بشكل كامل: إضافة، تعديل، أو حذف التصنيف.</div>
             </div>
         </div>
     </div>
@@ -173,6 +193,27 @@
             window.location.href = '/static/login.html';
         }
         // يمكن لاحقاً ربط كل قسم بصفحة إدارة CRUD فعلية أو نافذة منبثقة
+        async function fetchDashboardStats() {
+            const token = localStorage.getItem('access_token');
+            try {
+                const [productsRes, shopsRes, usersRes] = await Promise.all([
+                    fetch('/api/products/', { headers: { 'Authorization': 'Bearer ' + token } }),
+                    fetch('/api/shop/', { headers: { 'Authorization': 'Bearer ' + token } }),
+                    fetch('/api/auth/users/', { headers: { 'Authorization': 'Bearer ' + token } })
+                ]);
+                const products = productsRes.ok ? await productsRes.json() : [];
+                const shops = shopsRes.ok ? await shopsRes.json() : [];
+                const users = usersRes.ok ? await usersRes.json() : [];
+                document.getElementById('statProducts').textContent = Array.isArray(products) ? products.length : (products.results ? products.results.length : '—');
+                document.getElementById('statShops').textContent = Array.isArray(shops) ? shops.length : (shops.results ? shops.results.length : '—');
+                document.getElementById('statUsers').textContent = Array.isArray(users) ? users.length : (users.results ? users.results.length : '—');
+            } catch (e) {
+                document.getElementById('statProducts').textContent = '—';
+                document.getElementById('statShops').textContent = '—';
+                document.getElementById('statUsers').textContent = '—';
+            }
+        }
+        fetchDashboardStats();
     </script>
 </body>
 </html>

@@ -5,6 +5,45 @@
     <title>لوحة تحكم التوصيات</title>
     <link rel="stylesheet" href="/static/dashboard_style.css">
     <script src="/static/dashboard_protect.js"></script>
+    <script>
+    async function fetchRecommendations() {
+        const token = localStorage.getItem('access_token');
+        const tbody = document.getElementById('recommendations-table-body');
+        tbody.innerHTML = '<tr><td colspan="5">جاري التحميل...</td></tr>';
+        try {
+            const res = await fetch('/api/recommendations/', {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            if (!res.ok) throw new Error('فشل في جلب التوصيات');
+            const data = await res.json();
+            let recs = [];
+            if (Array.isArray(data)) recs = data;
+            else if (data.recommendations) recs = data.recommendations;
+            else if (data.preferred) recs = data.preferred.concat(data.liked||[], data.new||[], data.popular||[]);
+            if (!Array.isArray(recs) || recs.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5">لا توجد توصيات</td></tr>';
+                return;
+            }
+            tbody.innerHTML = '';
+            for (const rec of recs) {
+                tbody.innerHTML += `
+                <tr>
+                    <td>${rec.id || ''}</td>
+                    <td>${rec.user || rec.user_id || ''}</td>
+                    <td>${rec.product || rec.name || ''}</td>
+                    <td>${rec.created_at || ''}</td>
+                    <td>
+                        <button class="edit-btn">تعديل</button>
+                        <button class="delete-btn">حذف</button>
+                    </td>
+                </tr>`;
+            }
+        } catch (e) {
+            tbody.innerHTML = '<tr><td colspan="5">حدث خطأ في جلب البيانات</td></tr>';
+        }
+    }
+    fetchRecommendations();
+    </script>
 </head>
 <body>
     <div class="dashboard-container">
@@ -36,10 +75,5 @@
             <button class="add-btn">إضافة توصية جديدة</button>
         </div>
     </div>
-    <script>
-        if (!localStorage.getItem('isLoggedIn')) {
-            window.location.href = '/login/';
-        }
-    </script>
 </body>
 </html>

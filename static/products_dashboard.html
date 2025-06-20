@@ -4,23 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>إدارة المنتجات - لوحة تحكم التطبيقات</title>
+    <meta name="description" content="إدارة المنتجات: أضف، عدل، أو احذف المنتجات وتابع تفاصيلها وإحصائياتها من لوحة التحكم.">
+    <link rel="stylesheet" href="/static/dashboard_style.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Cairo', Arial, sans-serif; background: #f6f8fa; margin: 0; }
-        .navbar { background: #0d47a1; color: #fff; padding: 0; display: flex; align-items: center; justify-content: space-between; height: 56px; box-shadow: 0 2px 8px rgba(30,60,120,0.08); }
-        .navbar .brand { font-size: 1.2em; font-weight: bold; padding: 0 32px; }
-        .navbar .menu { display: flex; align-items: center; gap: 18px; padding: 0 32px; }
-        .navbar .menu button { background: #fff; color: #0d47a1; border: none; border-radius: 6px; padding: 7px 22px; font-size: 1em; font-weight: bold; cursor: pointer; transition: background 0.2s, color 0.2s; }
-        .navbar .menu button.active, .navbar .menu button:hover { background: #1976d2; color: #fff; }
-        .dashboard { max-width: 1100px; margin: 40px auto; background: #fff; border-radius: 18px; box-shadow: 0 6px 32px rgba(30,60,120,0.10); padding: 36px 28px; }
-        h1 { text-align: center; color: #0d47a1; margin-bottom: 18px; letter-spacing: 1px; }
-        .actions { display: flex; justify-content: flex-end; margin-bottom: 18px; }
-        .actions button { background: #1976d2; color: #fff; border: none; border-radius: 6px; padding: 8px 20px; font-size: 1em; cursor: pointer; margin-left: 8px; }
-        .actions button:hover { background: #0d47a1; }
-        table { width: 100%; border-collapse: collapse; margin-bottom: 18px; }
-        th, td { padding: 10px 8px; border-bottom: 1px solid #e3e7ee; text-align: center; }
-        th { background: #f4f7fb; color: #1976d2; }
-        tr:hover { background: #f0f4fa; }
+        .icon-btn { background: none; border: none; font-size: 1.2em; cursor: pointer; margin: 0 2px; }
+        .icon-btn.edit { color: #1976d2; }
+        .icon-btn.delete { color: #b71c1c; }
+        .icon-btn.edit:hover { color: #0d47a1; }
+        .icon-btn.delete:hover { color: #d32f2f; }
         .form-popup { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(30,60,120,0.13); z-index: 1001; align-items: center; justify-content: center; }
         .form-popup.active { display: flex; }
         .form-box { background: #fff; border-radius: 12px; box-shadow: 0 4px 24px rgba(30,60,120,0.13); padding: 32px 24px; min-width: 320px; }
@@ -32,33 +24,134 @@
         .form-box button:hover:not(.cancel) { background: #0d47a1; }
         .error { color: #b71c1c; text-align: center; margin-bottom: 12px; }
         .success { color: #388e3c; text-align: center; margin-bottom: 12px; }
-        @media (max-width: 700px) { .dashboard { padding: 10px 2px; } .form-box { min-width: 90vw; } }
+        .crud-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #fff;
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 2px 12px rgba(30,60,120,0.07);
+            font-size: 1.08em;
+        }
+        .crud-table thead {
+            background: linear-gradient(90deg, #1976d2 0%, #0d47a1 100%);
+            color: #fff;
+        }
+        .crud-table th, .crud-table td {
+            padding: 16px 10px;
+            text-align: center;
+        }
+        .crud-table th {
+            font-size: 1.1em;
+            letter-spacing: 1px;
+            border-bottom: 2px solid #1976d2;
+        }
+        .crud-table tbody tr {
+            transition: background 0.18s;
+        }
+        .crud-table tbody tr:nth-child(even) {
+            background: #f4f7fb;
+        }
+        .crud-table tbody tr:nth-child(odd) {
+            background: #fafdff;
+        }
+        .crud-table tbody tr:hover {
+            background: #e3e7ee;
+            box-shadow: 0 2px 8px #1976d22a;
+        }
+        .crud-table td {
+            border-bottom: 1px solid #e3e7ee;
+        }
+        .navbar {
+            background: linear-gradient(90deg, #1976d2 0%, #0d47a1 100%);
+            color: #fff;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 68px;
+            box-shadow: 0 4px 18px rgba(30,60,120,0.13);
+            border-radius: 0 0 18px 18px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            z-index: 100;
+        }
+        body { padding-top: 80px !important; }
+        .navbar .brand {
+            font-size: 1.6em;
+            font-weight: bold;
+            padding: 0 40px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            letter-spacing: 1px;
+        }
+        .navbar .brand .icon {
+            font-size: 2em;
+            margin-left: 8px;
+            filter: drop-shadow(0 2px 4px #0d47a1aa);
+        }
+        .navbar .menu {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0 32px;
+        }
+        .navbar .menu button {
+            background: rgba(255,255,255,0.13);
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5em;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.2s;
+            box-shadow: 0 2px 8px rgba(30,60,120,0.10);
+        }
+        .navbar .menu button:hover {
+            background: #fff;
+            color: #1976d2;
+            transform: translateY(-2px) scale(1.08);
+        }
+        @media (max-width: 700px) {
+            .crud-table th, .crud-table td { padding: 10px 4px; font-size: 0.98em; }
+            .navbar .brand { font-size: 1.1em; padding: 0 10px; }
+            .navbar .menu { padding: 0 8px; }
+        }
     </style>
 </head>
 <body>
     <div class="navbar">
-        <span class="brand">إدارة المنتجات</span>
+        <span class="brand"><span class="icon">📦</span> إدارة المنتجات</span>
         <div class="menu">
-            <button onclick="window.location.href='/apps-dashboard/'">العودة للوحة التطبيقات</button>
-            <button onclick="logout()" style="background:#b71c1c;color:#fff;">تسجيل الخروج</button>
+            <button title="الرئيسية" onclick="window.location.href='/apps-dashboard/'"><span>🏠</span></button>
+            <button title="خروج" onclick="logout()" style="background:#b71c1c;"><span>🔓</span></button>
         </div>
     </div>
     <div class="dashboard">
-        <h1>إدارة المنتجات (CRUD)</h1>
+        <h1><span style="font-size:1.2em;vertical-align:middle;">📦</span> إدارة المنتجات <span style="font-size:0.7em;color:#1976d2;">(CRUD)</span></h1>
         <div class="actions">
-            <button onclick="openForm()">إضافة منتج جديد</button>
+            <button class="add-btn" onclick="openForm()"><span style="font-size:1.1em;">➕</span> إضافة منتج جديد</button>
         </div>
         <div class="actions">
-            <button onclick="filterProducts('all')">الكل</button>
-            <button onclick="filterProducts('active')">النشطة فقط</button>
-            <button onclick="filterProducts('inactive')">غير النشطة فقط</button>
+            <button onclick="filterProducts('all')"><span style="font-size:1.1em;">📦</span> الكل</button>
+            <button onclick="filterProducts('active')"><span style="font-size:1.1em;">✅</span> النشطة فقط</button>
+            <button onclick="filterProducts('inactive')"><span style="font-size:1.1em;">🚫</span> غير النشطة فقط</button>
         </div>
-        <table id="productsTable">
-            <thead>
-                <tr><th>الاسم</th><th>السعر</th><th>الفئة</th><th>الحالة</th><th>إجراءات</th></tr>
-            </thead>
-            <tbody></tbody>
-        </table>
+        <div style="width:100%;overflow-x:auto;">
+            <table id="productsTable" class="crud-table" style="width:100%;min-width:700px;">
+                <thead>
+                    <tr><th>📦</th><th>💰</th><th>🏷️</th><th>⚙️</th></tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
     </div>
     <div class="form-popup" id="formPopup">
         <form class="form-box" onsubmit="return saveProduct(event)">
@@ -122,9 +215,9 @@
             if(filter === 'active') filtered = allProducts.filter(p => p.is_active);
             if(filter === 'inactive') filtered = allProducts.filter(p => !p.is_active);
             filtered.forEach(p => {
-                tbody.innerHTML += `<tr><td>${p.name}</td><td>${p.price}</td><td>${p.category ? p.category.name : ''}</td><td>${p.is_active ? 'نشط' : 'غير نشط'}</td><td>
-                    <button onclick=\"window.location.href='/static/product_detail.html?id=${p.id}'\">عرض التفاصيل</button>
-                </td></tr>`;
+                tbody.innerHTML += `<tr onclick="window.location.href='/static/product_detail.html?id=${p.id}'" style="cursor:pointer;">
+                    <td>${p.name}</td><td>${p.price}</td><td>${p.category ? p.category.name : ''}</td><td>${p.is_active ? 'نشط' : 'غير نشط'}</td>
+                </tr>`;
             });
             if(filtered.length === 0) tbody.innerHTML = '<tr><td colspan="5">لا توجد منتجات</td></tr>';
         }

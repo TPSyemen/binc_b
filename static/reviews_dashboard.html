@@ -41,9 +41,41 @@
         </div>
     </div>
     <script>
-        if (!localStorage.getItem('isLoggedIn')) {
-            window.location.href = '/login/';
+    async function fetchReviews() {
+        const token = localStorage.getItem('access_token');
+        const tbody = document.getElementById('reviews-table-body');
+        tbody.innerHTML = '<tr><td colspan="7">جاري التحميل...</td></tr>';
+        try {
+            const res = await fetch('/api/reviews/', {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            if (!res.ok) throw new Error('فشل في جلب المراجعات');
+            const reviews = await res.json();
+            if (!Array.isArray(reviews) || reviews.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7">لا توجد مراجعات</td></tr>';
+                return;
+            }
+            tbody.innerHTML = '';
+            for (const review of reviews) {
+                tbody.innerHTML += `
+                <tr>
+                    <td>${review.id || ''}</td>
+                    <td>${review.user?.email || review.user || ''}</td>
+                    <td>${review.product?.name || review.product || ''}</td>
+                    <td>${review.rating || ''}</td>
+                    <td>${review.comment || review.content || ''}</td>
+                    <td>${review.created_at || ''}</td>
+                    <td>
+                        <button class="edit-btn">تعديل</button>
+                        <button class="delete-btn">حذف</button>
+                    </td>
+                </tr>`;
+            }
+        } catch (e) {
+            tbody.innerHTML = '<tr><td colspan="7">حدث خطأ في جلب البيانات</td></tr>';
         }
+    }
+    fetchReviews();
     </script>
 </body>
 </html>

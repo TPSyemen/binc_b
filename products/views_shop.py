@@ -3,8 +3,10 @@ from rest_framework.response import Response
 from rest_framework import status, permissions
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.shortcuts import get_object_or_404
-from core.models import Shop, Owner
+from core.models import Shop, Owner, Product
 from .serializers import ShopSerializer
+from rest_framework import viewsets
+from rest_framework.decorators import action
 
 class ShopCheckView(APIView):
     """Check if the authenticated owner has a shop."""
@@ -110,3 +112,28 @@ class ShopDetailView(APIView):
         from .serializers import ShopSerializer
         serializer = ShopSerializer(shop)
         return Response(serializer.data)
+
+class ShopViewSet(viewsets.ModelViewSet):
+    queryset = Shop.objects.all()
+    serializer_class = ShopSerializer
+    permission_classes = [permissions.IsAdminUser]
+
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve']:
+            return [permissions.IsAuthenticated()]
+        return [permissions.IsAdminUser()]
+
+    def update(self, request, *args, **kwargs):
+        kwargs['partial'] = True
+        return super().update(request, *args, **kwargs)
+
+    @action(detail=True, methods=['post'], url_path='toggle-products')
+    def toggle_products(self, request, pk=None):
+        """تفعيل أو تعطيل جميع المنتجات المرتبطة بمتجر معين"""
+        shop = self.get_object()
+        is_active = request.data.get('is_active')
+        if is_active is None:
+            return Response({'error': 'يرجى تحديد الحالة is_active.'}, status=400)
+        products = Product.objects.filter(shop=shop)
+        updated = products.update(is_active=bool(is_active))
+        return Response({'updated': updated, 'is_active': bool(is_active)})
