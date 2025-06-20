@@ -205,7 +205,18 @@
 
 ## المقارنة (Comparison)
 
-### 1. مقارنة منتجات
+### 1. مقارنة منتج مع المنتجات المتشابهة
+- **URL:** `/api/comparison/{product_id}/compare/`
+- **Method:** `GET`
+- **مثال استجابة:**
+```json
+{
+  "product": { ... },
+  "similar_products": [ { ... }, ... ]
+}
+```
+
+### 2. مقارنة بين عدة منتجات
 - **URL:** `/api/comparison/`
 - **Method:** `POST`
 - **Headers:** Authorization: Bearer <access_token>, Content-Type: application/json
@@ -213,9 +224,29 @@
 ```json
 {"product_ids": ["id1", "id2"]}
 ```
+- **ملاحظة:** لا يمكن مقارنة منتجات من فئات مختلفة. إذا حاولت ذلك، ستظهر الرسالة التالية:
+```json
+{"detail": "لا يمكن مقارنة منتجات من فئات مختلفة. يرجى اختيار منتجات من نفس الفئة فقط."}
+```
 - **مثال استجابة:**
 ```json
-{"products": [ { ... }, { ... } ], "comparison": { ... }}
+{
+  "products": [ { ... }, { ... } ],
+  "comparison": { "fields": ["name", "brand", "price", "rating", "likes", "dislikes", "views", "is_featured"] },
+  "best_product": { ... },
+  "note": "تم وسم المنتج الأفضل بناءً على التقييم وعدد المشاهدات."
+}
+```
+
+### 3. مقارنة جميع المنتجات وإرجاع الأفضل
+- **URL:** `/api/comparison/?best=1`
+- **Method:** `GET`
+- **مثال استجابة:**
+```json
+{
+  "best_product": { ... },
+  "note": "تم اختيار هذا المنتج كأفضل منتج بناءً على التقييم وعدد المشاهدات."
+}
 ```
 
 ---
