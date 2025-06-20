@@ -9,9 +9,17 @@ def ensure_site_view(request):
         return JsonResponse({'detail': 'Method not allowed.'}, status=405)
     domain = os.environ.get('SITE_DOMAIN', request.get_host() or 'localhost')
     name = os.environ.get('SITE_NAME', 'localhost')
-    site, created = Site.objects.get_or_create(id=1, defaults={"domain": domain, "name": name})
-    if not created:
-        site.domain = domain
+    # معالجة تكرار الدومين
+    site = None
+    try:
+        site = Site.objects.get(domain=domain)
         site.name = name
         site.save()
+    except Site.DoesNotExist:
+        # إذا لم يوجد دومين مطابق، عدل أول كائن أو أنشئ جديد
+        site, created = Site.objects.get_or_create(id=1, defaults={"domain": domain, "name": name})
+        if not created:
+            site.domain = domain
+            site.name = name
+            site.save()
     return JsonResponse({'success': True, 'domain': site.domain, 'name': site.name})
