@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <title>لوحة تحكم المتاجر</title>
+    <link rel="stylesheet" href="/static/dashboard_style.css">
+    <script src="/static/dashboard_protect.js"></script>
+</head>
+<body>
+    <div class="dashboard-container">
+        <h1>إدارة المتاجر</h1>
+        <div class="crud-table">
+            <!-- بيانات وهمية للمتاجر -->
+            <table>
+                <thead>
+                    <tr>
+                        <th>الشعار</th>
+                        <th>اسم المتجر</th>
+                        <th>البريد الإلكتروني</th>
+                        <th>الحالة</th>
+                        <th>إجراءات</th>
+                    </tr>
+                </thead>
+                <tbody id="shops-table-body">
+                    <tr>
+                        <td><img src="/media/shop_logos/sample.png" width="40"></td>
+                        <td>متجر إلكتروني</td>
+                        <td>shop@email.com</td>
+                        <td>نشط</td>
+                        <td>
+                            <button class="edit-btn">تعديل</button>
+                            <button class="delete-btn">حذف</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <button class="add-btn">إضافة متجر جديد</button>
+        </div>
+    </div>
+    <script>
+        // حماية الوصول
+        if (!localStorage.getItem('isLoggedIn')) {
+            window.location.href = '/login/';
+        }
+    </script>
+</body>
+</html>

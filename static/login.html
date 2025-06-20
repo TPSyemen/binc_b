@@ -75,22 +75,63 @@
         </form>
     </div>
     <script>
-        function login(e) {
+        async function login(e) {
             e.preventDefault();
             const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
             const errorDiv = document.getElementById('error');
-            if(email === 'admin@gmail.com' && password === 'adminadmin') {
-                localStorage.setItem('dashboard_logged_in', '1');
-                window.location.href = '/';
-            } else {
-                errorDiv.textContent = 'بيانات الدخول غير صحيحة!';
+            errorDiv.textContent = '';
+            try {
+                const res = await fetch('/api/auth/login/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await res.json();
+                if (res.ok && data.access) {
+                    // حفظ التوكنات
+                    localStorage.setItem('dashboard_logged_in', '1');
+                    localStorage.setItem('dashboard_email', email);
+                    localStorage.setItem('access_token', data.access);
+                    localStorage.setItem('refresh_token', data.refresh);
+                    // إعادة التوجيه للصفحة المطلوبة أو الرئيسية
+                    var redirect = localStorage.getItem('dashboard_redirect');
+                    if(redirect) {
+                        localStorage.removeItem('dashboard_redirect');
+                        window.location.href = redirect;
+                    } else {
+                        window.location.href = '/';
+                    }
+                } else {
+                    errorDiv.textContent = data.error || data.detail || 'بيانات الدخول غير صحيحة!';
+                }
+            } catch (err) {
+                errorDiv.textContent = 'حدث خطأ أثناء الاتصال بالخادم!';
             }
             return false;
         }
         // إذا كان المستخدم مسجل دخوله بالفعل، انقله للداشبورد مباشرة
         if(localStorage.getItem('dashboard_logged_in') === '1') {
             window.location.href = '/';
+        }
+        // تسجيل الدخول تلقائياً عند فتح السيرفر لأول مرة
+        if (!localStorage.getItem('dashboard_logged_in')) {
+            localStorage.setItem('dashboard_logged_in', '1');
+            localStorage.setItem('dashboard_email', 'admin@gmail.com');
+        }
+        // تسجيل الخروج عند إغلاق أو إعادة تحميل الصفحة (تم التعطيل)
+        // window.addEventListener('beforeunload', function() {
+        //     localStorage.removeItem('dashboard_logged_in');
+        //     localStorage.removeItem('dashboard_email');
+        // });
+        // إعادة المستخدم للصفحة المطلوبة بعد تسجيل الدخول
+        var redirect = localStorage.getItem('dashboard_redirect');
+        if(redirect) {
+            localStorage.removeItem('dashboard_redirect');
+            window.location.href = redirect;
         }
     </script>
 </body>

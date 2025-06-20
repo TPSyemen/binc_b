@@ -19,20 +19,26 @@ from products.rating_service import rating_service
 
 class ProductListView(APIView):
     """List all products based on user permissions."""
-    permission_classes = [permissions.AllowAny]  # السماح بالوصول العام
+    permission_classes = [permissions.IsAuthenticated]  # السماح بالوصول العام
 
     def get(self, request):
+        print('--- ProductListView.get ---')
+        print('User:', request.user)
+        print('User type:', getattr(request.user, 'user_type', None))
+        print('is_superuser:', getattr(request.user, 'is_superuser', None))
+        print('is_staff:', getattr(request.user, 'is_staff', None))
+        print('is_authenticated:', request.user.is_authenticated)
         if request.user.is_authenticated:
             if request.user.user_type == 'owner':
                 products = Product.objects.filter(shop__owner__user=request.user)
             elif request.user.user_type == 'admin':
-                products = Product.objects.all()
+                products = Product.objects.all()  # جميع المنتجات نشطة وغير نشطة
             else:
                 products = Product.objects.filter(is_active=True)
         else:
             # للمستخدمين غير المسجلين، عرض المنتجات النشطة فقط
             products = Product.objects.filter(is_active=True)
-
+        print('عدد المنتجات المسترجعة:', products.count())
         serializer = ProductListSerializer(products, many=True)
         return Response(serializer.data)
 
@@ -42,10 +48,16 @@ class ProductDetailView(APIView):
     permission_classes = [permissions.AllowAny]
 
     def get(self, request, pk):
-        product = get_object_or_404(Product, pk=pk, is_active=True)
+        # إذا كان المستخدم أدمن أو سوبر يوزر، اعرض المنتج بغض النظر عن is_active
+        if request.user.is_authenticated and getattr(request.user, 'user_type', None) == 'admin':
+            product = get_object_or_404(Product, pk=pk)
+        else:
+            product = get_object_or_404(Product, pk=pk, is_active=True)
         if request.user.is_authenticated:
             product.log_behavior(request.user, 'view')
         serializer = ProductDetailSerializer(product)
+        print('--- بيانات المنتج قبل الإرسال ---')
+        print(serializer.data)
         return Response(serializer.data)
 
 

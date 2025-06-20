@@ -8,8 +8,23 @@ from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from reviews.serializers import ReviewSerializer
 from core.models import Category, Product, Shop, Customer, Brand, SpecificationCategory, Specification, ProductSpecification
+# from .serializers import ShopOwnerSerializer  # تم التعليق لمنع الاستيراد الدائري
 
 User = get_user_model()
+
+#----------------------------------------------------------------
+#                   Shop Owner Serializer
+#----------------------------------------------------------------
+class ShopOwnerSerializer(serializers.ModelSerializer):
+    owner_username = serializers.SerializerMethodField()
+    owner_email = serializers.SerializerMethodField()
+    class Meta:
+        model = Shop
+        fields = ('id', 'name', 'owner_username', 'owner_email')
+    def get_owner_username(self, obj):
+        return obj.owner.user.username if obj.owner and obj.owner.user else None
+    def get_owner_email(self, obj):
+        return obj.owner.user.email if obj.owner and obj.owner.user else None
 
 #----------------------------------------------------------------
 #                 Category Serializer
@@ -63,12 +78,8 @@ class BrandSerializer(serializers.ModelSerializer):
 class ProductDetailSerializer(serializers.ModelSerializer):
 
     category = CategorySerializer(read_only=True)
-    category_id = serializers.PrimaryKeyRelatedField(queryset=Category.objects.all(), source='category', write_only=True)
     brand = BrandSerializer(read_only=True)
-    brand_id = serializers.PrimaryKeyRelatedField(queryset=Brand.objects.all(), source='brand', write_only=True, required=False)
-    # shop = ShopSerializer(read_only=True) # Commented out to avoid circular import
-    shop_id = serializers.PrimaryKeyRelatedField(queryset=Shop.objects.all(), source='shop', write_only=True, required=False)
-    reviews = ReviewSerializer(many=True, read_only=True)
+    shop = ShopOwnerSerializer(read_only=True)
     discount = serializers.SerializerMethodField()
     rating = serializers.FloatField(read_only=True, required=False)
     in_stock = serializers.BooleanField(read_only=True, required=False)
@@ -77,8 +88,7 @@ class ProductDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = ('id', 'name', 'description', 'price', 'original_price',
-                  'discount', 'category', 'category_id', 'brand', 'brand_id', 'shop_id',
-                  'image_url', 'in_stock', 'rating', 'is_active', 'created_at', 'stock',
+                  'discount', 'category', 'brand', 'shop', 'image_url', 'in_stock', 'rating', 'is_active', 'created_at', 'stock',
                   'reviews', 'video_url', 'release_date', 'likes', 'dislikes', 'neutrals',
                   'views', 'is_banned')
         extra_kwargs = {
@@ -180,12 +190,8 @@ class BrandSerializer(serializers.ModelSerializer):
 class ProductDetailSerializer(serializers.ModelSerializer):
 
     category = CategorySerializer(read_only=True)
-    category_id = serializers.PrimaryKeyRelatedField(queryset=Category.objects.all(), source='category', write_only=True)
     brand = BrandSerializer(read_only=True)
-    brand_id = serializers.PrimaryKeyRelatedField(queryset=Brand.objects.all(), source='brand', write_only=True, required=False)
-    shop_name = serializers.SerializerMethodField()
-    shop_id = serializers.PrimaryKeyRelatedField(queryset=Shop.objects.all(), source='shop', write_only=True, required=False)
-    reviews = ReviewSerializer(many=True, read_only=True)
+    shop = ShopOwnerSerializer(read_only=True)
     discount = serializers.SerializerMethodField()
     rating = serializers.FloatField(read_only=True, required=False)
     in_stock = serializers.BooleanField(read_only=True, required=False)
@@ -199,8 +205,7 @@ class ProductDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = ('id', 'name', 'description', 'price', 'original_price',
-                  'discount', 'category', 'category_id', 'brand', 'brand_id', 'shop_id', 'shop_name',
-                  'image_url', 'in_stock', 'rating', 'is_active', 'created_at', 'stock',
+                  'discount', 'category', 'brand', 'shop', 'image_url', 'in_stock', 'rating', 'is_active', 'created_at', 'stock',
                   'reviews', 'video_url', 'release_date', 'likes', 'dislikes', 'neutrals',
                   'views', 'is_banned')
         extra_kwargs = {

@@ -1,0 +1,71 @@
+body {
+    font-family: 'Cairo', Arial, sans-serif;
+    background: linear-gradient(120deg, #e3f0ff 0%, #f8fafd 100%);
+    margin: 0;
+    padding: 0;
+}
+
+.dashboard-container, .dashboard {
+    max-width: 1200px;
+    margin: 40px auto;
+    background: #fff;
+    border-radius: 18px;
+    box-shadow: 0 6px 32px rgba(30,60,120,0.10);
+    padding: 36px 28px;
+}
+
+h1, h2 {
+    text-align: center;
+    color: #0d47a1;
+    margin-bottom: 10px;
+    letter-spacing: 1px;
+}
+
+.crud-table table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 18px;
+}
+
+.crud-table th, .crud-table td {
+    padding: 10px 8px;
+    border-bottom: 1px solid #e3e7ee;
+    text-align: center;
+}
+
+.crud-table th {
+    background: #f4f7fb;
+    color: #1976d2;
+}
+
+.crud-table tr:hover {
+    background: #f0f4fa;
+}
+
+.add-btn, .edit-btn, .delete-btn {
+    background: #1976d2;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 20px;
+    font-size: 1em;
+    cursor: pointer;
+    margin-left: 8px;
+    transition: background 0.2s;
+}
+
+.add-btn:hover, .edit-btn:hover {
+    background: #0d47a1;
+}
+
+.delete-btn {
+    background: #b71c1c;
+}
+.delete-btn:hover {
+    background: #d32f2f;
+}
+
+@media (max-width: 700px) {
+    .dashboard-container, .dashboard { padding: 10px 2px; }
+    .crud-table .form-box { min-width: 90vw; }
+}

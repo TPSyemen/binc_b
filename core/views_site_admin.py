@@ -2,6 +2,11 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.sites.models import Site
 import os
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import permissions
+from core.models import Shop
+from products.serializers import ShopSerializer
 
 @csrf_exempt
 def ensure_site_view(request):
@@ -23,3 +28,11 @@ def ensure_site_view(request):
             site.name = name
             site.save()
     return JsonResponse({'success': True, 'domain': site.domain, 'name': site.name})
+
+class AdminShopListView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    def get(self, request):
+        if getattr(request.user, 'user_type', None) != 'admin':
+            return Response({'error': 'Not allowed'}, status=403)
+        shops = Shop.objects.all()
+        return Response(ShopSerializer(shops, many=True).data)

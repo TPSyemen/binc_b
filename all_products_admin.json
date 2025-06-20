@@ -1,0 +1,452 @@
+[
+  {
+    "id": "d76d133c-290d-4968-8988-a3f6d28e8df9",
+    "name": "Apple MacBook Pro 16",
+    "price": "2499.99",
+    "is_active": false,
+    "category": "phone",
+    "shop": "Al Shibam Electronics",
+    "created_at": "2025-04-21T16:11:06.113000+00:00"
+  },
+  {
+    "id": "555efc7e-218a-4529-af56-a3213a6e2106",
+    "name": "Apple iPad Pro",
+    "price": "1099.99",
+    "is_active": false,
+    "category": "تاب",
+    "shop": "Mukalla Market",
+    "created_at": "2025-04-21T16:12:02.204395+00:00"
+  },
+  {
+    "id": "0c6ca2d1-5dbd-4c5c-a303-c8957e2ecac1",
+    "name": "Apple AirPods Pro",
+    "price": "249.99",
+    "is_active": false,
+    "category": "Watch",
+    "shop": "Tarim Trading Co",
+    "created_at": "2025-04-21T16:13:07.340606+00:00"
+  },
+  {
+    "id": "b3248986-5232-4a03-b84c-38bee5385dc5",
+    "name": "Apple iPhone 13 Pro",
+    "price": "999.99",
+    "is_active": false,
+    "category": "phone",
+    "shop": "Seiyun Retail",
+    "created_at": "2025-04-21T16:13:46.460505+00:00"
+  },
+  {
+    "id": "1059fc0b-0851-47d7-a67d-0327b227f57a",
+    "name": "Apple Watch Series 7",
+    "price": "399.99",
+    "is_active": false,
+    "category": "Watch",
+    "shop": "Hadhramaut Modern Stores",
+    "created_at": "2025-04-21T16:15:12.079125+00:00"
+  },
+  {
+    "id": "c9707e15-7349-4f23-9494-c433d21c1447",
+    "name": "Samsung Galaxy S23 Ultra",
+    "price": "1199.99",
+    "is_active": false,
+    "category": "phone",
+    "shop": "Al-Qasimi Souq",
+    "created_at": "2025-04-21T16:15:57.695230+00:00"
+  },
+  {
+    "id": "66c73c48-767b-41e7-a263-56ec441b086c",
+    "name": "Samsung Galaxy S23",
+    "price": "899.99",
+    "is_active": true,
+    "category": "phone",
+    "shop": "Bait Al-Hadhram",
+    "created_at": "2025-04-21T16:16:50.098157+00:00"
+  },
+  {
+    "id": "6024bf7a-128b-493e-9af4-03ccdd797237",
+    "name": "Samsung Galaxy Note 20",
+    "price": "999.99",
+    "is_active": true,
+    "category": "phone",
+    "shop": "Al-Hadhrami Store",
+    "created_at": "2025-04-21T16:18:11.427161+00:00"
+  },
+  {
+    "id": "993fae7f-214c-464c-8696-c8358121c47b",
+    "name": "Samsung Galaxy Tab S8",
+    "price": "649.99",
+    "is_active": true,
+    "category": "phone",
+    "shop": "Al-Hadhrami Store",
+    "created_at": "2025-04-21T16:19:04.884633+00:00"
+  },
+  {
+    "id": "18a87db1-7763-4392-bc1d-4099fb5bf035",
+    "name": "Samsung Galaxy Buds Pro",
+    "price": "199.99",
+    "is_active": true,
+    "category": "phone",
+    "shop": "Hadhramaut Trading Hub",
+    "created_at": "2025-04-21T16:19:51.484663+00:00"
+  },
+  {
+    "id": "457cd892-357e-40b2-99ce-940f7e7b9fa6",
+    "name": "Sony WH-1000XM4 Headphones",
+    "price": "349.99",
+    "is_active": true,
+    "category": "Other",
+    "shop": "Al Shibam Electronics",
+    "created_at": "2025-04-21T16:21:16.594821+00:00"
+  },
+  {
+    "id": "6e563c78-1c0a-4c90-9560-6e4a8428dae3",
+    "name": "Sony Alpha a7 III Camera",
+    "price": "1999.99",
+    "is_active": true,
+    "category": "Other",
+    "shop": "Mukalla Market",
+    "created_at": "2025-04-21T16:22:00.178053+00:00"
+  },
+  {
+    "id": "4e471591-6d7c-4394-a52e-0a49e3e41e9d",
+    "name": "Sony PlayStation 5",
+    "price": "499.99",
+    "is_active": true,
+    "category": "Other",
+    "shop": "Tarim Trading Co",
+    "created_at": "2025-04-21T16:22:55.470222+00:00"
+  },
+  {
+    "id": "0b4e0ec7-df04-446c-9278-0c405deb11bf",
+    "name": "Sony Bravia 55-inch 4K TV",
+    "price": "799.99",
+    "is_active": true,
+    "category": "Other",
+    "shop": "Seiyun Retail",
+    "created_at": "2025-04-21T16:23:39.699139+00:00"
+  },
+  {
+    "id": "81223f28-76e7-4535-8bdf-e5a0f004b458",
+    "name": "Sony Xperia 1 III",
+    "price": "1299.99",
+    "is_active": true,
+    "category": "Other",
+    "shop": "Hadhramaut Modern Stores",
+    "created_at": "2025-04-21T16:24:18.237534+00:00"
+  },
+  {
+    "id": "b2b2f68a-1d7e-42b0-b801-b12ec153b21f",
+    "name": "Dell XPS 13",
+    "price": "999.99",
+    "is_active": true,
+    "category": "Computer",
+    "shop": "Al-Qasimi Souq",
+    "created_at": "2025-04-21T16:25:13.503810+00:00"
+  },
+  {
+    "id": "e592b410-5a8d-469e-8875-1d1807335f04",
+    "name": "Dell XPS 15",
+    "price": "1299.99",
+    "is_active": true,
+    "category": "Computer",
+    "shop": "Al-Qasimi Souq",
+    "created_at": "2025-04-21T16:26:03.101760+00:00"
+  },
+  {
+    "id": "9e821406-42e0-46da-92a9-be5594b5a739",
+    "name": "Dell Inspiron 15",
+    "price": "749.99",
+    "is_active": true,
+    "category": "Computer",
+    "shop": "Bait Al-Hadhram",
+    "created_at": "2025-04-21T16:26:49.171670+00:00"
+  },
+  {
+    "id": "8840ee84-8d7e-4631-a299-e8fdc8ac9683",
+    "name": "Dell Alienware m15 R6",
+    "price": "1799.99",
+    "is_active": true,
+    "category": "Computer",
+    "shop": "Bait Al-Hadhram",
+    "created_at": "2025-04-21T16:27:32.370950+00:00"
+  },
+  {
+    "id": "4084bc65-f253-4231-b32a-12cfc9a2e145",
+    "name": "HP Spectre x360",
+    "price": "1249.99",
+    "is_active": true,
+    "category": "Computer",
+    "shop": "Al-Hadhrami Store",
+    "created_at": "2025-04-21T16:28:42.199586+00:00"
+  },
+  {
+    "id": "d02f71eb-03eb-4365-943c-9a53b2a67d02",
+    "name": "HP Envy 13",
+    "price": "899.99",
+    "is_active": true,
+    "category": "Computer",
+    "shop": "Hadhramaut Online Mall",
+    "created_at": "2025-04-21T16:29:17.152660+00:00"
+  },
+  {
+    "id": "09b24453-2fcc-4842-96ac-838d1607a376",
+    "name": "HP Omen 15",
+    "price": "1149.99",
+    "is_active": true,
+    "category": "Computer",
+    "shop": "Hadhramaut Trading Hub",
+    "created_at": "2025-04-21T16:30:06.368484+00:00"
+  },
+  {
+    "id": "111467ae-2e1c-4c07-bf86-757908ebab36",
+    "name": "HP Pavilion 15",
+    "price": "699.99",
+    "is_active": true,
+    "category": "Computer",
+    "shop": "Al Shibam Electronics",
+    "created_at": "2025-04-21T16:30:50.383311+00:00"
+  },
+  {
+    "id": "a9678510-dbe0-40f1-af4b-41fbd87b0424",
+    "name": "HP Elite Dragonfly",
+    "price": "1599.99",
+    "is_active": true,
+    "category": "Computer",
+    "shop": "Mukalla Market",
+    "created_at": "2025-04-21T16:31:41.030689+00:00"
+  },
+  {
+    "id": "5ff5a9ef-d3a8-4061-9661-3de123d1e718",
+    "name": "Lenovo ThinkPad X1 Carbon",
+    "price": "1299.99",
+    "is_active": true,
+    "category": "Computer",
+    "shop": "Tarim Trading Co",
+    "created_at": "2025-04-21T16:32:49.988830+00:00"
+  },
+  {
+    "id": "6d15a57d-f2d4-471b-bec6-731bc982c11e",
+    "name": "Lenovo Yoga 9i",
+    "price": "1099.99",
+    "is_active": true,
+    "category": "Computer",
+    "shop": "Hadhramaut Modern Stores",
+    "created_at": "2025-04-21T16:33:25.280790+00:00"
+  },
+  {
+    "id": "f1f587da-5738-41d1-b24f-b9da0c372e4a",
+    "name": "Lenovo Legion 5",
+    "price": "999.99",
+    "is_active": true,
+    "category": "Computer",
+    "shop": "Hadhramaut Modern Stores",
+    "created_at": "2025-04-21T16:34:08.731184+00:00"
+  },
+  {
+    "id": "8a2ad51a-67c5-4735-8b01-5ea90d739dae",
+    "name": "Lenovo IdeaPad 5",
+    "price": "749.99",
+    "is_active": true,
+    "category": "Computer",
+    "shop": "Hadhramaut Modern Stores",
+    "created_at": "2025-04-21T16:34:52.848003+00:00"
+  },
+  {
+    "id": "d457e5d0-251d-4d64-94b1-5d268bb21eeb",
+    "name": "Lenovo ThinkCentre M720",
+    "price": "799.99",
+    "is_active": true,
+    "category": "Computer",
+    "shop": "Al-Qasimi Souq",
+    "created_at": "2025-04-21T16:35:26.423027+00:00"
+  },
+  {
+    "id": "5566943b-92ff-437c-9a75-c1ef6b048b0b",
+    "name": "Asus ROG Zephyrus G14",
+    "price": "449.99",
+    "is_active": true,
+    "category": "Computer",
+    "shop": "Bait Al-Hadhram",
+    "created_at": "2025-04-21T16:36:24.341440+00:00"
+  },
+  {
+    "id": "1185570a-1722-44a1-a580-aa19c96f2615",
+    "name": "Asus ZenBook 14",
+    "price": "899.99",
+    "is_active": true,
+    "category": "Computer",
+    "shop": "Bait Al-Hadhram",
+    "created_at": "2025-04-21T16:37:08.430827+00:00"
+  },
+  {
+    "id": "7568d5a2-f381-44e1-912e-f57d81a59f6f",
+    "name": "Asus TUF Gaming A15",
+    "price": "999.99",
+    "is_active": true,
+    "category": "Computer",
+    "shop": "Hadhramaut Online Mall",
+    "created_at": "2025-04-21T16:37:52.947315+00:00"
+  },
+  {
+    "id": "d51507f6-b7ec-4c0c-9efa-94f2f523118f",
+    "name": "Asus VivoBook S15",
+    "price": "749.99",
+    "is_active": true,
+    "category": "Computer",
+    "shop": "Hadhramaut Online Mall",
+    "created_at": "2025-04-21T16:48:14.023224+00:00"
+  },
+  {
+    "id": "2600dbc5-e494-4b68-a55c-e22cc5f988e2",
+    "name": "Asus ProArt StudioBook",
+    "price": "1799.99",
+    "is_active": true,
+    "category": "Computer",
+    "shop": "Hadhramaut Modern Stores",
+    "created_at": "2025-04-21T16:49:14.564684+00:00"
+  },
+  {
+    "id": "87f9751b-3d6a-42c7-8c23-6257a751356e",
+    "name": "Microsoft Surface Pro 8",
+    "price": "1099.99",
+    "is_active": true,
+    "category": "Computer",
+    "shop": "Al-Qasimi Souq",
+    "created_at": "2025-04-21T16:52:35.640868+00:00"
+  },
+  {
+    "id": "8b1b8c49-b65e-46cc-a2a6-bf606acbf559",
+    "name": "Microsoft Surface Laptop 4",
+    "price": "999.99",
+    "is_active": true,
+    "category": "Computer",
+    "shop": "Bait Al-Hadhram",
+    "created_at": "2025-04-21T16:53:24.912838+00:00"
+  },
+  {
+    "id": "0a9892ff-1957-4572-99c2-4eb614a10804",
+    "name": "Microsoft Surface Book 3",
+    "price": "1599.99",
+    "is_active": true,
+    "category": "Computer",
+    "shop": "Hadhramaut Online Mall",
+    "created_at": "2025-04-21T16:54:08.471678+00:00"
+  },
+  {
+    "id": "10e97d54-083e-45f0-b5b9-8e7b4aff83e7",
+    "name": "Microsoft Xbox Series X",
+    "price": "499.99",
+    "is_active": true,
+    "category": "Computer",
+    "shop": "Hadhramaut Trading Hub",
+    "created_at": "2025-04-21T16:54:58.532996+00:00"
+  },
+  {
+    "id": "e0d9787d-ac3c-4fcb-93a8-7cef77ee6b00",
+    "name": "Microsoft HoloLens 2",
+    "price": "3499.99",
+    "is_active": true,
+    "category": "Computer",
+    "shop": "Tarim Trading Co",
+    "created_at": "2025-04-21T16:55:52.658406+00:00"
+  },
+  {
+    "id": "29073582-b240-4cf2-bbf1-9ec4d89db298",
+    "name": "Google Pixel 7 Pro",
+    "price": "899.99",
+    "is_active": true,
+    "category": "phone",
+    "shop": "Tarim Trading Co",
+    "created_at": "2025-04-21T16:56:49.404310+00:00"
+  },
+  {
+    "id": "5d5fd911-c2f8-43ff-93e4-b58b0f1d6383",
+    "name": "Google Pixel 7",
+    "price": "699.99",
+    "is_active": true,
+    "category": "phone",
+    "shop": "Hadhramaut Online Mall",
+    "created_at": "2025-04-21T16:57:27.953252+00:00"
+  },
+  {
+    "id": "af3982ca-39c9-41f2-9516-0f328b227700",
+    "name": "Google Nest Hub Max",
+    "price": "229.99",
+    "is_active": true,
+    "category": "phone",
+    "shop": "Hadhramaut Online Mall",
+    "created_at": "2025-04-21T16:58:07.561230+00:00"
+  },
+  {
+    "id": "1a83caac-01f7-44d9-a62e-b4142cc72a11",
+    "name": "Google Chromecast with Google TV",
+    "price": "49.99",
+    "is_active": true,
+    "category": "phone",
+    "shop": "Tarim Trading Co",
+    "created_at": "2025-04-21T16:58:49.371562+00:00"
+  },
+  {
+    "id": "29b1ac71-98aa-46d7-8442-2570b4c3fc82",
+    "name": "Google Pixelbook Go",
+    "price": "649.99",
+    "is_active": true,
+    "category": "phone",
+    "shop": "Tarim Trading Co",
+    "created_at": "2025-04-21T16:59:29.595484+00:00"
+  },
+  {
+    "id": "d5e7dcec-068f-44a9-843f-46482eb08efd",
+    "name": "Huawei P50 Pro",
+    "price": "799.99",
+    "is_active": true,
+    "category": "phone",
+    "shop": "Al Shibam Electronics",
+    "created_at": "2025-04-21T17:00:17.647541+00:00"
+  },
+  {
+    "id": "07d6c453-2a06-4457-ae4f-e4740e20fedf",
+    "name": "Huawei Mate 40 Pro",
+    "price": "999.99",
+    "is_active": true,
+    "category": "phone",
+    "shop": "Mukalla Market",
+    "created_at": "2025-04-21T17:01:00.362083+00:00"
+  },
+  {
+    "id": "cbdea736-1f50-4a16-a001-3bfef9f24849",
+    "name": "Huawei Watch GT 3",
+    "price": "299.99",
+    "is_active": true,
+    "category": "phone",
+    "shop": "Seiyun Retail",
+    "created_at": "2025-04-21T17:01:29.843401+00:00"
+  },
+  {
+    "id": "67a617a1-4dc6-4916-8c60-ddeab66cc9ee",
+    "name": "Huawei FreeBuds Pro",
+    "price": "199.00",
+    "is_active": true,
+    "category": "phone",
+    "shop": "Hadhramaut Modern Stores",
+    "created_at": "2025-04-21T17:02:44.156228+00:00"
+  },
+  {
+    "id": "8bb80b71-2a34-401c-9e94-fb513962a618",
+    "name": "HP Spectre",
+    "price": "4000.00",
+    "is_active": true,
+    "category": "Computer",
+    "shop": "Mukalla Market",
+    "created_at": "2025-04-26T06:33:39.576567+00:00"
+  },
+  {
+    "id": "048a3952-e655-4426-a78e-f908c86d6d8f",
+    "name": "1",
+    "price": "23.00",
+    "is_active": true,
+    "category": "Watch",
+    "shop": "Mukalla Market",
+    "created_at": "2025-04-27T06:44:07.892408+00:00"
+  }
+]

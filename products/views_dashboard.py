@@ -13,6 +13,12 @@ from .serializers import (
     ProductDetailSerializer,
     DashboardStatsSerializer
 )
+from django.views import View
+from django.http import JsonResponse, HttpResponse, HttpResponseForbidden
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+from django.contrib.auth.decorators import login_required
+import json
 
 class DashboardStatsView(APIView):
     """Get dashboard statistics for the authenticated owner."""
@@ -431,3 +437,29 @@ class OwnerShopSettingsView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@method_decorator(csrf_exempt, name='dispatch')
+@method_decorator(login_required, name='dispatch')
+class AdminProductActivateView(View):
+    def post(self, request, pk):
+        if not request.user.is_superuser and getattr(request.user, 'user_type', None) != 'admin':
+            return HttpResponseForbidden('Not allowed')
+        product = get_object_or_404(Product, pk=pk)
+        data = json.loads(request.body)
+        product.is_active = data.get('is_active', True)
+        product.save()
+        return JsonResponse({'success': True, 'is_active': product.is_active})
+
+@method_decorator(csrf_exempt, name='dispatch')
+@method_decorator(login_required, name='dispatch')
+class AdminProductNotifyOwnerView(View):
+    def post(self, request, pk):
+        if not request.user.is_superuser and getattr(request.user, 'user_type', None) != 'admin':
+            return HttpResponseForbidden('Not allowed')
+        product = get_object_or_404(Product, pk=pk)
+        data = json.loads(request.body)
+        message = data.get('message', '')
+        # هنا من المفترض إرسال إشعار لصاحب المتجر (يمكنك ربطها بخدمة إشعارات حقيقية)
+        # مثال: NotificationService.send(product.shop.owner.user, message)
+        # الآن فقط نعيد رسالة نجاح وهمية
+        return JsonResponse({'success': True, 'message': message, 'owner': str(product.shop.owner.user)})

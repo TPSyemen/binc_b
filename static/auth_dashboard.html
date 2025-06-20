@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <title>لوحة تحكم المصادقة</title>
+    <link rel="stylesheet" href="/static/dashboard_style.css">
+    <script src="/static/dashboard_protect.js"></script>
+</head>
+<body>
+    <div class="dashboard-container">
+        <h1>إدارة المصادقة</h1>
+        <div class="crud-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>المعرف</th>
+                        <th>المستخدم</th>
+                        <th>الحالة</th>
+                        <th>تاريخ الإنشاء</th>
+                        <th>إجراءات</th>
+                    </tr>
+                </thead>
+                <tbody id="auth-table-body">
+                    <tr>
+                        <td>1</td>
+                        <td>admin@gmail.com</td>
+                        <td>مفعل</td>
+                        <td>2025-06-20</td>
+                        <td>
+                            <button class="edit-btn">تعديل</button>
+                            <button class="delete-btn">حذف</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <button class="add-btn">إضافة مصادقة جديدة</button>
+        </div>
+    </div>
+    <script>
+        if (!localStorage.getItem('isLoggedIn')) {
+            window.location.href = '/login/';
+        }
+    </script>
+</body>
+</html>

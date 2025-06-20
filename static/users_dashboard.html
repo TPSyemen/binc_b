@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة المستخدمين - لوحة تحكم التطبيقات</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Cairo', Arial, sans-serif; background: #f6f8fa; margin: 0; }
+        .navbar { background: #0d47a1; color: #fff; padding: 0; display: flex; align-items: center; justify-content: space-between; height: 56px; box-shadow: 0 2px 8px rgba(30,60,120,0.08); }
+        .navbar .brand { font-size: 1.2em; font-weight: bold; padding: 0 32px; }
+        .navbar .menu { display: flex; align-items: center; gap: 18px; padding: 0 32px; }
+        .navbar .menu button { background: #fff; color: #0d47a1; border: none; border-radius: 6px; padding: 7px 22px; font-size: 1em; font-weight: bold; cursor: pointer; transition: background 0.2s, color 0.2s; }
+        .navbar .menu button.active, .navbar .menu button:hover { background: #1976d2; color: #fff; }
+        .dashboard { max-width: 900px; margin: 40px auto; background: #fff; border-radius: 18px; box-shadow: 0 6px 32px rgba(30,60,120,0.10); padding: 36px 28px; }
+        h1 { text-align: center; color: #0d47a1; margin-bottom: 18px; letter-spacing: 1px; }
+        .actions { display: flex; justify-content: flex-end; margin-bottom: 18px; }
+        .actions button { background: #1976d2; color: #fff; border: none; border-radius: 6px; padding: 8px 20px; font-size: 1em; cursor: pointer; margin-left: 8px; }
+        .actions button:hover { background: #0d47a1; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 18px; }
+        th, td { padding: 10px 8px; border-bottom: 1px solid #e3e7ee; text-align: center; }
+        th { background: #f4f7fb; color: #1976d2; }
+        tr:hover { background: #f0f4fa; }
+        .form-popup { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(30,60,120,0.13); z-index: 1001; align-items: center; justify-content: center; }
+        .form-popup.active { display: flex; }
+        .form-box { background: #fff; border-radius: 12px; box-shadow: 0 4px 24px rgba(30,60,120,0.13); padding: 32px 24px; min-width: 320px; }
+        .form-box label { display: block; margin-bottom: 6px; color: #263238; }
+        .form-box input, .form-box select { width: 100%; margin-bottom: 14px; padding: 8px; border-radius: 6px; border: 1px solid #bdbdbd; font-size: 1em; background: #f7fafd; }
+        .form-box .form-actions { display: flex; justify-content: flex-end; gap: 10px; }
+        .form-box button { background: #1976d2; color: #fff; border: none; border-radius: 6px; padding: 8px 20px; font-size: 1em; cursor: pointer; }
+        .form-box button.cancel { background: #bdbdbd; color: #263238; }
+        .form-box button:hover:not(.cancel) { background: #0d47a1; }
+        .error { color: #b71c1c; text-align: center; margin-bottom: 12px; }
+        .success { color: #388e3c; text-align: center; margin-bottom: 12px; }
+        @media (max-width: 700px) { .dashboard { padding: 10px 2px; } .form-box { min-width: 90vw; } }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <span class="brand">إدارة المستخدمين</span>
+        <div class="menu">
+            <button onclick="window.location.href='/apps-dashboard/'">العودة للوحة التطبيقات</button>
+        </div>
+    </div>
+    <div class="dashboard">
+        <h1>إدارة المستخدمين (CRUD)</h1>
+        <div class="actions">
+            <button onclick="openForm()">إضافة مستخدم جديد</button>
+        </div>
+        <table id="usersTable">
+            <thead>
+                <tr><th>الاسم</th><th>البريد الإلكتروني</th><th>الدور</th><th>إجراءات</th></tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+    <div class="form-popup" id="formPopup">
+        <form class="form-box" onsubmit="return saveUser(event)">
+            <div id="formError" class="error"></div>
+            <label>الاسم</label>
+            <input type="text" id="formName" required>
+            <label>البريد الإلكتروني</label>
+            <input type="email" id="formEmail" required>
+            <label>الدور</label>
+            <select id="formRole">
+                <option value="admin">مدير</option>
+                <option value="owner">مالك</option>
+                <option value="customer">عميل</option>
+            </select>
+            <label>كلمة المرور</label>
+            <input type="password" id="formPassword" required>
+            <div class="form-actions">
+                <button type="button" class="cancel" onclick="closeForm()">إلغاء</button>
+                <button type="submit">حفظ</button>
+            </div>
+        </form>
+    </div>
+    <script>
+        // بيانات وهمية (يمكن ربطها لاحقاً بالـ API)
+        let users = [
+            {name: 'مدير النظام', email: 'admin@gmail.com', role: 'admin'},
+            {name: 'مالك متجر', email: 'owner@shop.com', role: 'owner'},
+            {name: 'عميل', email: 'customer@user.com', role: 'customer'}
+        ];
+        let editIndex = null;
+        function renderUsers() {
+            const tbody = document.querySelector('#usersTable tbody');
+            tbody.innerHTML = '';
+            users.forEach((u, i) => {
+                tbody.innerHTML += `<tr><td>${u.name}</td><td>${u.email}</td><td>${u.role}</td><td>
+                    <button onclick="editUser(${i})">تعديل</button>
+                    <button onclick="deleteUser(${i})" style="background:#b71c1c;">حذف</button>
+                </td></tr>`;
+            });
+        }
+        function openForm(editI) {
+            document.getElementById('formPopup').classList.add('active');
+            document.getElementById('formError').textContent = '';
+            if(editI !== undefined) {
+                editIndex = editI;
+                const u = users[editI];
+                document.getElementById('formName').value = u.name;
+                document.getElementById('formEmail').value = u.email;
+                document.getElementById('formRole').value = u.role;
+                document.getElementById('formPassword').value = '';
+            } else {
+                editIndex = null;
+                document.getElementById('formName').value = '';
+                document.getElementById('formEmail').value = '';
+                document.getElementById('formRole').value = 'customer';
+                document.getElementById('formPassword').value = '';
+            }
+        }
+        function closeForm() {
+            document.getElementById('formPopup').classList.remove('active');
+        }
+        function saveUser(e) {
+            e.preventDefault();
+            const name = document.getElementById('formName').value.trim();
+            const email = document.getElementById('formEmail').value.trim();
+            const role = document.getElementById('formRole').value;
+            const password = document.getElementById('formPassword').value;
+            if(!name || !email || !password) {
+                document.getElementById('formError').textContent = 'جميع الحقول مطلوبة';
+                return false;
+            }
+            if(editIndex !== null) {
+                users[editIndex] = {name, email, role};
+            } else {
+                users.push({name, email, role});
+            }
+            closeForm();
+            renderUsers();
+            return false;
+        }
+        function editUser(i) { openForm(i); }
+        function deleteUser(i) {
+            if(confirm('هل أنت متأكد من حذف المستخدم؟')) {
+                users.splice(i, 1);
+                renderUsers();
+            }
+        }
+        renderUsers();
+    </script>
+</body>
+</html>

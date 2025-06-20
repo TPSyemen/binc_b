@@ -23,7 +23,7 @@ from .views_public_categories import PublicCategoriesView
 
 urlpatterns = [
     path("", ProductListView.as_view(), name="product-list"),
-    path("<uuid:pk>/", ProductDetailView.as_view(), name="product-detail"),
+    path("<str:pk>/", ProductDetailView.as_view(), name="product-detail"),
     path("create/", ProductCreateView.as_view(), name="product-create"),
     path("<uuid:pk>/update/", ProductUpdateView.as_view(), name="product-update"),
     path("<uuid:pk>/delete/", ProductDeleteView.as_view(), name="product-delete"),

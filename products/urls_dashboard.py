@@ -4,7 +4,9 @@ from .views_dashboard import (
     OwnerProductsView,
     OwnerProductDetailView,
     OwnerAnalyticsView,
-    OwnerShopSettingsView
+    OwnerShopSettingsView,
+    AdminProductActivateView,
+    AdminProductNotifyOwnerView,
 )
 from .views_brands import BrandListCreateView, BrandDetailView
 from .views_specifications import SpecificationCategoryListView, ProductSpecificationsView
@@ -32,4 +34,8 @@ urlpatterns = [
     # Specifications management
     path('specifications/categories/', SpecificationCategoryListView.as_view(), name='owner-specification-categories'),
     path('products/<uuid:product_id>/specifications/', ProductSpecificationsView.as_view(), name='owner-product-specifications'),
+
+    # Admin actions
+    path('admin/products/<uuid:pk>/activate/', AdminProductActivateView.as_view(), name='admin-product-activate'),
+    path('admin/products/<uuid:pk>/notify/', AdminProductNotifyOwnerView.as_view(), name='admin-product-notify'),
 ]
