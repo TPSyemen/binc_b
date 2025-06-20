@@ -138,27 +138,59 @@ class SimilarProductsView(APIView):
     """Retrieve similar products based on category, price, brand, and popularity."""
     permission_classes = [permissions.AllowAny]
 
-    def get(self, request, product_id):
-        product = get_object_or_404(Product, id=product_id, is_active=True)
+    def get(self, request, pk):
+        try:
+            product = get_object_or_404(Product, id=pk, is_active=True)
 
-        # Convertir Decimal a float para operaciones matemáticas
-        price_float = float(product.price)
-        price_range = 0.2 * price_float  # 20% price range
+            # تحقق من وجود جميع الحقول المطلوبة
+            if product.price is None or not product.category or not product.brand:
+                return Response({
+                    "detail": "المنتج يفتقد بيانات ضرورية (السعر أو التصنيف أو العلامة التجارية)."
+                }, status=400)
 
-        # Calcular los límites de precio
-        min_price = price_float - price_range
-        max_price = price_float + price_range
+            # تحقق من أن الكائنات المرتبطة موجودة فعليًا
+            if not hasattr(product.brand, 'id') or not hasattr(product.category, 'id'):
+                return Response({
+                    "detail": "المنتج مرتبط بعلامة تجارية أو تصنيف غير موجود فعليًا."
+                }, status=400)
 
-        similar_products = Product.objects.filter(
-            Q(category=product.category) &
-            Q(price__gte=min_price) &
-            Q(price__lte=max_price) &
-            Q(brand=product.brand) &
-            ~Q(id=product.id)  # Exclude the current product
-        ).order_by('-rating', '-views')[:10]  # Order by rating and views
+            price_float = float(product.price)
+            price_range = 0.2 * price_float  # 20% price range
+            min_price = price_float - price_range
+            max_price = price_float + price_range
 
-        serializer = ProductListSerializer(similar_products, many=True)
-        return Response({
-            "current_product": ProductDetailSerializer(product).data,
-            "similar_products": serializer.data
-        })
+            similar_products = Product.objects.filter(
+                Q(category=product.category) &
+                Q(price__gte=min_price) &
+                Q(price__lte=max_price) &
+                Q(brand=product.brand) &
+                ~Q(id=product.id)
+            ).order_by('-rating', '-views')[:10]
+
+            serializer = ProductListSerializer(similar_products, many=True)
+            return Response({
+                "current_product": ProductDetailSerializer(product).data,
+                "similar_products": serializer.data
+            })
+        except Exception as e:
+            return Response({
+                "detail": f"حدث خطأ غير متوقع: {str(e)}"
+            }, status=500)
+
+
+class ProductPriceHistoryView(APIView):
+    """عرض تاريخ أسعار المنتج حسب التغييرات المسجلة (إن وجدت)."""
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request, pk):
+        product = get_object_or_404(Product, pk=pk, is_active=True)
+        # يفترض وجود علاقة أو جدول لتخزين تاريخ الأسعار، هنا مثال مبسط:
+        if hasattr(product, 'price_history'):
+            history = product.price_history.all().order_by('-date')
+            data = [
+                {"date": h.date, "price": float(h.price)} for h in history
+            ]
+        else:
+            # إذا لم يوجد تاريخ أسعار، أعد السعر الحالي فقط
+            data = [{"date": str(product.last_price_update), "price": float(product.price)}]
+        return Response({"product_id": pk, "price_history": data})

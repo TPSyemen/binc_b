@@ -23,7 +23,8 @@ urlpatterns = [
     path('api/notifications/', include('core.urls_notifications')),  # إضافة مسار API للإشعارات
     path('api/user/', include('core.urls_favorites')),  # إضافة مسار API للمفضلة
     path('api/user/preferences/', include('core.urls_preferences')),  # إضافة مسار API للتفضيلات
-    path('api/verification/', include('core.urls_verification')),  # إضافة مسار API للتحقق
+    path('api/verification/', include('core.urls_verification')),
+        # إضافة مسار API للتحقق
 ]
 
 # إضافة مسارات للملفات الوسائط في بيئة التطوير

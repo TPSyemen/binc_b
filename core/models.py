@@ -250,6 +250,7 @@ class Product(models.Model):
         null=True,
         blank=True
     )
+    is_featured = models.BooleanField(default=False)
     release_date = models.DateField(
         null=True,
         blank=True,
