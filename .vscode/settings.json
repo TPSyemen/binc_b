@@ -1,4 +1,5 @@
 {
     "yaml.schemaStore.enable": false,
-    "zencoder.enableRepoIndexing": true
+    "zencoder.enableRepoIndexing": true,
+    "Codegeex.RepoIndex": true
 }

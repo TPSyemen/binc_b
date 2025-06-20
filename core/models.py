@@ -99,15 +99,16 @@ class Shop(models.Model):
 
     address = models.CharField(
         max_length=500,
-        verbose_name="Shop Address"
+        verbose_name="Shop Address",
     )
     description = models.TextField(
         blank=True,
-        null=True,
+        default="",
         verbose_name="Shop Description"
     )
     logo = models.ImageField(
         upload_to='shop_logos/',
+        null=True,
         verbose_name="Shop Logo"
     )
     banner = models.ImageField(
@@ -199,7 +200,7 @@ class Category(models.Model):
     )
     description = models.TextField(
         blank=True,
-        null=True,
+        default="",
         verbose_name="Description"
     )
 
@@ -261,6 +262,7 @@ class Product(models.Model):
     )
     description = models.TextField(
         blank=True,
+        default="",
         verbose_name="Description"
     )
     image_url = models.URLField(
