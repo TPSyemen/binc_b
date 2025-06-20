@@ -1,3 +1,9 @@
+"""
+promotions/serializers.py
+------------------------
+Defines promotions-related DRF serializers.
+"""
+
 from rest_framework import serializers
 from .models import Promotion, DiscountCode
 

@@ -1,3 +1,9 @@
+"""
+products/serializers.py
+----------------------
+Defines product-related DRF serializers.
+"""
+
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from reviews.serializers import ReviewSerializer
@@ -223,8 +229,6 @@ class ProductDetailSerializer(serializers.ModelSerializer):
         # Crear el producto
         return super().create(validated_data)
 
-
-
 #----------------------------------------------------------------
 #                   Customer Serializer
 #----------------------------------------------------------------
@@ -250,8 +254,6 @@ class DashboardStatsSerializer(serializers.Serializer):
     total_customers = serializers.IntegerField()
     customers_change = serializers.FloatField()
     top_products = ProductListSerializer(many=True)
-
-# Brand Serializer moved to the top of the file
 
 #----------------------------------------------------------------
 #                   Specification Category Serializer

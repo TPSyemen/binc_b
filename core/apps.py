@@ -1,3 +1,9 @@
+"""
+core/apps.py
+------------
+AppConfig for the core app.
+"""
+
 from django.apps import AppConfig
 
 
@@ -8,13 +14,12 @@ class CoreConfig(AppConfig):
     def ready(self):
         """
         Run when the app is ready.
-        This is a good place to create the default site if it doesn't exist.
+        This is a good place to create or update the default Site object.
+        Avoids import errors by importing Site inside the method.
         """
-        # Import here to avoid circular imports
-        from django.contrib.sites.models import Site
-        from django.db import DatabaseError
-
         try:
+            from django.contrib.sites.models import Site
+
             # Try to get or create the default site
             site, created = Site.objects.get_or_create(
                 id=1,
@@ -29,6 +34,6 @@ class CoreConfig(AppConfig):
                 site.domain = 'binc-b-1.onrender.com'
                 site.name = 'Best In Click'
                 site.save()
-        except DatabaseError:
-            # This can happen during migrations when the sites table doesn't exist yet
+        except Exception:
+            # This can happen during migrations or if the sites table doesn't exist yet
             pass

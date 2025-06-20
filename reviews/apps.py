@@ -1,3 +1,9 @@
+"""
+reviews/apps.py
+---------------
+AppConfig for the reviews app.
+"""
+
 from django.apps import AppConfig
 
 

@@ -1,3 +1,9 @@
+"""
+recommendations/serializers.py
+-----------------------------
+Defines recommendation-related DRF serializers.
+"""
+
 from rest_framework import serializers
 from .models import ProductRecommendation
 from core.models import Product  # Correctly import Product from core.models

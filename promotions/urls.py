@@ -1,3 +1,9 @@
+"""
+promotions/urls.py
+------------------
+Defines promotions and discount codes API endpoints.
+"""
+
 from django.urls import path
 from .views import (
     PromotionListView, PromotionDetailView, PromotionCreateView,
@@ -13,5 +19,5 @@ urlpatterns = [
     path('promotions/<uuid:promotionId>/delete/', PromotionDeleteView.as_view(), name='promotion-delete'),
     path('promotions/customer/<uuid:customerId>/recommendations/', CustomerPromotionRecommendationsView.as_view(), name='promotion-recommendations'),
     path('promotions/forecast/', PromotionForecastView.as_view(), name='promotion-forecast'),
-    path('discount-codes/', DiscountCodeListCreateView.as_view(), name='discount-code-list-create'),  # List and create discount codes
+    path('discount-codes/', DiscountCodeListCreateView.as_view(), name='discount-code-list-create'),
 ]

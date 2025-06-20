@@ -1,3 +1,9 @@
+"""
+products/models.py
+------------------
+Defines product-related database models.
+"""
+
 from django.db import models
 from core.models import Product  # Import the Product model from core.models
 

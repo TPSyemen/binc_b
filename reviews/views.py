@@ -1,3 +1,9 @@
+"""
+reviews/views.py
+----------------
+Defines review-related API views.
+"""
+
 from rest_framework import generics, permissions
 from .models import Review
 from .serializers import CreateReviewSerializer, ReviewSerializer

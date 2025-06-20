@@ -1,3 +1,9 @@
+"""
+comparison/apps.py
+-----------------
+AppConfig for the comparison app.
+"""
+
 from django.apps import AppConfig
 
 

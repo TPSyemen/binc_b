@@ -1,3 +1,9 @@
+"""
+recommendations/apps.py
+----------------------
+AppConfig for the recommendations app.
+"""
+
 from django.apps import AppConfig
 
 

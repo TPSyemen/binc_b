@@ -1,3 +1,9 @@
+"""
+recommendations/views.py
+-----------------------
+Defines recommendation-related API views.
+"""
+
 from django.utils.timezone import now
 from datetime import timedelta
 from rest_framework.views import APIView

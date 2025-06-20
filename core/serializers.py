@@ -1,3 +1,9 @@
+"""
+core/serializers.py
+------------------
+Defines core DRF serializers (User, Category, etc.).
+"""
+
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from .models import Notification
@@ -56,4 +62,4 @@ class NotificationSerializer(serializers.ModelSerializer):
 
     def get_recipient_username(self, obj):
         return obj.recipient.username if obj.recipient else None
-    
+

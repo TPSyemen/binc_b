@@ -1,3 +1,9 @@
+"""
+promotions/models.py
+--------------------
+Defines promotions-related database models.
+"""
+
 from django.db import models
 from core.models import Product, User
 from django.utils.timezone import now

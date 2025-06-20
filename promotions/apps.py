@@ -1,3 +1,9 @@
+"""
+promotions/apps.py
+------------------
+AppConfig for the promotions app.
+"""
+
 from django.apps import AppConfig
 
 

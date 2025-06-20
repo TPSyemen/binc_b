@@ -1,3 +1,9 @@
+"""
+core/models.py
+--------------
+Defines core database models (User, Category, etc.).
+"""
+
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 import uuid

@@ -1,3 +1,9 @@
+"""
+promotions/views.py
+-------------------
+Defines promotions-related API views.
+"""
+
 from rest_framework import generics, permissions
 from rest_framework.views import APIView
 from rest_framework.response import Response

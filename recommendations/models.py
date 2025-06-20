@@ -1,3 +1,9 @@
+"""
+recommendations/models.py
+------------------------
+Defines recommendation-related database models.
+"""
+
 from django.db import models
 from django.apps import apps  # Use apps.get_model to resolve circular imports
 from django.conf import settings

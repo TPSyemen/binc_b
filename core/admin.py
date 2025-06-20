@@ -1,3 +1,9 @@
+"""
+core/admin.py
+-------------
+Admin configuration for core models.
+"""
+
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from rest_framework.authtoken.admin import TokenAdmin

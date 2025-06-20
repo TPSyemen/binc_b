@@ -1,3 +1,9 @@
+"""
+reviews/urls.py
+--------------
+Defines review-related API endpoints for products.
+"""
+
 from django.urls import path
 from .views import ReviewListCreateView
 from .views_product_reviews import ProductReviewsView, ProductReviewDetailView

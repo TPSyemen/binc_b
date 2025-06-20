@@ -1,3 +1,9 @@
+"""
+core/views.py
+-------------
+Defines core API views (authentication, user management, etc.).
+"""
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions

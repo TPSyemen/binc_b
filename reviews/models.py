@@ -1,3 +1,9 @@
+"""
+reviews/models.py
+-----------------
+Defines review-related database models.
+"""
+
 from django.db import models
 from django.conf import settings
 from core.models import Product  # Assuming Product is defined in core.models

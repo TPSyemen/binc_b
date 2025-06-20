@@ -1,3 +1,9 @@
+"""
+products/views.py
+-----------------
+Defines product-related API views (list, detail, create, update, etc.).
+"""
+
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
 from rest_framework import generics, permissions, status
