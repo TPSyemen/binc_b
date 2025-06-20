@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تسجيل الدخول - API داشبورد</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Cairo', Arial, sans-serif;
+            background: linear-gradient(120deg, #e3f0ff 0%, #f8fafd 100%);
+            margin: 0;
+            padding: 0;
+        }
+        .login-container {
+            max-width: 400px;
+            margin: 80px auto;
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.07);
+            padding: 36px 28px;
+        }
+        h2 {
+            text-align: center;
+            color: #0d47a1;
+            margin-bottom: 24px;
+        }
+        label {
+            font-size: 1em;
+            color: #263238;
+            margin-bottom: 6px;
+            display: block;
+        }
+        input[type="email"], input[type="password"] {
+            width: 100%;
+            margin-bottom: 18px;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #bdbdbd;
+            font-size: 1em;
+            background: #f7fafd;
+        }
+        button {
+            width: 100%;
+            background: linear-gradient(90deg, #1976d2 60%, #0d47a1 100%);
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            padding: 12px 0;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: linear-gradient(90deg, #0d47a1 60%, #1976d2 100%);
+        }
+        .error {
+            color: #b71c1c;
+            text-align: center;
+            margin-bottom: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h2>تسجيل الدخول للداشبورد</h2>
+        <div id="error" class="error"></div>
+        <form onsubmit="return login(event)">
+            <label for="email">البريد الإلكتروني</label>
+            <input type="email" id="email" required placeholder="admin@gmail.com">
+            <label for="password">كلمة المرور</label>
+            <input type="password" id="password" required placeholder="كلمة المرور">
+            <button type="submit">دخول</button>
+        </form>
+    </div>
+    <script>
+        function login(e) {
+            e.preventDefault();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const errorDiv = document.getElementById('error');
+            if(email === 'admin@gmail.com' && password === 'adminadmin') {
+                localStorage.setItem('dashboard_logged_in', '1');
+                window.location.href = '/';
+            } else {
+                errorDiv.textContent = 'بيانات الدخول غير صحيحة!';
+            }
+            return false;
+        }
+        // إذا كان المستخدم مسجل دخوله بالفعل، انقله للداشبورد مباشرة
+        if(localStorage.getItem('dashboard_logged_in') === '1') {
+            window.location.href = '/';
+        }
+    </script>
+</body>
+</html>
