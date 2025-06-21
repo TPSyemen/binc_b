@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>نتائج اختبار الاندبوينتات</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/dashboard_style.css">
+    <style>
+        body { font-family: 'Cairo', Arial, sans-serif; background: #f8fafd; }
+        .container { max-width: 900px; margin: 40px auto; background: #fff; border-radius: 12px; box-shadow: 0 4px 24px rgba(30,60,120,0.13); padding: 32px 24px; }
+        h1 { color: #1976d2; }
+        table { width: 100%; border-collapse: collapse; margin-top: 24px; }
+        th, td { padding: 10px; border-bottom: 1px solid #e0e0e0; text-align: right; }
+        th { background: #f0f4fa; }
+        .pass { color: #388e3c; font-weight: bold; }
+        .fail { color: #d32f2f; font-weight: bold; }
+        .error { color: #b71c1c; font-weight: bold; }
+        pre { background: #f5f5f5; padding: 8px; border-radius: 6px; max-width: 100%; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>نتائج اختبار جميع الاندبوينتات</h1>
+        <button onclick="runTest()" id="runBtn">تشغيل الاختبار الآن</button>
+        <button onclick="location.reload()">إعادة تحميل النتائج</button>
+        <table id="resultsTable">
+            <thead>
+                <tr>
+                    <th>الاندبوينت</th>
+                    <th>الطريقة</th>
+                    <th>الحالة</th>
+                    <th>الاستجابة</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+        <div id="errorMsg" style="color:#d32f2f;margin-top:20px;"></div>
+        <div id="testLog" style="margin-top:20px;color:#1976d2;"></div>
+    </div>
+    <script>
+    function renderResults(data) {
+        const tbody = document.querySelector('#resultsTable tbody');
+        tbody.innerHTML = '';
+        data.forEach(row => {
+            let statusClass = 'fail';
+            if (typeof row.status === 'number' && row.status >= 200 && row.status < 300) statusClass = 'pass';
+            if (row.status === 'ERR') statusClass = 'error';
+            tbody.innerHTML += `<tr>
+                <td>${row.url}</td>
+                <td>${row.method}</td>
+                <td class="${statusClass}">${row.status}</td>
+                <td><pre>${typeof row.body === 'object' ? JSON.stringify(row.body, null, 2) : row.body}</pre></td>
+            </tr>`;
+        });
+    }
+    function loadResults() {
+        fetch('/static/endpoint_test_results.json')
+            .then(r => r.json())
+            .then(renderResults)
+            .catch(e => {
+                document.getElementById('errorMsg').textContent = 'تعذر تحميل النتائج. تأكد من وجود الملف endpoint_test_results.json في static.';
+            });
+    }
+    loadResults();
+    function runTest() {
+        document.getElementById('runBtn').disabled = true;
+        document.getElementById('testLog').textContent = 'جاري تشغيل الاختبار...';
+        fetch('/api/auth/run-endpoints-test/', { method: 'POST' })
+            .then(r => r.json())
+            .then(res => {
+                if(res.success) {
+                    renderResults(res.results);
+                    document.getElementById('testLog').textContent = 'تم تشغيل الاختبار بنجاح.';
+                } else {
+                    document.getElementById('testLog').textContent = 'فشل تشغيل الاختبار: ' + (res.error || res.stderr);
+                }
+                document.getElementById('runBtn').disabled = false;
+            })
+            .catch(e => {
+                document.getElementById('testLog').textContent = 'حدث خطأ أثناء التشغيل.';
+                document.getElementById('runBtn').disabled = false;
+            });
+    }
+    </script>
+</body>
+</html>
