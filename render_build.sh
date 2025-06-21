@@ -46,13 +46,6 @@ except Exception as e:
         print(f"Error with direct SQL: {sql_error}")
 END
 
-# Also try using the sqlite3 command directly
-echo "Trying direct sqlite3 command..."
-if [ -f "db.sqlite3" ]; then
-    sqlite3 db.sqlite3 < scripts/create_site.sql
-    echo "Executed SQL script directly"
-fi
-
 # Collect static files
 echo "Collecting static files..."
 python manage.py collectstatic --noinput
