@@ -2,6 +2,8 @@
 # Exit on error
 set -o errexit
 
+export DJANGO_SETTINGS_MODULE=binc_b.settings
+
 # Initial setup
 echo "Installing dependencies..."
 pip install -r requirements.txt

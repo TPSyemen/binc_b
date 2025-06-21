@@ -2,6 +2,8 @@
 # Exit on error
 set -o errexit
 
+export DJANGO_SETTINGS_MODULE=binc_b.settings
+
 # Verify site exists before starting
 echo "Verifying site configuration..."
 python << END
