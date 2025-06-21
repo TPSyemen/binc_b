@@ -9,10 +9,14 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from .views import api_index, apps_dashboard
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from core.views_site_admin import AdminShopListView
 
+def health_check(request):
+    return JsonResponse({"status": "ok"})
+
 urlpatterns = [
+    path('healthz/', health_check, name='health-check'),
     path('', apps_dashboard, name='apps-dashboard'),
     path('apps-dashboard/', apps_dashboard, name='apps-dashboard-redirect'),
     path('users-dashboard/', lambda r: open_dashboard_page(r, 'users_dashboard.html'), name='users-dashboard'),
