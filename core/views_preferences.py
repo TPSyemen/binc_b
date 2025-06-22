@@ -5,10 +5,12 @@ from django.shortcuts import get_object_or_404
 from .models_preferences import UserPreference, BrandPreference
 from .serializers_preferences import UserPreferenceSerializer, BrandPreferenceSerializer
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.parsers import JSONParser
 
 class UserPreferenceView(APIView):
     """API view for managing user preferences."""
     permission_classes = [IsAuthenticated]
+    parser_classes = [JSONParser]
 
     def get(self, request):
         """Get the authenticated user's preferences."""
@@ -60,6 +62,7 @@ class UserPreferenceView(APIView):
 class BrandPreferenceToggleView(APIView):
     """API view for toggling a brand as preferred."""
     permission_classes = [IsAuthenticated]
+    parser_classes = [JSONParser]
 
     def post(self, request, brand_id):
         """Add or remove a brand from preferences."""
@@ -98,6 +101,7 @@ class BrandPreferenceToggleView(APIView):
 class BrandPreferenceStatusView(APIView):
     """API view for checking if a brand is in preferences."""
     permission_classes = [IsAuthenticated]
+    parser_classes = [JSONParser]
 
     def get(self, request, brand_id):
         """Check if a brand is in the user's preferences."""

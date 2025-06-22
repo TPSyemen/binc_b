@@ -6,12 +6,14 @@ from django.utils import timezone
 from .models_verification import EmailVerificationToken, ActionVerificationToken
 from .email_service import send_verification_email, send_action_verification_email
 from django.contrib.auth import get_user_model
+from rest_framework.parsers import JSONParser
 
 User = get_user_model()
 
 class EmailVerificationSendView(APIView):
     """API view for sending email verification."""
     permission_classes = [permissions.IsAuthenticated]
+    parser_classes = [JSONParser]
 
     def post(self, request):
         """Send a verification email to the authenticated user."""
@@ -36,6 +38,7 @@ class EmailVerificationSendView(APIView):
 class EmailVerificationConfirmView(APIView):
     """API view for confirming email verification."""
     permission_classes = [permissions.AllowAny]
+    parser_classes = [JSONParser]
 
     def get(self, request, token):
         """Verify the email using the token."""
@@ -67,6 +70,7 @@ class EmailVerificationConfirmView(APIView):
 class ActionVerificationSendView(APIView):
     """API view for sending action verification."""
     permission_classes = [permissions.IsAuthenticated]
+    parser_classes = [JSONParser]
 
     def post(self, request):
         """Send an action verification email."""
@@ -94,6 +98,7 @@ class ActionVerificationSendView(APIView):
 class ActionVerificationConfirmView(APIView):
     """API view for confirming action verification."""
     permission_classes = [permissions.AllowAny]
+    parser_classes = [JSONParser]
 
     def get(self, request, token):
         """Verify the action using the token."""

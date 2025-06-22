@@ -5,6 +5,7 @@ import os
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import permissions
+from rest_framework.parsers import JSONParser
 from core.models import Shop
 from products.serializers import ShopSerializer
 
@@ -31,6 +32,7 @@ def ensure_site_view(request):
 
 class AdminShopListView(APIView):
     permission_classes = [permissions.IsAuthenticated]
+    parser_classes = [JSONParser]
     def get(self, request):
         if getattr(request.user, 'user_type', None) != 'admin':
             return Response({'error': 'Not allowed'}, status=403)

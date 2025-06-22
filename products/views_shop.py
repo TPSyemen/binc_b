@@ -11,6 +11,7 @@ from rest_framework.decorators import action
 class ShopCheckView(APIView):
     """Check if the authenticated owner has a shop."""
     permission_classes = [permissions.IsAuthenticated]
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
 
     def get(self, request):
         # التحقق من أن المستخدم هو مالك
@@ -88,6 +89,7 @@ class ShopRegisterView(APIView):
 class ShopListView(APIView):
     """عرض جميع المتاجر مع بيانات مختصرة (id, name, logo)."""
     permission_classes = [permissions.AllowAny]
+    parser_classes = [JSONParser]
 
     def get(self, request):
         from core.models import Shop
@@ -105,6 +107,7 @@ class ShopListView(APIView):
 class ShopDetailView(APIView):
     """عرض تفاصيل متجر بناءً على معرف المتجر."""
     permission_classes = [permissions.AllowAny]
+    parser_classes = [JSONParser]
 
     def get(self, request, pk):
         from core.models import Shop

@@ -10,6 +10,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.parsers import JSONParser
 from core.models import Product, User
 from reviews.models import Review
 from .serializers import ProductSerializer
@@ -27,6 +28,7 @@ logger = logging.getLogger(__name__)
 # -----------------------------------------------------------------------
 class RecommendationView(APIView):
     permission_classes = [IsAuthenticated]
+    parser_classes = [JSONParser]
 
     def get(self, request):
         user = request.user
@@ -170,6 +172,7 @@ class RecommendationView(APIView):
 # -----------------------------------------------------------------------
 class UserBehaviorView(APIView):
     permission_classes = [IsAuthenticated]
+    parser_classes = [JSONParser]
 
     def post(self, request):
         user = request.user
@@ -236,6 +239,7 @@ class UserBehaviorView(APIView):
 # -----------------------------------------------------------------------
 class HybridRecommendationView(APIView):
     permission_classes = [IsAuthenticated]
+    parser_classes = [JSONParser]
 
     def get(self, request):
         user = request.user

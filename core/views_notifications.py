@@ -1,6 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions
+from rest_framework.parsers import JSONParser
 from django.db.models import Q
 from django.utils import timezone
 from datetime import timedelta
@@ -11,6 +12,7 @@ from .ai_notifications import AINotificationGenerator
 class NotificationListView(APIView):
     """API view for listing and managing notifications."""
     permission_classes = [permissions.IsAuthenticated]
+    parser_classes = [JSONParser]
 
     def get(self, request):
         """Get all notifications for the authenticated user."""
@@ -48,6 +50,7 @@ class NotificationListView(APIView):
 class NotificationDetailView(APIView):
     """API view for managing a specific notification."""
     permission_classes = [permissions.IsAuthenticated]
+    parser_classes = [JSONParser]
 
     def get(self, request, notification_id):
         """Get a specific notification."""
@@ -90,6 +93,7 @@ class NotificationDetailView(APIView):
 class NotificationMarkAllReadView(APIView):
     """API view for marking all notifications as read."""
     permission_classes = [permissions.IsAuthenticated]
+    parser_classes = [JSONParser]
 
     def put(self, request):
         """Mark all notifications as read."""
@@ -99,6 +103,7 @@ class NotificationMarkAllReadView(APIView):
 class NotificationAIGeneratorView(APIView):
     """API view for generating AI-powered notifications."""
     permission_classes = [permissions.IsAuthenticated]
+    parser_classes = [JSONParser]
 
     def post(self, request):
         """Generate AI-powered notifications based on user behavior and system events."""

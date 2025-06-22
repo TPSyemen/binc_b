@@ -8,6 +8,7 @@ from django.shortcuts import render, get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import permissions
+from rest_framework.parsers import JSONParser
 from core.models import Product
 from products.serializers import ProductDetailSerializer
 
@@ -18,6 +19,7 @@ from products.serializers import ProductDetailSerializer
 class ComparisonView(APIView):
     """Compare a product with similar products or compare multiple products or get the best product."""
     permission_classes = [permissions.AllowAny]
+    parser_classes = [JSONParser]
 
     def get(self, request, product_id=None):
         """

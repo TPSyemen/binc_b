@@ -5,10 +5,12 @@ from django.shortcuts import get_object_or_404
 from core.models import Product
 from .models_favorites import Favorite
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.parsers import JSONParser
 
 class FavoriteListView(APIView):
     """API view for listing user's favorite products."""
     permission_classes = [IsAuthenticated]
+    parser_classes = [JSONParser]
 
     def get(self, request):
         """Get all favorite products for the authenticated user."""
@@ -27,6 +29,7 @@ class FavoriteListView(APIView):
 class FavoriteToggleView(APIView):
     """API view for toggling a product as favorite."""
     permission_classes = [IsAuthenticated]
+    parser_classes = [JSONParser]
 
     def post(self, request, product_id):
         """Add or remove a product from favorites."""
@@ -55,6 +58,7 @@ class FavoriteToggleView(APIView):
 class FavoriteStatusView(APIView):
     """API view for checking if a product is in favorites."""
     permission_classes = [IsAuthenticated]
+    parser_classes = [JSONParser]
 
     def get(self, request, product_id):
         """Check if a product is in the user's favorites."""

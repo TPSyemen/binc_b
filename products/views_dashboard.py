@@ -1,7 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions
-from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from django.db.models import Sum, Count, Avg
 from django.utils import timezone
 from datetime import timedelta
@@ -71,7 +71,7 @@ class DashboardStatsView(APIView):
 class OwnerProductsView(APIView):
     """Get, create, update and delete products for the authenticated owner."""
     permission_classes = [permissions.IsAuthenticated]
-    parser_classes = [MultiPartParser, FormParser]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]  # دعم JSON أيضًا
 
     def get(self, request):
         # التحقق من أن المستخدم هو مالك
@@ -174,7 +174,7 @@ class OwnerProductsView(APIView):
 class OwnerProductDetailView(APIView):
     """Get, update and delete a specific product for the authenticated owner."""
     permission_classes = [permissions.IsAuthenticated]
-    parser_classes = [MultiPartParser, FormParser]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]  # دعم JSON أيضًا
 
     def get(self, request, product_id):
         # التحقق من أن المستخدم هو مالك
@@ -392,7 +392,7 @@ class OwnerAnalyticsView(APIView):
 class OwnerShopSettingsView(APIView):
     """Get and update shop settings for the authenticated owner."""
     permission_classes = [permissions.IsAuthenticated]
-    parser_classes = [MultiPartParser, FormParser]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]  # دعم JSON أيضًا
 
     def get(self, request):
         # التحقق من أن المستخدم هو مالك

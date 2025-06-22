@@ -12,6 +12,7 @@ from django.shortcuts import get_object_or_404
 from .models import Promotion, DiscountCode
 from .serializers import PromotionSerializer, DiscountCodeSerializer
 from core.models import User
+from rest_framework.parsers import JSONParser
 
 class PromotionListCreateView(generics.ListCreateAPIView):
     queryset = Promotion.objects.filter(is_active=True)
@@ -26,6 +27,7 @@ class DiscountCodeListCreateView(generics.ListCreateAPIView):
 class PromotionListView(APIView):
     """Retrieve all active promotions."""
     permission_classes = [permissions.AllowAny]
+    parser_classes = [JSONParser]
 
     def get(self, request):
         promotions = Promotion.objects.filter(is_active=True)
@@ -35,6 +37,7 @@ class PromotionListView(APIView):
 class PromotionDetailView(APIView):
     """Retrieve details of a specific promotion."""
     permission_classes = [permissions.AllowAny]
+    parser_classes = [JSONParser]
 
     def get(self, request, promotionId):
         promotion = get_object_or_404(Promotion, id=promotionId)
@@ -44,6 +47,7 @@ class PromotionDetailView(APIView):
 class PromotionCreateView(APIView):
     """Create a new promotion."""
     permission_classes = [permissions.IsAdminUser]
+    parser_classes = [JSONParser]
 
     def post(self, request, *args, **kwargs):
         try:
@@ -59,6 +63,7 @@ class PromotionCreateView(APIView):
 class PromotionUpdateView(APIView):
     """Update an existing promotion."""
     permission_classes = [permissions.IsAdminUser]
+    parser_classes = [JSONParser]
 
     def put(self, request, promotionId):
         promotion = get_object_or_404(Promotion, id=promotionId)
@@ -71,6 +76,7 @@ class PromotionUpdateView(APIView):
 class PromotionDeleteView(APIView):
     """Delete a promotion."""
     permission_classes = [permissions.IsAdminUser]
+    parser_classes = [JSONParser]
 
     def delete(self, request, promotionId):
         promotion = get_object_or_404(Promotion, id=promotionId)
@@ -80,6 +86,7 @@ class PromotionDeleteView(APIView):
 class CustomerPromotionRecommendationsView(APIView):
     """Retrieve personalized promotions for a specific customer."""
     permission_classes = [permissions.IsAuthenticated]
+    parser_classes = [JSONParser]
 
     def get(self, request, customerId):
         customer = get_object_or_404(User, id=customerId)
@@ -91,6 +98,7 @@ class CustomerPromotionRecommendationsView(APIView):
 class PromotionForecastView(APIView):
     """Retrieve demand forecasts for promotions."""
     permission_classes = [permissions.IsAdminUser]
+    parser_classes = [JSONParser]
 
     def get(self, request):
         # Example response for forecast (replace with actual ML-based logic)
