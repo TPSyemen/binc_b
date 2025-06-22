@@ -14,11 +14,15 @@ from django.apps import apps  # Use apps.get_model to resolve circular imports
 from .models_favorites import Favorite  # Import the Favorite model
 from .models_verification import EmailVerificationToken, ActionVerificationToken  # Import verification models
 from .models_preferences import UserPreference, BrandPreference  # Import preferences models
+from django.conf import settings
 
 #----------------------------------------------------------------
 #           User model
 #----------------------------------------------------------------
 class User(AbstractUser):
+    """
+    Custom user model with user type and phone number.
+    """
     USER_TYPE_CHOICES = (
         ('admin', 'Admin'),
         ('owner', 'Owner'),
@@ -28,8 +32,22 @@ class User(AbstractUser):
         max_length=10,
         choices=USER_TYPE_CHOICES,
         default='customer',
-        verbose_name="User Type"
+        verbose_name="User Type",
+        help_text="نوع المستخدم: مدير، مالك، أو عميل."
     )
+    phone = models.CharField(
+        max_length=20,
+        blank=True,
+        null=True,
+        verbose_name="Phone Number",
+        help_text="رقم الجوال للمستخدم (اختياري)."
+    )
+    email = models.EmailField(
+        unique=True,
+        verbose_name="Email Address",
+        help_text="البريد الإلكتروني للمستخدم. يجب أن يكون فريدًا."
+    )
+    # last_login و date_joined موروثة من AbstractUser
 
     groups = models.ManyToManyField(
         'auth.Group',
@@ -65,6 +83,20 @@ class User(AbstractUser):
         elif self.user_type == 'customer':
             return permission in ['view_products', 'write_reviews']
         return False
+
+    def get_profile_data(self):
+        """
+        إرجاع بيانات البروفايل بشكل منسق للاستخدام في الواجهات أو API.
+        """
+        return {
+            "username": self.username,
+            "email": self.email,
+            "phone": self.phone,
+            "user_type": self.user_type,
+            "date_joined": self.date_joined,
+            "last_login": self.last_login,
+            "is_active": self.is_active,
+        }
 
 #----------------------------------------------------------------
 #                   Owner Role
@@ -339,6 +371,54 @@ class Product(models.Model):
             return round(((self.original_price - self.price) / self.original_price) * 100, 2)
         return 0
 
+    @property
+    def auto_rating(self):
+        """
+        تقييم المنتج تلقائيًا بناءً على الإعجابات، عدم الإعجاب، شهرة وتقييم البراند، والمحايدين.
+        يمكن تعديل الأوزان حسب الحاجة.
+        """
+        like_score = self.likes * 1.0
+        dislike_score = self.dislikes * -1.0
+        neutral_score = self.neutrals * 0.2 if hasattr(self, 'neutrals') else 0
+        brand_popularity_score = float(self.brand.popularity) * 0.1 if self.brand else 0
+        brand_rating_score = float(self.brand.rating) * 1.0 if self.brand else 0
+
+        score = (
+            like_score +
+            neutral_score +
+            brand_popularity_score +
+            brand_rating_score +
+            dislike_score
+        )
+        # تحويل النتيجة إلى نطاق 0-5
+        score = max(0, min(5, round(score / 10, 2)))
+        return score
+
+    def save(self, *args, **kwargs):
+        """
+        تحديث التقييم تلقائيًا عند كل عملية حفظ ليعكس auto_rating.
+        إذا أصبح التقييم عاليًا جدًا (مثلاً >= 4.5)، يتم إرسال إشعار للمالك ولكل مستخدم أعجب بالمنتج.
+        """
+        self.rating = self.auto_rating
+        super().save(*args, **kwargs)
+
+        # إرسال إشعار إذا كان التقييم عاليًا جدًا
+        if self.rating >= 4.5:
+            # إشعار للمالك
+            if self.shop and self.shop.owner and self.shop.owner.user:
+                Notification.objects.create(
+                    recipient=self.shop.owner.user,
+                    content=f"🎉 منتجك '{self.name}' حصل على تقييم مرتفع جدًا!",
+                    notification_type='general'
+                )
+            # إشعار لكل مستخدم أعجب بالمنتج
+            for reaction in self.user_reactions.filter(reaction_type='like'):
+                Notification.objects.create(
+                    recipient=reaction.user,
+                    content=f"🎉 المنتج '{self.name}' الذي أعجبت به أصبح من الأعلى تقييمًا!",
+                    notification_type='general'
+                )
+
 #----------------------------------------------------------------
 #                    Specification models
 #----------------------------------------------------------------
@@ -458,12 +538,16 @@ class Customer(models.Model):
 #                   Notification model
 #----------------------------------------------------------------
 class Notification(models.Model):
-    """Model for storing notifications."""
+    """
+    Model for storing notifications.
+    """
     NOTIFICATION_TYPES = (
         ('promotion', 'Promotion'),
         ('order', 'Order Update'),
         ('general', 'General'),
         ('inventory', 'Inventory Alert'),
+        ('product_rating', 'Product Rating'),
+        ('shop_status', 'Shop Status'),
     )
 
     recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
@@ -472,31 +556,23 @@ class Notification(models.Model):
     is_read = models.BooleanField(default=False, verbose_name="Is Read")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Created At")
     related_id = models.CharField(max_length=255, blank=True, null=True, verbose_name="Related ID")
+    action_url = models.URLField(blank=True, null=True, verbose_name="Action URL")
+    extra_data = models.JSONField(blank=True, null=True, default=dict, verbose_name="Extra Data")
 
     def __str__(self):
         return f"Notification for {self.recipient.username} - {self.notification_type}"
 
-#----------------------------------------------------------------
-#                   User Product Reaction model
-#----------------------------------------------------------------
-class UserProductReaction(models.Model):
-    """Model for storing user reactions to products (like, dislike, neutral)."""
-    REACTION_TYPES = (
-        ('like', 'Like'),
-        ('dislike', 'Dislike'),
-        ('neutral', 'Neutral'),
+# دوال مساعدة احترافية للإشعارات
+
+def notify_user(user, content, notification_type='general', action_url=None, extra_data=None):
+    Notification.objects.create(
+        recipient=user,
+        content=content,
+        notification_type=notification_type,
+        action_url=action_url,
+        extra_data=extra_data or {}
     )
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='product_reactions')
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='user_reactions')
-    reaction_type = models.CharField(max_length=10, choices=REACTION_TYPES, default='neutral')
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Created At")
-    updated_at = models.DateTimeField(auto_now=True, verbose_name="Updated At")
-
-    class Meta:
-        unique_together = ('user', 'product')
-        verbose_name = "User Product Reaction"
-        verbose_name_plural = "User Product Reactions"
-
-    def __str__(self):
-        return f"{self.user.username}'s {self.reaction_type} reaction to {self.product.name}"
+def notify_shop_owner(shop, content, notification_type='general', action_url=None, extra_data=None):
+    if shop.owner and shop.owner.user:
+        notify_user(shop.owner.user, content, notification_type, action_url, extra_data)
