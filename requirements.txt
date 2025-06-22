@@ -15,7 +15,8 @@ python-dotenv==1.0.1
 gunicorn==21.2.0
 whitenoise==6.6.0
 dj-database-url==1.2.0
-psycopg2-binary==2.9.9
+# psycopg2-binary==2.9.9  # غير متوافق مع Python 3.13
+psycopg==3.1.18
 nltk==3.8.1
 # implicit==0.4.8
 # تم التعليق مؤقتاً بسبب مشاكل التوافق مع Python 3.13 على Render
