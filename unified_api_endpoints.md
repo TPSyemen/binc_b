@@ -4,117 +4,243 @@
 
 ## المنتجات (Products)
 
-### 1. قائمة المنتجات
+### قائمة المنتجات
 - **URL:** `/api/products/`
 - **Method:** `GET`
-- **Headers:** (اختياري) Authorization: Bearer <access_token>
+- **View:** ProductListView
+- **Serializer:** ProductListSerializer
+- **Model:** Product
+- **الصلاحيات:** متاح للجميع (نتائج مخصصة حسب نوع المستخدم)
 - **مثال استجابة:**
 ```json
 [
-  {"id": "...", "name": "...", "price": 100, ...}
+  {
+    "id": "1",
+    "name": "iPhone 15 Pro",
+    "price": 100,
+    "original_price": 120,
+    "discount": 17,
+    "category": {"id": "2", "name": "هواتف"},
+    "image_url": "https://...",
+    "rating": 4.5,
+    "in_stock": true,
+    "is_active": true
+  }
 ]
 ```
 
-### 2. تفاصيل منتج
+### تفاصيل منتج
 - **URL:** `/api/products/{product_id}/`
 - **Method:** `GET`
+- **View:** ProductDetailView
+- **Serializer:** ProductDetailSerializer
+- **Model:** Product
+- **الصلاحيات:** متاح للجميع (المنتجات غير النشطة للأدمن فقط)
 - **مثال استجابة:**
 ```json
-{"id": "...", "name": "...", ...}
+{
+  "id": "1",
+  "name": "iPhone 15 Pro",
+  "description": "هاتف رائد ...",
+  "price": 100,
+  "original_price": 120,
+  "discount": 17,
+  "category": {"id": "2", "name": "هواتف"},
+  "brand": {"id": "3", "name": "Apple"},
+  "shop": {"id": "10", "name": "Apple Store"},
+  "image_url": "https://...",
+  "in_stock": true,
+  "rating": 4.5,
+  "is_active": true,
+  "created_at": "2024-01-01T12:00:00Z",
+  "reviews": [
+    {"id": "100", "user": {"id": "20", "name": "أحمد"}, "rating": 5, "comment": "ممتاز", "created_at": "2024-06-01T12:00:00Z"}
+  ],
+  "video_url": "https://...",
+  "release_date": "2024-01-01",
+  "likes": 100,
+  "dislikes": 5,
+  "neutrals": 2,
+  "views": 1200,
+  "is_banned": false
+}
 ```
 
-### 3. إنشاء منتج جديد
+### إنشاء منتج جديد
 - **URL:** `/api/products/create/`
 - **Method:** `POST`
-- **Headers:** Authorization: Bearer <access_token>, Content-Type: multipart/form-data
+- **View:** ProductCreateView
+- **Serializer:** ProductDetailSerializer
+- **Model:** Product
+- **الصلاحيات:** فقط للمالك أو الأدمن (Authorization مطلوب)
 - **Body:** name, price, category_id, ...
 - **مثال استجابة:**
 ```json
-{"id": "...", "name": "...", ...}
+{
+  "id": "2",
+  "name": "منتج جديد",
+  "price": 200,
+  "original_price": 250,
+  "discount": 20,
+  "category": {"id": "2", "name": "هواتف"},
+  "brand": {"id": "3", "name": "Apple"},
+  "shop": {"id": "10", "name": "Apple Store"},
+  "image_url": "https://...",
+  "rating": 0,
+  "is_active": true,
+  "in_stock": true,
+  "created_at": "2024-06-22T12:00:00Z"
+}
 ```
 
-### 4. تحديث منتج
+### تحديث منتج
 - **URL:** `/api/products/{product_id}/update/`
-- **Method:** `PUT`
-- **Headers:** Authorization: Bearer <access_token>, Content-Type: multipart/form-data
-- **Body:** (الحقول التي تريد تعديلها فقط)
+- **Method:** `PUT`/`PATCH`
+- **View:** ProductUpdateView
+- **Serializer:** ProductDetailSerializer
+- **Model:** Product
+- **الصلاحيات:** فقط للمالك (صاحب المنتج) أو الأدمن (Authorization مطلوب)
+- **Body:** الحقول التي تريد تعديلها فقط
 - **مثال استجابة:**
 ```json
-{"id": "...", "name": "...", ...}
+{
+  "id": "1",
+  "name": "iPhone 15 Pro (معدل)",
+  ... (نفس حقول تفاصيل المنتج)
+}
 ```
 
-### 5. حذف منتج
+### حذف منتج
 - **URL:** `/api/products/{product_id}/delete/`
 - **Method:** `DELETE`
-- **Headers:** Authorization: Bearer <access_token>
+- **View:** ProductDeleteView
+- **Model:** Product
+- **الصلاحيات:** فقط للمالك (صاحب المنتج) أو الأدمن (Authorization مطلوب)
 - **مثال استجابة:**
 ```json
-{"detail": "Product deleted successfully."}
+{"message": "Product deleted successfully"}
 ```
 
-### 6. المنتجات المميزة
+### المنتجات المميزة
 - **URL:** `/api/products/featured/`
 - **Method:** `GET`
+- **View:** FeaturedProductsView
+- **Serializer:** ProductListSerializer
+- **Model:** Product
+- **الصلاحيات:** متاح للجميع
 - **مثال استجابة:**
 ```json
-[{"id": "...", "name": "...", "is_featured": true, ...}]
+[
+  {
+    "id": "1",
+    "name": "iPhone 15 Pro",
+    "is_featured": true,
+    ... (نفس حقول قائمة المنتجات)
+  }
+]
 ```
 
-### 7. البحث عن المنتجات
+### البحث عن المنتجات
 - **URL:** `/api/products/search/`
 - **Method:** `GET`
-- **Query Parameters:** query, category, brand, min_price, max_price, ...
+- **View:** ProductSearchView
+- **Serializer:** ProductListSerializer
+- **Model:** Product
+- **الصلاحيات:** متاح للجميع
+- **Query Parameters:** query, category, brand, ...
 - **مثال استجابة:**
 ```json
-[{"id": "...", "name": "...", ...}]
+[
+  {
+    "id": "1",
+    "name": "iPhone 15 Pro",
+    ... (نفس حقول قائمة المنتجات)
+  }
+]
 ```
 
-### 8. المنتجات التي تمت مشاهدتها مؤخرًا
+### المنتجات التي تمت مشاهدتها مؤخرًا
 - **URL:** `/api/products/recently-viewed/`
 - **Method:** `GET`
-- **Headers:** Authorization: Bearer <access_token>
+- **View:** RecentlyViewedProductsView
 - **مثال استجابة:**
 ```json
-[{"id": "...", "name": "...", ...}]
+{
+  "recently_viewed": [
+    {"id": "1", "name": "iPhone 15 Pro", ...}
+  ]
+}
 ```
 
-### 9. منتجات مشابهة
+### منتجات مشابهة
 - **URL:** `/api/products/{product_id}/similar/`
 - **Method:** `GET`
+- **View:** SimilarProductsView
+- **Serializer:** ProductListSerializer, ProductDetailSerializer
+- **Model:** Product
+- **الصلاحيات:** متاح للجميع
 - **مثال استجابة:**
 ```json
-{"current_product": { ... }, "similar_products": [ { ... }, ... ]}
+{
+  "current_product": { ... (تفاصيل المنتج) },
+  "similar_products": [ { ... (نفس حقول قائمة المنتجات) } ]
+}
 ```
 
-### 10. تاريخ أسعار المنتج
+### تاريخ أسعار المنتج
 - **URL:** `/api/products/{product_id}/price-history/`
 - **Method:** `GET`
+- **View:** ProductPriceHistoryView
+- **Model:** Product (+ price_history)
+- **الصلاحيات:** متاح للجميع
 - **مثال استجابة:**
 ```json
-{"product_id": "...", "price_history": [{"date": "2024-01-01", "price": 1800.0}]}
+{"product_id": "1", "price_history": [{"date": "2024-01-01", "price": 1800.0}]}
 ```
 
 ---
 
 ## المتاجر (Shops)
 
-### 1. قائمة المتاجر
+### قائمة المتاجر
 - **URL:** `/api/shop/`
-- **Method:** `GET`
+- **Method:** GET
+- **View:** ShopListView
+- **Serializer:** ShopSerializer
+- **Model:** Shop
 - **مثال استجابة:**
 ```json
-[{"id": "...", "name": "...", "logo": "..."}]
+[
+  {"id": "1", "name": "Apple Store", "logo": "https://..."}
+]
 ```
 
-### 2. تفاصيل متجر
+### تفاصيل متجر
 - **URL:** `/api/shop/{shop_id}/`
-- **Method:** `GET`
+- **Method:** GET
+- **View:** ShopDetailView
+- **Serializer:** ShopSerializer
+- **Model:** Shop
 - **مثال استجابة:**
 ```json
-{"id": "...", "name": "...", "logo": "...", ...}
+{
+  "id": "1",
+  "name": "Apple Store",
+  "address": "الرياض ...",
+  "description": "متجر معتمد ...",
+  "logo": "https://...",
+  "banner": "https://...",
+  "url": "https://...",
+  "phone": "0500000000",
+  "email": "info@apple.com",
+  "social_media": {"facebook": "...", "twitter": "..."},
+  "owner": {"id": "10", "username": "apple_owner", "email": "owner@apple.com", "is_active": true},
+  "product_count": 10,
+  "completion_percentage": 90
+}
 ```
 
-### 3. إنشاء متجر جديد
+### إنشاء متجر جديد
 - **URL:** `/api/shop/create/`
 - **Method:** `POST`
 - **Headers:** Authorization: Bearer <access_token>, Content-Type: multipart/form-data
@@ -128,106 +254,89 @@
 
 ## التوصيات (Recommendations)
 
-### 1. التوصيات المخصصة للمستخدم
+### التوصيات المخصصة للمستخدم
 - **URL:** `/api/recommendations/`
-- **Method:** `GET`
-- **Headers:** Authorization: Bearer <access_token>
+- **Method:** GET
+- **View:** RecommendationView
+- **Serializer:** ProductRecommendationSerializer
+- **Model:** ProductRecommendation, Product
 - **مثال استجابة:**
 ```json
 {
   "preferred": [
-    {"id": "1", "name": "iPhone 15 Pro", "brand": "Apple", "score": 92.5, "is_featured": true}
+    {"id": "1", "name": "iPhone 15 Pro", "brand": "Apple", "score": 92.5, ... }
   ],
   "liked": [
-    {"id": "2", "name": "Galaxy S24 Ultra", "brand": "Samsung", "score": 89.0}
-  ],
-  "new": [
-    {"id": "3", "name": "Pixel 9", "brand": "Google", "score": 85.0}
-  ],
-  "popular": [
-    {"id": "4", "name": "Redmi Note 13", "brand": "Xiaomi", "score": 80.0}
+    {"id": "2", "name": "Galaxy S24 Ultra", "brand": "Samsung", "score": 89.0, ... }
   ]
 }
 ```
 
-### 2. التوصيات الهجينة
+### التوصيات الهجينة
 - **URL:** `/api/recommendations/hybrid/`
-- **Method:** `GET`
-- **Headers:** Authorization: Bearer <access_token>
+- **Method:** GET
+- **View:** HybridRecommendationView
+- **Serializer:** ProductRecommendationSerializer
+- **Model:** ProductRecommendation, Product
 - **مثال استجابة:**
 ```json
-[{ ... }, { ... }]
-```
-
-### 3. تتبع سلوك المستخدم
-- **URL:** `/api/recommendations/track-behavior/`
-- **Method:** `POST`
-- **Headers:** Authorization: Bearer <access_token>, Content-Type: application/json
-- **Body:**
-```json
-{
-  "product_id": "معرف المنتج",
-  "action": "view"  // أو "like" أو "purchase"
-}
-```
-- **مثال استجابة:**
-```json
-{"success": true}
+[
+  {"id": "1", "name": "iPhone 15 Pro", "brand": "Apple", "score": 92.5, ... }
+]
 ```
 
 ---
 
 ## المراجعات (Reviews)
 
-### 1. إضافة مراجعة
+### إضافة مراجعة
 - **URL:** `/reviews/add/`
-- **Method:** `POST`
-- **Headers:** Authorization: Bearer <access_token>, Content-Type: application/json
-- **Body:**
-```json
-{"product_id": "...", "comment": "..."}
-```
-- **ملاحظة:** لا يمكن إرسال rating، حيث يتم توليده تلقائيًا من تحليل نص التعليق.
+- **Method:** POST
+- **View:** ReviewListCreateView
+- **Serializer:** CreateReviewSerializer
+- **Model:** Review
 - **مثال استجابة:**
 ```json
-{"id": "...", "product": "...", "rating": 5, "comment": "...", ...}
+{"id": "100", "product": "1", "rating": 5, "comment": "ممتاز", "user": {"id": "20", "name": "أحمد"}, "created_at": "2024-06-01T12:00:00Z"}
 ```
 
-### 2. قائمة مراجعات منتج
+### قائمة مراجعات منتج
 - **URL:** `/reviews/products/{product_id}/reviews/`
-- **Method:** `GET`
+- **Method:** GET
+- **View:** ProductReviewsView
+- **Serializer:** ReviewSerializer
+- **Model:** Review
 - **مثال استجابة:**
 ```json
-[{"id": "...", "rating": 5, "comment": "...", ...}]
+[
+  {"id": "100", "rating": 5, "comment": "ممتاز", "user": {"id": "20", "name": "أحمد"}, "created_at": "2024-06-01T12:00:00Z"}
+]
 ```
 
 ---
 
 ## المقارنة (Comparison)
 
-### 1. مقارنة منتج مع المنتجات المتشابهة
+### مقارنة منتج مع المنتجات المتشابهة
 - **URL:** `/api/comparison/{product_id}/compare/`
-- **Method:** `GET`
+- **Method:** GET
+- **View:** ComparisonView
+- **Serializer:** ProductDetailSerializer
+- **Model:** Product
 - **مثال استجابة:**
 ```json
 {
   "product": { ... },
-  "similar_products": [ { ... }, ... ]
+  "similar_products": [ { ... } ]
 }
 ```
 
-### 2. مقارنة بين عدة منتجات
+### مقارنة بين عدة منتجات
 - **URL:** `/api/comparison/`
-- **Method:** `POST`
-- **Headers:** Authorization: Bearer <access_token>, Content-Type: application/json
-- **Body:**
-```json
-{"product_ids": ["id1", "id2"]}
-```
-- **ملاحظة:** لا يمكن مقارنة منتجات من فئات مختلفة. إذا حاولت ذلك، ستظهر الرسالة التالية:
-```json
-{"detail": "لا يمكن مقارنة منتجات من فئات مختلفة. يرجى اختيار منتجات من نفس الفئة فقط."}
-```
+- **Method:** POST
+- **View:** ComparisonView
+- **Serializer:** ProductDetailSerializer
+- **Model:** Product
 - **مثال استجابة:**
 ```json
 {
@@ -238,117 +347,61 @@
 }
 ```
 
-### 3. مقارنة جميع المنتجات وإرجاع الأفضل
-- **URL:** `/api/comparison/?best=1`
-- **Method:** `GET`
-- **مثال استجابة:**
-```json
-{
-  "best_product": { ... },
-  "note": "تم اختيار هذا المنتج كأفضل منتج بناءً على التقييم وعدد المشاهدات."
-}
-```
-
 ---
 
-## التفضيلات والمفضلة (Preferences & Favorites)
+## العروض والخصومات (Promotions)
 
-### 1. تفضيلات المستخدم
-- **URL:** `/api/user/preferences/`
-- **Method:** `GET`
-- **Headers:** Authorization: Bearer <access_token>
+### قائمة العروض
+- **URL:** `/api/promotions/`
+- **Method:** GET
+- **View:** PromotionListView
+- **Serializer:** PromotionSerializer
+- **Model:** Promotion
 - **مثال استجابة:**
 ```json
-{"min_price": 100, "max_price": 2000, "preferred_brands": ["Apple", "Samsung"]}
+[
+  {"id": "200", "title": "خصم الصيف", "description": "خصم 10% على جميع المنتجات", "discount_percent": 10, "start_date": "2024-07-01", "end_date": "2024-07-10", "is_active": true}
+]
 ```
 
-### 2. المنتجات المفضلة
-- **URL:** `/api/user/favorites/`
-- **Method:** `GET`
-- **Headers:** Authorization: Bearer <access_token>
+### كود الخصم
+- **URL:** `/api/promotions/discount-codes/`
+- **Method:** POST
+- **View:** DiscountCodeListCreateView
+- **Serializer:** DiscountCodeSerializer
+- **Model:** DiscountCode
 - **مثال استجابة:**
 ```json
-[{"id": "...", "name": "...", ...}]
+{"id": "300", "code": "DISCOUNT2024", "discount_percent": 10, "is_active": true, "valid_until": "2024-07-10"}
 ```
 
 ---
 
 ## الإشعارات (Notifications)
 
-### 1. قائمة الإشعارات
+### قائمة الإشعارات
 - **URL:** `/api/notifications/`
-- **Method:** `GET`
-- **Headers:** Authorization: Bearer <access_token>
+- **Method:** GET
+- **View:** NotificationListView
+- **Serializer:** NotificationSerializer
+- **Model:** Notification
 - **مثال استجابة:**
 ```json
-[{"id": "...", "title": "...", "body": "...", ...}]
+[
+  {"id": "400", "title": "تنبيه جديد", "body": "تم تحديث حالة طلبك", "extra_data": {"order_id": "123"}, "action_url": "/orders/123", "is_read": false, "created_at": "2024-06-01T12:00:00Z"}
+]
 ```
 
 ---
 
-## المصادقة (Authentication)
+## الوقت الحقيقي (Realtime)
 
-### 1. تسجيل مستخدم جديد
-- **URL:** `/api/auth/register/`
-- **Method:** `POST`
-- **Headers:** Content-Type: application/json
-- **Body:**
+### إشعارات WebSocket
+- **URL:** `ws/notifications/`
+- **Method:** WebSocket
+- **Consumer:** NotificationConsumer
+- **Model:** Notification
+- **مثال رسالة:**
 ```json
-{"email": "user@email.com", "password": "your_password", "name": "User Name"}
+{"type": "notification", "title": "تنبيه جديد", "body": "تم تحديث حالة طلبك", "created_at": "2024-06-01T12:00:00Z"}
 ```
-- **مثال استجابة:**
-```json
-{"id": 1, "email": "user@email.com", "name": "User Name"}
-```
-
-### 2. تسجيل الدخول
-- **URL:** `/api/auth/login/`
-- **Method:** `POST`
-- **Headers:** Content-Type: application/json
-- **Body:**
-```json
-{"email": "user@email.com", "password": "your_password"}
-```
-- **مثال استجابة:**
-```json
-{"access": "...", "refresh": "...", "user": {"id": 1, "email": "user@email.com", "name": "User Name"}}
-```
-
-### 3. تحديث التوكن
-- **URL:** `/api/auth/refresh/`
-- **Method:** `POST`
-- **Headers:** Content-Type: application/json
-- **Body:**
-```json
-{"refresh": "..."}
-```
-- **مثال استجابة:**
-```json
-{"access": "..."}
-```
-
-### 4. تسجيل الخروج
-- **URL:** `/api/auth/logout/`
-- **Method:** `POST`
-- **Headers:** Authorization: Bearer <access_token>
-- **مثال استجابة:**
-```json
-{"detail": "Successfully logged out."}
-```
-
-### 5. إعادة تعيين كلمة المرور
-- **URL:** `/api/auth/reset-password/`
-- **Method:** `POST`
-- **Headers:** Content-Type: application/json
-- **Body:**
-```json
-{"email": "user@email.com"}
-```
-- **مثال استجابة:**
-```json
-{"detail": "Password reset e-mail has been sent."}
-```
-
----
-
-> استبدل `<access_token>` بالتوكن الخاص بك، و`{product_id}` أو `{shop_id}` بالمعرف المطلوب.

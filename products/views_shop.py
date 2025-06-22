@@ -1,7 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions
-from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from django.shortcuts import get_object_or_404
 from core.models import Shop, Owner, Product
 from .serializers import ShopSerializer
@@ -46,7 +46,7 @@ class ShopCheckView(APIView):
 class ShopRegisterView(APIView):
     """Register a new shop for the authenticated owner."""
     permission_classes = [permissions.IsAuthenticated]
-    parser_classes = [MultiPartParser, FormParser]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]  # دعم JSON أيضًا
 
     def post(self, request):
         # التحقق من أن المستخدم هو مالك
