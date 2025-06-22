@@ -4,7 +4,7 @@ products/urls.py
 Defines product-related API endpoints (list, detail, create, update, etc.).
 """
 
-from django.urls import path
+from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
 from .views import (
@@ -41,7 +41,7 @@ urlpatterns = [
     ),
     path("<uuid:pk>/similar/", SimilarProductsView.as_view(), name="similar-products"),
     path("popular/", PopularProductsView.as_view(), name="popular-products"),
-    path("categories/", PublicCategoriesView.as_view(), name="public-categories"),
+    path("categories/", include("products.urls_categories")),
     path(
         "<uuid:pk>/price-history/",
         ProductPriceHistoryView.as_view(),
