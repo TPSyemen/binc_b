@@ -12,6 +12,7 @@ from rest_framework.views import APIView
 from django.views import View
 from django.http import JsonResponse
 from rest_framework import viewsets
+from rest_framework.parsers import JSONParser
 
 from core.models import Product, Category, Brand
 from .serializers import ProductListSerializer, ProductDetailSerializer, CategorySerializer, BrandSerializer
@@ -69,6 +70,7 @@ class ProductDetailView(APIView):
 class ProductCreateView(APIView):
     """Create a new product."""
     permission_classes = [permissions.IsAuthenticated]
+    parser_classes = [JSONParser]
 
     def post(self, request):
         if request.user.user_type not in ['owner', 'admin']:
