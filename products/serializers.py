@@ -84,16 +84,19 @@ class ProductDetailSerializer(serializers.ModelSerializer):
     rating = serializers.FloatField(read_only=True, required=False)
     in_stock = serializers.BooleanField(read_only=True, required=False)
     stock = serializers.IntegerField(required=False)
+    category_id = serializers.UUIDField(write_only=True, required=True, allow_null=False)
 
     class Meta:
         model = Product
-        fields = ('id', 'name', 'description', 'price', 'original_price',
-                  'discount', 'category', 'brand', 'shop', 'image_url', 'in_stock', 'rating', 'is_active', 'created_at', 'stock',
-                  'reviews', 'video_url', 'release_date', 'likes', 'dislikes', 'neutrals',
-                  'views', 'is_banned')
+        fields = (
+            'id', 'name', 'description', 'price', 'original_price',
+            'discount', 'category', 'category_id', 'brand', 'shop', 'image_url', 'in_stock', 'rating', 'is_active', 'created_at', 'stock',
+            'reviews', 'video_url', 'release_date', 'likes', 'dislikes', 'neutrals',
+            'views', 'is_banned'
+        )
         extra_kwargs = {
             'brand': {'required': False},
-            'rating': {'required': False, 'default': 0},
+            'rating': {'read_only': True},
             'original_price': {'required': False},
             'is_active': {'default': True}
         }
@@ -102,17 +105,22 @@ class ProductDetailSerializer(serializers.ModelSerializer):
         return obj.discount_percentage
 
     def create(self, validated_data):
-        # Asignar valores predeterminados si no están presentes
+        # استخراج category_id وربطه فعليًا
+        category_id = validated_data.pop('category_id', None)
+        if not category_id:
+            raise serializers.ValidationError({'category_id': 'هذا الحقل مطلوب.'})
+        try:
+            category = Category.objects.get(pk=category_id)
+        except Category.DoesNotExist:
+            raise serializers.ValidationError({'category_id': 'التصنيف غير موجود.'})
+        validated_data['category'] = category
+        # القيم الافتراضية
         if 'rating' not in validated_data:
             validated_data['rating'] = 0
         if 'in_stock' not in validated_data:
             validated_data['in_stock'] = True
-
-        # Eliminar el campo stock si está presente, ya que no existe en el modelo
         if 'stock' in validated_data:
             validated_data.pop('stock')
-
-        # Crear el producto
         return super().create(validated_data)
 
 #----------------------------------------------------------------
@@ -201,6 +209,7 @@ class ProductDetailSerializer(serializers.ModelSerializer):
     rating = serializers.FloatField(read_only=True, required=False)
     in_stock = serializers.BooleanField(read_only=True, required=False)
     stock = serializers.IntegerField(required=False)
+    category_id = serializers.UUIDField(write_only=True, required=True, allow_null=False)
 
     def get_shop_name(self, obj):
         if obj.shop:
@@ -210,7 +219,7 @@ class ProductDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = ('id', 'name', 'description', 'price', 'original_price',
-                  'discount', 'category', 'brand', 'shop', 'image_url', 'in_stock', 'rating', 'is_active', 'created_at', 'stock',
+                  'discount', 'category', 'category_id', 'brand', 'shop', 'image_url', 'in_stock', 'rating', 'is_active', 'created_at', 'stock',
                   'reviews', 'video_url', 'release_date', 'likes', 'dislikes', 'neutrals',
                   'views', 'is_banned')
         extra_kwargs = {
@@ -226,17 +235,22 @@ class ProductDetailSerializer(serializers.ModelSerializer):
         return 0
 
     def create(self, validated_data):
-        # Asignar valores predeterminados si no están presentes
+        # استخراج category_id وربطه فعليًا
+        category_id = validated_data.pop('category_id', None)
+        if not category_id:
+            raise serializers.ValidationError({'category_id': 'هذا الحقل مطلوب.'})
+        try:
+            category = Category.objects.get(pk=category_id)
+        except Category.DoesNotExist:
+            raise serializers.ValidationError({'category_id': 'التصنيف غير موجود.'})
+        validated_data['category'] = category
+        # القيم الافتراضية
         if 'rating' not in validated_data:
             validated_data['rating'] = 0
         if 'in_stock' not in validated_data:
             validated_data['in_stock'] = True
-
-        # Eliminar el campo stock si está presente, ya que no existe en el modelo
         if 'stock' in validated_data:
             validated_data.pop('stock')
-
-        # Crear el producto
         return super().create(validated_data)
 
 #----------------------------------------------------------------

@@ -67,29 +67,6 @@ class ProductDetailView(APIView):
         return Response(serializer.data)
 
 
-class ProductCreateView(APIView):
-    """Create a new product."""
-    permission_classes = [permissions.IsAuthenticated]
-    parser_classes = [JSONParser]
-
-    def post(self, request):
-        if request.user.user_type not in ['owner', 'admin']:
-            return Response({'error': 'Unauthorized'}, status=status.HTTP_403_FORBIDDEN)
-
-        serializer = ProductDetailSerializer(data=request.data)
-        if serializer.is_valid():
-            product = serializer.save(shop=request.user.owner_profile.shop)
-            
-            # حساب التقييم الأولي للمنتج
-            rating_service.calculate_product_rating(product.id)
-            
-            # إعادة تحميل المنتج بعد تحديث التقييم
-            product.refresh_from_db()
-            
-            return Response(ProductDetailSerializer(product).data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
 class ProductUpdateView(APIView):
     """Update a product (يدعم التحديث الجزئي لحالة is_active)."""
     permission_classes = [permissions.IsAuthenticated]

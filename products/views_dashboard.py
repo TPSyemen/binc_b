@@ -125,62 +125,37 @@ class OwnerProductsView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
-        # التحقق من أن المستخدم هو مالك
+        """
+        إنشاء منتج جديد للمالك الحالي فقط، مع ربطه بمتجره والتحقق من التصنيف.
+        يقبل category كاسم أو category_id كـ UUID.
+        يمنع تمرير shop أو owner في البيانات.
+        """
         if request.user.user_type != 'owner':
-            return Response(
-                {"error": "يجب أن تكون مالكًا للوصول إلى هذه الميزة."},
-                status=status.HTTP_403_FORBIDDEN
-            )
-
-        # الحصول على متجر المالك
+            return Response({'error': 'يجب أن تكون مالكًا لإنشاء منتج.'}, status=status.HTTP_403_FORBIDDEN)
         try:
             shop = request.user.owner_profile.shop
-        except:
-            return Response(
-                {"error": "لم يتم العثور على متجر مرتبط بهذا المالك."},
-                status=status.HTTP_404_NOT_FOUND
-            )
+        except Exception:
+            return Response({'error': 'لم يتم العثور على متجر مرتبط بهذا المالك.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # إنشاء منتج جديد
         data = request.data.copy()
+        data.pop('shop', None)
+        data.pop('owner', None)
 
-        # إضافة قيم افتراضية إذا لم تكن موجودة
-        if 'rating' not in data:
-            data['rating'] = 0
-        if 'in_stock' not in data:
-            data['in_stock'] = True
-        if 'stock' not in data:
-            data['stock'] = 0
-
-        # التحقق من وجود الفئة
-        if 'category_id' not in data and 'category' in data:
-            import uuid
-            try:
-                # إذا كانت category UUID صالح
-                uuid.UUID(str(data['category']))
-                data['category_id'] = data['category']
-            except Exception:
-                try:
-                    category = Category.objects.get(name=data['category'])
-                    data['category_id'] = category.id
-                except Category.DoesNotExist:
-                    # إنشاء فئة جديدة إذا لم تكن موجودة
-                    category = Category.objects.create(name=data['category'])
-                    data['category_id'] = category.id
-        # إذا أرسلت category_id مباشرة
-        if 'category_id' not in data and 'category_id' in request.data:
-            data['category_id'] = request.data['category_id']
+        # معالجة التصنيف
+        category_id = data.get('category_id')
+        category_name = data.get('category')
+        if not category_id and not category_name:
+            return Response({'category_id': 'يجب تحديد التصنيف (category_id أو category).'}, status=status.HTTP_400_BAD_REQUEST)
+        if category_name and not category_id:
+            category_obj, _ = Category.objects.get_or_create(name=category_name)
+            data['category_id'] = str(category_obj.id)
+        if 'category' in data:
+            data.pop('category')
 
         serializer = ProductDetailSerializer(data=data)
         if serializer.is_valid():
-            try:
-                product = serializer.save(shop=shop)
-                return Response(ProductDetailSerializer(product).data, status=status.HTTP_201_CREATED)
-            except Exception as e:
-                return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-        # طباعة الأخطاء في اللوغ
-        import logging
-        logging.error(f"Product create error: {serializer.errors}")
+            product = serializer.save(shop=shop)
+            return Response(ProductDetailSerializer(product).data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class OwnerProductDetailView(APIView):
@@ -264,6 +239,22 @@ class OwnerProductDetailView(APIView):
         # إذا أرسلت category_id مباشرة
         if 'category_id' not in data and 'category_id' in request.data:
             data['category_id'] = request.data['category_id']
+
+        # معالجة release_date لقبول صيغ مختلفة وتحويلها إلى YYYY-MM-DD
+        if 'release_date' in data and data['release_date']:
+            from datetime import datetime
+            date_val = data['release_date']
+            if isinstance(date_val, str):
+                # جرب تحويل الصيغة تلقائيًا
+                for fmt in ("%Y-%m-%d", "%d/%m/%Y", "%Y/%m/%d", "%d-%m-%Y", "%m/%d/%Y", "%Y.%m.%d", "%d.%m.%Y"):
+                    try:
+                        data['release_date'] = datetime.strptime(date_val, fmt).strftime("%Y-%m-%d")
+                        break
+                    except Exception:
+                        continue
+                else:
+                    # إذا لم تنجح أي صيغة، أزل الحقل لتفادي الخطأ
+                    data.pop('release_date')
 
         serializer = ProductDetailSerializer(product, data=data, partial=True)
         if serializer.is_valid():
