@@ -49,7 +49,7 @@ urlpatterns = [
     path('api/brands/', include('products.urls_brands')),
     path('categories-dashboard/', lambda r: open_dashboard_page(r, 'categories_dashboard.html'), name='categories-dashboard'),
     path('api/categories/', include('products.urls_categories')),
-    path('api/products/create/', include('products.urls_create_product')),
+    path('products/create/', include('products.urls_create_product')),
 ]
 
 if settings.DEBUG:
