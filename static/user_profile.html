@@ -50,6 +50,36 @@
         localStorage.removeItem('refresh_token');
         window.location.href = '/static/login.html';
     }
+    async function fetchUserPreferences(token) {
+        try {
+            const res = await fetch(`/api/user/preferences/`, {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            if (!res.ok) throw new Error('فشل في جلب التفضيلات');
+            const prefs = await res.json();
+            console.log('prefs:', prefs); // طباعة الجيسون القادم من السيرفر
+            let brands = (prefs.favorite_brands && prefs.favorite_brands.length) ? prefs.favorite_brands.map(b => `<span style="background:#e3f7e3;color:#1976d2;padding:2px 10px;border-radius:8px;margin-left:6px;">${b.name}</span>`).join('') : '<span style="color:#888">لا يوجد</span>';
+            let products = (prefs.favorite_products && prefs.favorite_products.length)
+                ? prefs.favorite_products.slice(0, 10).map(p => `
+                    <div class="stat-card" style="margin-bottom:10px;display:inline-block;min-width:120px;">
+                        <a href="/products/${p.id}/" style="color:#0d47a1;text-decoration:none;">
+                            <div style="font-weight:bold;font-size:1.1em;">${p.name}</div>
+                        </a>
+                    </div>
+                `).join('')
+                : '<span style="color:#888">لا يوجد</span>';
+            let html = `
+                <div class="section-title">تفضيلات المستخدم</div>
+                <div class="profile-details-row"><b>النطاق السعري المفضل:</b> ${prefs.min_price || '-'} - ${prefs.max_price || '-'}</div>
+                <div class="profile-details-row"><b>البراندات المفضلة:</b> ${brands}</div>
+                <div class="profile-details-row"><b>المنتجات المفضلة:</b><br>${products}</div>
+            `;
+            document.getElementById('preferences-section').innerHTML = html;
+        } catch (e) {
+            document.getElementById('preferences-section').innerHTML = '<div class="section-title">تفضيلات المستخدم</div><div style="color:#b71c1c">فشل في جلب التفضيلات.</div>';
+        }
+    }
+
     async function fetchUserProfile() {
         const params = new URLSearchParams(window.location.search);
         const userId = params.get('id');
@@ -75,7 +105,9 @@
                         <div class="profile-details-row"><b>تاريخ التسجيل:</b> ${user.date_joined ? user.date_joined.split('T')[0] : '-'}</div>
                     </div>
                 </div>
+                <div id="preferences-section"></div>
             `;
+            fetchUserPreferences(token);
         } catch (e) {
             document.getElementById('profile-content').textContent = 'فشل في جلب بيانات المستخدم.';
         }

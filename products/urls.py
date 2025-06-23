@@ -21,14 +21,15 @@ from .views import (
 from .views_popular import PopularProductsView
 from .views_public_categories import PublicCategoriesView
 from .views import BrandViewSet
+from .views_reviews_stats import ProductReviewsStatsView
 
 router = DefaultRouter()
 router.register(r"brands", BrandViewSet, basename="brand")
 
 urlpatterns = [
     path("", ProductListView.as_view(), name="product-list"),
+    path("<str:pk>/reviews-stats/", ProductReviewsStatsView.as_view(), name="product-reviews-stats"),
     path("<str:pk>/", ProductDetailView.as_view(), name="product-detail"),
-    path("<str:pk>/reviews-stats/", include("products.urls_reviews_stats")),
     path("<uuid:pk>/update/", ProductUpdateView.as_view(), name="product-update"),
     path("<uuid:pk>/delete/", ProductDeleteView.as_view(), name="product-delete"),
     path("featured/", FeaturedProductsView.as_view(), name="featured-products"),
