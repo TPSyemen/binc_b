@@ -6,6 +6,7 @@ from core.models import Product
 from .models_favorites import Favorite
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.parsers import JSONParser
+from recommendations.serializers import ProductSerializer
 
 class FavoriteListView(APIView):
     """API view for listing user's favorite products."""
@@ -68,3 +69,13 @@ class FavoriteStatusView(APIView):
         ).exists()
         
         return Response({"is_favorite": is_favorite})
+
+
+class FavoriteProductsView(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request):
+        user = request.user
+        favorite_ids = Favorite.objects.filter(user=user).values_list('product_id', flat=True)
+        products = Product.objects.filter(id__in=favorite_ids)
+        serializer = ProductSerializer(products, many=True)
+        return Response(serializer.data)

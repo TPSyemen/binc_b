@@ -48,15 +48,21 @@ class RecommendationView(APIView):
                 user=user
             ).values_list('product_id', flat=True).order_by('-created_at')[:10])
 
+            # إضافة المنتجات المفضلة (Favorites) إلى بيانات الذكاء الاصطناعي
+            from core.models_favorites import Favorite
+            favorite_products = Product.objects.filter(id__in=Favorite.objects.filter(user=user).values_list('product_id', flat=True))
+            favorite_serializer = ProductSerializer(favorite_products, many=True)
+
             # Prepare user data for recommendations
             user_data = {
                 'viewed_products': viewed_products,
                 'liked_products': liked_products,
-                'rated_products': rated_products
+                'rated_products': rated_products,
+                'favorite_products': favorite_products
             }
 
             # استدعاء خدمة التوصيات بالبيانات الصحيحة
-            ai_recommendations = recommendation_service.get_recommendations(
+            ai_recommendations = recommendation_service.get_personalized_recommendations(
                 user.id, user_data, n=20
             )
 
@@ -107,15 +113,22 @@ class RecommendationView(APIView):
             liked_serializer = ProductSerializer(liked_products, many=True)
             new_serializer = ProductSerializer(new_products, many=True)
             popular_serializer = ProductSerializer(popular_products, many=True)
+            # Favorites
+            favorite_serializer = ProductSerializer(favorite_products, many=True)
 
-            # Return categorized recommendations (with hybrid)
-            return Response({
+            response_data = {
                 "preferred": preferred_serializer.data,
                 "liked": liked_serializer.data,
                 "new": new_serializer.data,
                 "popular": popular_serializer.data,
-                "hybrid": hybrid_serializer.data
-            })
+                "favorites": favorite_serializer.data,
+            }
+            if hybrid_serializer is not None:
+                response_data["hybrid"] = hybrid_serializer.data
+            # إضافة نتائج الذكاء الاصطناعي الخام في الاستجابة النهائية فقط
+            if 'ai_recommendations' in locals() and ai_recommendations is not None:
+                response_data["ai_raw"] = ai_recommendations
+            return Response(response_data)
         except Exception as e:
             logger.error(f"Error in recommendations: {e}")
             # Fallback to basic recommendations if AI fails
@@ -169,14 +182,36 @@ class RecommendationView(APIView):
         liked_serializer = ProductSerializer(liked_products, many=True)
         new_serializer = ProductSerializer(new_products, many=True)
         popular_serializer = ProductSerializer(popular_products, many=True)
-
-        # Return categorized recommendations
-        return Response({
+        # Favorites
+        from core.models_favorites import Favorite
+        favorite_products = Product.objects.filter(id__in=Favorite.objects.filter(user=user).values_list('product_id', flat=True))
+        favorite_serializer = ProductSerializer(favorite_products, many=True)
+        # Hybrid (optional fallback)
+        hybrid_products = []
+        hybrid_serializer = None
+        try:
+            hybrid_count = 10
+            new_count = max(1, int(hybrid_count * 0.3))
+            popular_count = hybrid_count - new_count
+            new_list = list(new_products)[:new_count]
+            popular_list = [p for p in popular_products if p.id not in {n.id for n in new_list}][:popular_count]
+            hybrid_products = new_list + popular_list
+            hybrid_serializer = ProductSerializer(hybrid_products, many=True)
+        except Exception:
+            pass
+        response_data = {
             "preferred": preferred_serializer.data,
             "liked": liked_serializer.data,
             "new": new_serializer.data,
-            "popular": popular_serializer.data
-        })
+            "popular": popular_serializer.data,
+            "favorites": favorite_serializer.data,
+        }
+        if hybrid_serializer is not None:
+            response_data["hybrid"] = hybrid_serializer.data
+        # إصلاح نهائي: إذا لم يكن ai_recommendations معرفًا، لا تضف ai_raw
+        # أو يمكن حذف هذا السطر نهائيًا من fallback لأن ai_recommendations غير متاح في هذا السياق.
+        return Response(response_data)
+
 
 # -----------------------------------------------------------------------
 #                 User Behavior Tracking View
@@ -331,3 +366,64 @@ class HybridRecommendationView(APIView):
                 )
         except Exception as e:
             logger.error(f"Error logging recommendation event: {e}")
+
+# -----------------------------------------------------------------------
+#        External Hybrid Recommendation View (AI + Exclude Input)
+# -----------------------------------------------------------------------
+class ExternalHybridRecommendationView(APIView):
+    permission_classes = [IsAuthenticated]
+    parser_classes = [JSONParser]
+
+    def get(self, request):
+        user = request.user
+        try:
+            # المنتجات الأصلية: دمج المنتجات التي شاهدها وأعجب بها وقيّمها المستخدم
+            viewed_products = list(UserBehaviorLog.objects.filter(
+                user=user, action='view'
+            ).values_list('product_id', flat=True).order_by('-timestamp')[:20])
+            liked_products = list(UserBehaviorLog.objects.filter(
+                user=user, action='like'
+            ).values_list('product_id', flat=True).order_by('-timestamp')[:10])
+            from reviews.models import Review
+            rated_products = list(Review.objects.filter(
+                user=user
+            ).values_list('product_id', flat=True).order_by('-created_at')[:10])
+            from core.models_favorites import Favorite
+            favorite_products = list(Favorite.objects.filter(user=user).values_list('product_id', flat=True))
+            # دمج كل المنتجات الأصلية بدون تكرار
+            product_ids = list(set(viewed_products + liked_products + rated_products + favorite_products))
+            original_products = list(Product.objects.filter(id__in=product_ids))
+            # استدعاء الذكاء الاصطناعي لجلب توصيات جديدة ليست ضمن القائمة
+            user_data = {
+                'viewed_products': viewed_products,
+                'liked_products': liked_products,
+                'rated_products': rated_products,
+                'favorite_products': favorite_products
+            }
+            ai_recommendations = recommendation_service.get_personalized_recommendations(
+                user.id, user_data, n=30
+            )
+            ai_ids = ai_recommendations.get('preferred', [])
+            # استبعاد المنتجات الأصلية
+            new_ids = [pid for pid in ai_ids if pid not in product_ids]
+            new_products = list(Product.objects.filter(id__in=new_ids))
+            # حساب النسب
+            total_count = min(10, len(original_products) + len(new_products))
+            orig_count = max(1, int(total_count * 0.3))
+            new_count = total_count - orig_count
+            # اختيار المنتجات
+            selected_originals = original_products[:orig_count]
+            selected_new = new_products[:new_count]
+            final_products = selected_originals + selected_new
+            serializer = ProductSerializer(final_products, many=True)
+            return Response({
+                "results": serializer.data,
+                "source": {
+                    "original": ProductSerializer(selected_originals, many=True).data,
+                    "ai_new": ProductSerializer(selected_new, many=True).data,
+                    "ai_raw": ai_recommendations
+                }
+            })
+        except Exception as e:
+            logger.error(f"Error in external hybrid recommendations: {e}")
+            return Response({"error": "An error occurred while generating recommendations"}, status=500)
