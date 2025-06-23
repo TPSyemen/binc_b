@@ -339,60 +339,16 @@ class OwnerAnalyticsView(APIView):
                 {"error": "نطاق التاريخ غير صالح. الخيارات المتاحة: week, month, year"},
                 status=status.HTTP_400_BAD_REQUEST
             )
-
-        # الحصول على بيانات المبيعات
-        orders = Order.objects.filter(
-            shop=shop,
-            created_at__gte=start_date,
-            status='completed'
-        )
-
-        # تجميع البيانات حسب التاريخ
-        sales_data = {}
-        for order in orders:
-            if group_by == 'day':
-                date_key = order.created_at.strftime(date_format)
-            else:
-                date_key = order.created_at.strftime(date_format)
-
-            if date_key not in sales_data:
-                sales_data[date_key] = {
-                    'date': date_key,
-                    'sales': 0,
-                    'orders': 0
-                }
-
-            sales_data[date_key]['sales'] += order.total_amount
-            sales_data[date_key]['orders'] += 1
-
-        # تحويل البيانات إلى قائمة
-        sales_chart = [value for key, value in sorted(sales_data.items())]
-
-        # الحصول على المنتجات الأكثر مبيعًا
-        top_products = Product.objects.filter(
-            shop=shop,
-            orderitem__order__status='completed',
-            orderitem__order__created_at__gte=start_date
-        ).annotate(
-            sales_count=Count('orderitem'),
-            sales_amount=Sum('orderitem__price')
-        ).order_by('-sales_count')[:10]
-
-        top_products_chart = [{
-            'name': product.name,
-            'sales_count': product.sales_count,
-            'sales_amount': product.sales_amount
-        } for product in top_products]
-
-        # الحصول على مصادر الزيارات (محاكاة)
+ 
+        # تم تعطيل منطق المبيعات لعدم وجود Order
+        sales_chart = []
+        top_products_chart = []
         traffic_sources = [
             {'source': 'مباشر', 'visits': 120, 'percentage': 40},
             {'source': 'محركات البحث', 'visits': 90, 'percentage': 30},
             {'source': 'وسائل التواصل الاجتماعي', 'visits': 60, 'percentage': 20},
             {'source': 'مصادر أخرى', 'visits': 30, 'percentage': 10}
         ]
-
-        # تجميع البيانات
         analytics = {
             'sales_chart': sales_chart,
             'top_products_chart': top_products_chart,
