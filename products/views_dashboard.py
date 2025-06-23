@@ -152,13 +152,13 @@ class OwnerProductsView(APIView):
         if 'category' in data:
             data.pop('category')
 
-        # معالجة البراند
+        # معالجة البراند بنفس أسلوب الفئات
         brand_id = data.get('brand_id')
         brand_name = data.get('brand')
         if not brand_id and not brand_name:
             return Response({'brand_id': 'يجب تحديد البراند (brand_id أو brand).'}, status=status.HTTP_400_BAD_REQUEST)
+        from core.models import Brand
         if brand_name and not brand_id:
-            from core.models import Brand
             brand_obj, _ = Brand.objects.get_or_create(name=brand_name)
             data['brand_id'] = str(brand_obj.id)
         if 'brand' in data:

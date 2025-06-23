@@ -378,6 +378,7 @@ class Product(models.Model):
     def auto_rating(self):
         """
         تقييم المنتج تلقائيًا بناءً على الإعجابات، عدم الإعجاب، شهرة وتقييم البراند، والمحايدين.
+        65% من التقييم يعتمد على البراند (تقييمها وشهرتها)، و35% على تفاعل المستخدمين.
         إذا لم توجد أي تفاعلات على المنتج، يعتمد فقط على تقييم البراند وشهرتها.
         """
         like_score = self.likes * 1.0
@@ -392,16 +393,13 @@ class Product(models.Model):
             base = (brand_rating_score + (brand_popularity_score / 2))
             return max(0, min(5, round(base, 2)))
 
-        score = (
-            like_score +
-            neutral_score +
-            brand_popularity_score +
-            brand_rating_score +
-            dislike_score
-        )
-        # تحويل النتيجة إلى نطاق 0-5
-        score = max(0, min(5, round(score / 10, 2)))
-        return score
+        # 65% للبراند (تقييم + شهرة)
+        brand_score = (brand_rating_score + (brand_popularity_score / 2))
+        # 35% لتفاعل المستخدمين
+        user_score = (like_score + neutral_score + dislike_score) / 10  # نفس مقياسك السابق
+        final_score = (brand_score * 0.65) + (user_score * 0.35)
+        final_score = max(0, min(5, round(final_score, 2)))
+        return final_score
 
     def save(self, *args, **kwargs):
         """
