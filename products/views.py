@@ -21,7 +21,7 @@ from products.rating_service import rating_service
 
 class ProductListView(APIView):
     """List all products based on user permissions."""
-    permission_classes = [permissions.IsAuthenticated]  # السماح بالوصول العام
+    permission_classes = [permissions.AllowAny]  # السماح بالوصول العام
 
     def get(self, request):
         print('--- ProductListView.get ---')
@@ -51,7 +51,7 @@ class ProductListView(APIView):
 
 class ProductDetailView(APIView):
     """Retrieve details of a specific product."""
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request, pk):
         # إذا كان المستخدم أدمن أو سوبر يوزر، اعرض المنتج بغض النظر عن is_active
