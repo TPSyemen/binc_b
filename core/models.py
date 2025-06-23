@@ -15,6 +15,8 @@ from .models_favorites import Favorite  # Import the Favorite model
 from .models_verification import EmailVerificationToken, ActionVerificationToken  # Import verification models
 from .models_preferences import UserPreference, BrandPreference  # Import preferences models
 from django.conf import settings
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 #----------------------------------------------------------------
 #           User model
@@ -358,7 +360,8 @@ class Product(models.Model):
     )
 
     def __str__(self):
-        return f"{self.name} ({self.brand.name})"
+        brand_name = self.brand.name if self.brand else "بدون براند"
+        return f"{self.name} ({brand_name})"
 
     def log_behavior(self, user, action):
         UserBehaviorLog = apps.get_model('recommendations', 'UserBehaviorLog')  # Dynamically get the model
@@ -375,13 +378,19 @@ class Product(models.Model):
     def auto_rating(self):
         """
         تقييم المنتج تلقائيًا بناءً على الإعجابات، عدم الإعجاب، شهرة وتقييم البراند، والمحايدين.
-        يمكن تعديل الأوزان حسب الحاجة.
+        إذا لم توجد أي تفاعلات على المنتج، يعتمد فقط على تقييم البراند وشهرتها.
         """
         like_score = self.likes * 1.0
         dislike_score = self.dislikes * -1.0
         neutral_score = self.neutrals * 0.2 if hasattr(self, 'neutrals') else 0
-        brand_popularity_score = float(self.brand.popularity) * 0.1 if self.brand else 0
-        brand_rating_score = float(self.brand.rating) * 1.0 if self.brand else 0
+        brand_popularity_score = float(self.brand.popularity) * 0.1 if self.brand and self.brand.popularity else 0
+        brand_rating_score = float(self.brand.rating) * 1.0 if self.brand and self.brand.rating else 0
+
+        # إذا لم توجد أي تفاعلات على المنتج، استخدم فقط تقييم البراند وشهرتها
+        if self.likes == 0 and self.dislikes == 0 and self.neutrals == 0 and self.views == 0:
+            # متوسط بين تقييم البراند وشهرتها (على مقياس 5)
+            base = (brand_rating_score + (brand_popularity_score / 2))
+            return max(0, min(5, round(base, 2)))
 
         score = (
             like_score +
@@ -397,7 +406,7 @@ class Product(models.Model):
     def save(self, *args, **kwargs):
         """
         تحديث التقييم تلقائيًا عند كل عملية حفظ ليعكس auto_rating.
-        إذا أصبح التقييم عاليًا جدًا (مثلاً >= 4.5)، يتم إرسال إشعار للمالك ولكل مستخدم أعجب بالمنتج.
+        إذا أصبح التقييم عاليًا جدًا (مثلاً >= 4.5)، يتم إرسال إشعار للمالك.
         """
         self.rating = self.auto_rating
         super().save(*args, **kwargs)
@@ -409,13 +418,6 @@ class Product(models.Model):
                 Notification.objects.create(
                     recipient=self.shop.owner.user,
                     content=f"🎉 منتجك '{self.name}' حصل على تقييم مرتفع جدًا!",
-                    notification_type='general'
-                )
-            # إشعار لكل مستخدم أعجب بالمنتج
-            for reaction in self.user_reactions.filter(reaction_type='like'):
-                Notification.objects.create(
-                    recipient=reaction.user,
-                    content=f"🎉 المنتج '{self.name}' الذي أعجبت به أصبح من الأعلى تقييمًا!",
                     notification_type='general'
                 )
 
@@ -576,3 +578,7 @@ def notify_user(user, content, notification_type='general', action_url=None, ext
 def notify_shop_owner(shop, content, notification_type='general', action_url=None, extra_data=None):
     if shop.owner and shop.owner.user:
         notify_user(shop.owner.user, content, notification_type, action_url, extra_data)
+
+#----------------------------------------------------------------
+# ربط الإشارات (signals) لتحديث التقييم تلقائيًا
+import core.signals

@@ -84,13 +84,23 @@ class RecommendationView(APIView):
                 ).distinct()[:10]
                 liked_products = list(liked_products) + list(fallback_liked)
 
-            # New products (last 30 days)
+            # New products (last 30 days), ordered from newest to oldest
             new_products = Product.objects.filter(
                 created_at__gte=now() - timedelta(days=30)
-            )[:10]
+            ).order_by('-created_at')[:10]
 
-            # Most popular products (based on views)
-            popular_products = Product.objects.order_by('-views')[:10]
+            # Most popular products (based on views), ordered from most to least
+            popular_products = Product.objects.order_by('-views')[:30]
+
+            # Hybrid recommendations: 30% new, 70% popular (من أصل 10 منتجات)
+            hybrid_count = 10
+            new_count = max(1, int(hybrid_count * 0.3))  # 3 منتجات جديدة
+            popular_count = hybrid_count - new_count     # 7 منتجات شهيرة
+            new_list = list(new_products)[:new_count]
+            popular_list = [p for p in popular_products if p.id not in {n.id for n in new_list}][:popular_count]
+            hybrid_products = new_list + popular_list
+
+            hybrid_serializer = ProductSerializer(hybrid_products, many=True)
 
             # Serialize each category
             preferred_serializer = ProductSerializer(preferred_products, many=True)
@@ -98,12 +108,13 @@ class RecommendationView(APIView):
             new_serializer = ProductSerializer(new_products, many=True)
             popular_serializer = ProductSerializer(popular_products, many=True)
 
-            # Return categorized recommendations
+            # Return categorized recommendations (with hybrid)
             return Response({
                 "preferred": preferred_serializer.data,
                 "liked": liked_serializer.data,
                 "new": new_serializer.data,
-                "popular": popular_serializer.data
+                "popular": popular_serializer.data,
+                "hybrid": hybrid_serializer.data
             })
         except Exception as e:
             logger.error(f"Error in recommendations: {e}")

@@ -114,13 +114,23 @@ class ProductDetailSerializer(serializers.ModelSerializer):
         except Category.DoesNotExist:
             raise serializers.ValidationError({'category_id': 'التصنيف غير موجود.'})
         validated_data['category'] = category
+
+        # استخراج brand_id وربطه فعليًا
+        brand_id = validated_data.pop('brand_id', None)
+        if not brand_id:
+            raise serializers.ValidationError({'brand_id': 'هذا الحقل مطلوب.'})
+        from core.models import Brand
+        try:
+            brand = Brand.objects.get(pk=brand_id)
+        except Brand.DoesNotExist:
+            raise serializers.ValidationError({'brand_id': 'البراند غير موجود.'})
+        validated_data['brand'] = brand
+
         # القيم الافتراضية
         if 'rating' not in validated_data:
             validated_data['rating'] = 0
         if 'in_stock' not in validated_data:
             validated_data['in_stock'] = True
-        if 'stock' in validated_data:
-            validated_data.pop('stock')
         return super().create(validated_data)
 
 #----------------------------------------------------------------
@@ -244,13 +254,23 @@ class ProductDetailSerializer(serializers.ModelSerializer):
         except Category.DoesNotExist:
             raise serializers.ValidationError({'category_id': 'التصنيف غير موجود.'})
         validated_data['category'] = category
+
+        # استخراج brand_id وربطه فعليًا
+        brand_id = validated_data.pop('brand_id', None)
+        if not brand_id:
+            raise serializers.ValidationError({'brand_id': 'هذا الحقل مطلوب.'})
+        from core.models import Brand
+        try:
+            brand = Brand.objects.get(pk=brand_id)
+        except Brand.DoesNotExist:
+            raise serializers.ValidationError({'brand_id': 'البراند غير موجود.'})
+        validated_data['brand'] = brand
+
         # القيم الافتراضية
         if 'rating' not in validated_data:
             validated_data['rating'] = 0
         if 'in_stock' not in validated_data:
             validated_data['in_stock'] = True
-        if 'stock' in validated_data:
-            validated_data.pop('stock')
         return super().create(validated_data)
 
 #----------------------------------------------------------------
