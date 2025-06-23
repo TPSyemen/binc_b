@@ -83,7 +83,7 @@ class ProductDetailSerializer(serializers.ModelSerializer):
     discount = serializers.SerializerMethodField()
     rating = serializers.FloatField(read_only=True, required=False)
     in_stock = serializers.BooleanField(read_only=True, required=False)
-    stock = serializers.IntegerField(required=False)
+    stock = serializers.IntegerField(read_only=True)
     category_id = serializers.UUIDField(write_only=True, required=True, allow_null=False)
     brand_id = serializers.UUIDField(write_only=True, required=True, allow_null=False)
 
@@ -227,7 +227,7 @@ class ProductDetailSerializer(serializers.ModelSerializer):
     discount = serializers.SerializerMethodField()
     rating = serializers.FloatField(read_only=True, required=False)
     in_stock = serializers.BooleanField(read_only=True, required=False)
-    stock = serializers.IntegerField(required=False)
+    stock = serializers.IntegerField(read_only=True)
     category_id = serializers.UUIDField(write_only=True, required=True, allow_null=False)
     brand_id = serializers.UUIDField(write_only=True, required=True, allow_null=False)
 
