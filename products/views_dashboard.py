@@ -154,13 +154,22 @@ class OwnerProductsView(APIView):
 
         # التحقق من وجود الفئة
         if 'category_id' not in data and 'category' in data:
+            import uuid
             try:
-                category = Category.objects.get(name=data['category'])
-                data['category_id'] = category.id
-            except Category.DoesNotExist:
-                # إنشاء فئة جديدة إذا لم تكن موجودة
-                category = Category.objects.create(name=data['category'])
-                data['category_id'] = category.id
+                # إذا كانت category UUID صالح
+                uuid.UUID(str(data['category']))
+                data['category_id'] = data['category']
+            except Exception:
+                try:
+                    category = Category.objects.get(name=data['category'])
+                    data['category_id'] = category.id
+                except Category.DoesNotExist:
+                    # إنشاء فئة جديدة إذا لم تكن موجودة
+                    category = Category.objects.create(name=data['category'])
+                    data['category_id'] = category.id
+        # إذا أرسلت category_id مباشرة
+        if 'category_id' not in data and 'category_id' in request.data:
+            data['category_id'] = request.data['category_id']
 
         serializer = ProductDetailSerializer(data=data)
         if serializer.is_valid():
@@ -239,13 +248,22 @@ class OwnerProductDetailView(APIView):
 
         # التحقق من وجود الفئة
         if 'category_id' not in data and 'category' in data:
+            # إذا كانت category UUID (وليس اسم نصي)
+            import uuid
             try:
-                category = Category.objects.get(name=data['category'])
-                data['category_id'] = category.id
-            except Category.DoesNotExist:
-                # إنشاء فئة جديدة إذا لم تكن موجودة
-                category = Category.objects.create(name=data['category'])
-                data['category_id'] = category.id
+                uuid.UUID(str(data['category']))
+                data['category_id'] = data['category']
+            except Exception:
+                try:
+                    category = Category.objects.get(name=data['category'])
+                    data['category_id'] = category.id
+                except Category.DoesNotExist:
+                    # إنشاء فئة جديدة إذا لم تكن موجودة
+                    category = Category.objects.create(name=data['category'])
+                    data['category_id'] = category.id
+        # إذا أرسلت category_id مباشرة
+        if 'category_id' not in data and 'category_id' in request.data:
+            data['category_id'] = request.data['category_id']
 
         serializer = ProductDetailSerializer(product, data=data, partial=True)
         if serializer.is_valid():
