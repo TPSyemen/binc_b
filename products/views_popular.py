@@ -20,7 +20,7 @@ class PopularProductsView(APIView):
             popular_products = Product.objects.filter(
                 is_active=True,
                 in_stock=True
-            ).order_by('-views', '-likes', '-rating')[:10]
+            ).order_by('-rating')[:10]
             
             serializer = ProductListSerializer(popular_products, many=True)
             return Response(serializer.data)
