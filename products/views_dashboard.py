@@ -164,6 +164,13 @@ class OwnerProductsView(APIView):
         if 'brand' in data:
             data.pop('brand')
 
+        # طباعة أدق للبيانات المستلمة
+        print('DEBUG DATA:', data)
+        print('DEBUG KEYS:', list(data.keys()))
+        for k, v in data.items():
+            print(f"DEBUG TYPE: {k} => {type(v)}")
+        print('DEBUG brand_id:', data.get('brand_id'), 'TYPE:', type(data.get('brand_id')))
+
         serializer = ProductDetailSerializer(data=data)
         if serializer.is_valid():
             product = serializer.save(shop=shop)

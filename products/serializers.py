@@ -85,12 +85,13 @@ class ProductDetailSerializer(serializers.ModelSerializer):
     in_stock = serializers.BooleanField(read_only=True, required=False)
     stock = serializers.IntegerField(required=False)
     category_id = serializers.UUIDField(write_only=True, required=True, allow_null=False)
+    brand_id = serializers.UUIDField(write_only=True, required=True, allow_null=False)
 
     class Meta:
         model = Product
         fields = (
             'id', 'name', 'description', 'price', 'original_price',
-            'discount', 'category', 'category_id', 'brand', 'shop', 'image_url', 'in_stock', 'rating', 'is_active', 'created_at', 'stock',
+            'discount', 'category', 'category_id', 'brand', 'brand_id', 'shop', 'image_url', 'in_stock', 'rating', 'is_active', 'created_at', 'stock',
             'reviews', 'video_url', 'release_date', 'likes', 'dislikes', 'neutrals',
             'views', 'is_banned'
         )
@@ -103,6 +104,14 @@ class ProductDetailSerializer(serializers.ModelSerializer):
 
     def get_discount(self, obj):
         return obj.discount_percentage
+
+    def to_internal_value(self, data):
+        # دعم brand_id مباشرة من البيانات
+        ret = super().to_internal_value(data)
+        brand_id = data.get('brand_id')
+        if brand_id:
+            ret['brand_id'] = brand_id
+        return ret
 
     def create(self, validated_data):
         # استخراج category_id وربطه فعليًا
@@ -220,6 +229,7 @@ class ProductDetailSerializer(serializers.ModelSerializer):
     in_stock = serializers.BooleanField(read_only=True, required=False)
     stock = serializers.IntegerField(required=False)
     category_id = serializers.UUIDField(write_only=True, required=True, allow_null=False)
+    brand_id = serializers.UUIDField(write_only=True, required=True, allow_null=False)
 
     def get_shop_name(self, obj):
         if obj.shop:
@@ -229,7 +239,7 @@ class ProductDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = ('id', 'name', 'description', 'price', 'original_price',
-                  'discount', 'category', 'category_id', 'brand', 'shop', 'image_url', 'in_stock', 'rating', 'is_active', 'created_at', 'stock',
+                  'discount', 'category', 'category_id', 'brand', 'brand_id', 'shop', 'image_url', 'in_stock', 'rating', 'is_active', 'created_at', 'stock',
                   'reviews', 'video_url', 'release_date', 'likes', 'dislikes', 'neutrals',
                   'views', 'is_banned')
         extra_kwargs = {
@@ -243,6 +253,14 @@ class ProductDetailSerializer(serializers.ModelSerializer):
         if obj.original_price and obj.price and obj.original_price > obj.price:
             return int(((obj.original_price - obj.price) / obj.original_price) * 100)
         return 0
+
+    def to_internal_value(self, data):
+        # دعم brand_id مباشرة من البيانات
+        ret = super().to_internal_value(data)
+        brand_id = data.get('brand_id')
+        if brand_id:
+            ret['brand_id'] = brand_id
+        return ret
 
     def create(self, validated_data):
         # استخراج category_id وربطه فعليًا
