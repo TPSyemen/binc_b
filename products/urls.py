@@ -22,6 +22,7 @@ from .views_popular import PopularProductsView
 from .views_public_categories import PublicCategoriesView
 from .views import BrandViewSet
 from .views_reviews_stats import ProductReviewsStatsView
+from .views_dashboard import BrandListView
 
 router = DefaultRouter()
 router.register(r"brands", BrandViewSet, basename="brand")
@@ -47,6 +48,10 @@ urlpatterns = [
         ProductPriceHistoryView.as_view(),
         name="product-price-history",
     ),
+]
+
+urlpatterns += [
+    path('brands/', BrandListView.as_view(), name='brand-list'),
 ]
 
 urlpatterns += router.urls

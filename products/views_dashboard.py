@@ -6,12 +6,13 @@ from django.db.models import Sum, Count, Avg
 from django.utils import timezone
 from datetime import timedelta
 from django.shortcuts import get_object_or_404
-from core.models import Shop, Product, User, Category
+from core.models import Shop, Product, User, Category, Brand
 from .serializers import (
     ShopSerializer,
     ProductListSerializer,
     ProductDetailSerializer,
-    DashboardStatsSerializer
+    DashboardStatsSerializer,
+    BrandSerializer
 )
 from django.views import View
 from django.http import JsonResponse, HttpResponse, HttpResponseForbidden
@@ -157,7 +158,6 @@ class OwnerProductsView(APIView):
         brand_name = data.get('brand')
         if not brand_id and not brand_name:
             return Response({'brand_id': 'يجب تحديد البراند (brand_id أو brand).'}, status=status.HTTP_400_BAD_REQUEST)
-        from core.models import Brand
         if brand_name and not brand_id:
             brand_obj, _ = Brand.objects.get_or_create(name=brand_name)
             data['brand_id'] = str(brand_obj.id)
@@ -443,3 +443,11 @@ class AdminProductNotifyOwnerView(View):
         # مثال: NotificationService.send(product.shop.owner.user, message)
         # الآن فقط نعيد رسالة نجاح وهمية
         return JsonResponse({'success': True, 'message': message, 'owner': str(product.shop.owner.user)})
+
+class BrandListView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        brands = Brand.objects.all().order_by('-popularity', '-rating')
+        serializer = BrandSerializer(brands, many=True)
+        return Response(serializer.data)
