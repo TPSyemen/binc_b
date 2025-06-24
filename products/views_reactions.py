@@ -2,7 +2,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions
 from django.shortcuts import get_object_or_404
-from core.models import Product, User
+from core.models import Product, User, UserProductReaction
 from products.rating_service import rating_service
 
 class ProductReactionView(APIView):
@@ -92,26 +92,16 @@ class ProductReactionView(APIView):
         Returns:
             str: 'like', 'dislike', or 'neutral'
         """
-        # استخدام نموذج UserProductReaction للحصول على تفاعل المستخدم
         try:
-            UserProductReaction = self._get_user_product_reaction_model()
-
-            try:
-                reaction = UserProductReaction.objects.get(user=user, product=product)
-                return reaction.reaction_type
-            except UserProductReaction.DoesNotExist:
-                return 'neutral'
-        except Exception as e:
-            # إذا كان هناك أي خطأ (مثل عدم وجود الجدول)
-            print(f"Error getting user reaction: {str(e)}")
+            reaction = UserProductReaction.objects.get(user=user, product=product)
+            return reaction.reaction_type
+        except UserProductReaction.DoesNotExist:
             return 'neutral'
 
     def _save_user_reaction(self, user, product, reaction_type):
         """
         Save or update the user's reaction to a product.
         """
-        UserProductReaction = self._get_user_product_reaction_model()
-
         reaction, created = UserProductReaction.objects.get_or_create(
             user=user,
             product=product,
@@ -143,11 +133,4 @@ class ProductReactionView(APIView):
             product.neutrals += 1
 
         product.save()
-
-    def _get_user_product_reaction_model(self):
-        """
-        Get the UserProductReaction model dynamically to avoid circular imports.
-        """
-        from django.apps import apps
-        return apps.get_model('core', 'UserProductReaction')
 

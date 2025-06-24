@@ -48,6 +48,7 @@ urlpatterns = [
         ProductPriceHistoryView.as_view(),
         name="product-price-history",
     ),
+    path('', include('products.urls_reactions')),
 ]
 
 urlpatterns += [
