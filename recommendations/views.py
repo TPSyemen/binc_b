@@ -15,6 +15,7 @@ from core.models import Product, User
 from reviews.models import Review
 from .serializers import ProductSerializer
 from .models import ProductRecommendation, UserBehaviorLog
+from rest_framework import permissions
 
 # AI services
 from .ai_services import recommendation_service
@@ -371,25 +372,29 @@ class HybridRecommendationView(APIView):
 #        External Hybrid Recommendation View (AI + Exclude Input)
 # -----------------------------------------------------------------------
 class ExternalHybridRecommendationView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [permissions.AllowAny]  # السماح للجميع بالوصول
     parser_classes = [JSONParser]
 
     def get(self, request):
-        user = request.user
+        user = request.user if request.user.is_authenticated else None
         try:
-            # المنتجات الأصلية: دمج المنتجات التي شاهدها وأعجب بها وقيّمها المستخدم
-            viewed_products = list(UserBehaviorLog.objects.filter(
-                user=user, action='view'
-            ).values_list('product_id', flat=True).order_by('-timestamp')[:20])
-            liked_products = list(UserBehaviorLog.objects.filter(
-                user=user, action='like'
-            ).values_list('product_id', flat=True).order_by('-timestamp')[:10])
-            from reviews.models import Review
-            rated_products = list(Review.objects.filter(
-                user=user
-            ).values_list('product_id', flat=True).order_by('-created_at')[:10])
-            from core.models_favorites import Favorite
-            favorite_products = list(Favorite.objects.filter(user=user).values_list('product_id', flat=True))
+            viewed_products = []
+            liked_products = []
+            rated_products = []
+            favorite_products = []
+            if user:
+                viewed_products = list(UserBehaviorLog.objects.filter(
+                    user=user, action='view'
+                ).values_list('product_id', flat=True).order_by('-timestamp')[:20])
+                liked_products = list(UserBehaviorLog.objects.filter(
+                    user=user, action='like'
+                ).values_list('product_id', flat=True).order_by('-timestamp')[:10])
+                from reviews.models import Review
+                rated_products = list(Review.objects.filter(
+                    user=user
+                ).values_list('product_id', flat=True).order_by('-created_at')[:10])
+                from core.models_favorites import Favorite
+                favorite_products = list(Favorite.objects.filter(user=user).values_list('product_id', flat=True))
             # دمج كل المنتجات الأصلية بدون تكرار
             product_ids = list(set(viewed_products + liked_products + rated_products + favorite_products))
             original_products = list(Product.objects.filter(id__in=product_ids))
@@ -401,7 +406,7 @@ class ExternalHybridRecommendationView(APIView):
                 'favorite_products': favorite_products
             }
             ai_recommendations = recommendation_service.get_personalized_recommendations(
-                user.id, user_data, n=30
+                user.id if user else None, user_data, n=30
             )
             ai_ids = ai_recommendations.get('preferred', [])
             # استبعاد المنتجات الأصلية
@@ -424,6 +429,20 @@ class ExternalHybridRecommendationView(APIView):
                     "ai_raw": ai_recommendations
                 }
             })
+            # fallback: إذا لم يوجد أي توصية من الذكاء الاصطناعي أو بيانات المستخدم
+            if not final_products:
+                # جلب منتجات عشوائية أو الأكثر شهرة
+                fallback_products = list(Product.objects.filter(is_active=True).order_by('-views')[:10])
+                serializer = ProductSerializer(fallback_products, many=True)
+                return Response({
+                    "results": serializer.data,
+                    "source": {
+                        "original": [],
+                        "ai_new": [],
+                        "ai_raw": ai_recommendations,
+                        "fallback": "popular"
+                    }
+                })
         except Exception as e:
             logger.error(f"Error in external hybrid recommendations: {e}")
             return Response({"error": "An error occurred while generating recommendations"}, status=500)
