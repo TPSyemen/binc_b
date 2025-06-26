@@ -63,6 +63,13 @@ class AIRecommendationService:
     def __init__(self):
         self.als_model = None
         self.tfidf_vectorizer = None
+        # تهيئة القواميس/المصفوفات الافتراضية لتفادي الأخطاء
+        self.user_to_idx = {}
+        self.product_to_idx = {}
+        self.idx_to_product = {}
+        self.user_item_matrix = None
+        self.content_product_ids = np.array([])
+        self.content_features = None
 
         # Initialize sentiment analyzer if NLTK is available
         if NLTK_AVAILABLE:
@@ -262,36 +269,105 @@ class AIRecommendationService:
             except:
                 return reviews_data
 
+    def get_popular_products(self, n=10):
+        """
+        Fallback: Get most popular products (by interactions or ratings).
+        Replace this logic with ORM/database query as needed.
+        """
+        try:
+            # Placeholder: Replace with actual ORM query for most popular products
+            # Example: Product.objects.order_by('-num_likes', '-num_reviews')[:n]
+            # Here, just return first n product IDs if available
+            if hasattr(self, 'product_to_idx'):
+                all_products = list(self.product_to_idx.keys())
+                return all_products[:n]
+            return []
+        except Exception as e:
+            logger.error(f"Error getting popular products: {e}")
+            return []
+
+    def get_random_products(self, n=10):
+        """
+        Fallback: Get random products if no popular products are available.
+        Replace this logic with ORM/database query as needed.
+        """
+        try:
+            import random
+            if hasattr(self, 'product_to_idx'):
+                all_products = list(self.product_to_idx.keys())
+                return random.sample(all_products, min(n, len(all_products)))
+            return []
+        except Exception as e:
+            logger.error(f"Error getting random products: {e}")
+            return []
+
     def get_collaborative_recommendations(self, user_id, n=10):
         """
         Get collaborative filtering recommendations for a user.
-
-        Args:
-            user_id: The user ID
-            n: Number of recommendations to return
-
-        Returns:
-            List of recommended product IDs
+        Fallback to popular or random products if not enough recommendations.
+        Always return at least one product if only one exists in the system.
+        Debug: Log product index and recommendations for troubleshooting.
         """
         try:
-            if not self.als_model or user_id not in self.user_to_idx:
-                return []
-
-            user_idx = self.user_to_idx[user_id]
-            user_vector = self.user_item_matrix[user_idx]
-
-            # Get recommendations
-            recommendations = self.als_model.recommend(
-                user_idx, user_vector, N=n, filter_already_liked_items=True
-            )
-
-            # Convert back to product IDs
-            recommended_products = [self.idx_to_product[idx] for idx, _ in recommendations]
-
-            return recommended_products
+            logger.info(f"[DEBUG] product_to_idx: {getattr(self, 'product_to_idx', None)}")
+            recommendations = []
+            if self.als_model and user_id in self.user_to_idx:
+                user_idx = self.user_to_idx[user_id]
+                user_vector = self.user_item_matrix[user_idx]
+                recs = self.als_model.recommend(
+                    user_idx, user_vector, N=n, filter_already_liked_items=True
+                )
+                recommendations = [self.idx_to_product[idx] for idx, _ in recs]
+                logger.info(f"[DEBUG] initial recommendations: {recommendations}")
+                # Fallback if not enough recommendations
+                if len(recommendations) < n:
+                    needed = n - len(recommendations)
+                    popular = self.get_popular_products(needed)
+                    for pid in popular:
+                        if pid not in recommendations:
+                            recommendations.append(pid)
+                            if len(recommendations) >= n:
+                                break
+                if len(recommendations) < n:
+                    needed = n - len(recommendations)
+                    randoms = self.get_random_products(needed)
+                    for pid in randoms:
+                        if pid not in recommendations:
+                            recommendations.append(pid)
+                            if len(recommendations) >= n:
+                                break
+                # إذا كان لا يوجد إلا منتج واحد فقط في النظام، أرجعه دائماً
+                if not recommendations and hasattr(self, 'product_to_idx'):
+                    all_products = list(self.product_to_idx.keys())
+                    if len(all_products) == 1:
+                        logger.info(f"[DEBUG] Only one product in system: {all_products[0]}")
+                        return all_products * n
+                logger.info(f"[DEBUG] final recommendations: {recommendations[:n]}")
+                return recommendations[:n]
+            else:
+                # fallback مباشرة إذا لم يوجد user_id في self.user_to_idx أو لم يتم التدريب
+                fallback = self.get_popular_products(n)
+                if len(fallback) < n:
+                    fallback += self.get_random_products(n - len(fallback))
+                if not fallback and hasattr(self, 'product_to_idx'):
+                    all_products = list(self.product_to_idx.keys())
+                    if len(all_products) == 1:
+                        logger.info(f"[DEBUG] Only one product in system (no user): {all_products[0]}")
+                        return all_products * n
+                logger.info(f"[DEBUG] fallback recommendations (no user): {fallback[:n]}")
+                return fallback[:n]
         except Exception as e:
             logger.error(f"Error getting collaborative recommendations: {e}")
-            return []
+            fallback = self.get_popular_products(n)
+            if len(fallback) < n:
+                fallback += self.get_random_products(n - len(fallback))
+            if not fallback and hasattr(self, 'product_to_idx'):
+                all_products = list(self.product_to_idx.keys())
+                if len(all_products) == 1:
+                    logger.info(f"[DEBUG] Only one product in system (exception): {all_products[0]}")
+                    return all_products * n
+            logger.info(f"[DEBUG] fallback recommendations: {fallback[:n]}")
+            return fallback[:n]
 
     def get_content_based_recommendations(self, product_id, n=10):
         """
@@ -378,14 +454,7 @@ class AIRecommendationService:
     def get_personalized_recommendations(self, user_id, user_data=None, n=20):
         """
         Get comprehensive personalized recommendations for a user.
-
-        Args:
-            user_id: The user ID
-            user_data: Dict with user data including viewed_products, liked_products, etc.
-            n: Number of recommendations to return
-
-        Returns:
-            Dict with different types of recommendations
+        Always fallback to popular/random products if results are empty.
         """
         try:
             user_data = user_data or {}
@@ -393,8 +462,6 @@ class AIRecommendationService:
 
             # Get hybrid recommendations
             hybrid_recs = self.get_hybrid_recommendations(user_id, viewed_products, n=n)
-
-            # Split recommendations into categories
             preferred = hybrid_recs[:10]
 
             # Get content-based recommendations for products the user liked
@@ -403,9 +470,17 @@ class AIRecommendationService:
             for product_id in liked_products:
                 similar_products = self.get_content_based_recommendations(product_id, n=3)
                 liked_recs.extend(similar_products)
-
-            # Remove duplicates and limit
             liked_recs = list(dict.fromkeys(liked_recs))[:10]
+
+            # fallback إذا كانت النتائج فارغة
+            if not preferred:
+                preferred = self.get_popular_products(10)
+                if len(preferred) < 10:
+                    preferred += self.get_random_products(10 - len(preferred))
+            if not liked_recs:
+                liked_recs = self.get_popular_products(10)
+                if len(liked_recs) < 10:
+                    liked_recs += self.get_random_products(10 - len(liked_recs))
 
             return {
                 'preferred': preferred,
@@ -413,7 +488,10 @@ class AIRecommendationService:
             }
         except Exception as e:
             logger.error(f"Error getting personalized recommendations: {e}")
-            return {'preferred': [], 'liked': []}
+            fallback = self.get_popular_products(10)
+            if len(fallback) < 10:
+                fallback += self.get_random_products(10 - len(fallback))
+            return {'preferred': fallback[:10], 'liked': fallback[:10]}
 
 
 # Create a singleton instance

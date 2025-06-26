@@ -69,27 +69,28 @@ class RecommendationView(APIView):
 
             # Fetch preferred products from AI recommendations
             preferred_product_ids = ai_recommendations.get('preferred', [])
-            preferred_products = Product.objects.filter(id__in=preferred_product_ids)
+            preferred_products = list(Product.objects.filter(id__in=preferred_product_ids))
+            # fallback إذا بقيت القائمة فارغة بعد الفلترة
+            if not preferred_products:
+                fallback_qs = Product.objects.order_by('-views')[:10]
+                if not fallback_qs:
+                    fallback_qs = Product.objects.all().order_by('?')[:10]
+                preferred_products = list(fallback_qs)
 
             # Fetch liked products from AI recommendations
             liked_product_ids = ai_recommendations.get('liked', [])
             # إضافة جميع المنتجات التي أعجب بها المستخدم حتى لو لم تظهر في الذكاء الاصطناعي
-            all_liked_ids = list(set(liked_product_ids) | set(liked_products))
-            liked_products = Product.objects.filter(id__in=all_liked_ids)
-
-            # Fallback: Preferred products based فقط على المشاهدات
-            if len(preferred_products) < 5:
-                fallback_preferred = Product.objects.filter(
-                    id__in=viewed_products
-                ).distinct()[:10]
-                preferred_products = list(preferred_products) + list(fallback_preferred)
-
-            # Fallback: Liked products فقط من الإعجابات
-            if len(liked_products) < 5:
-                fallback_liked = Product.objects.filter(
-                    id__in=liked_products
-                ).distinct()[:10]
-                liked_products = list(liked_products) + list(fallback_liked)
+            # liked_products هنا عبارة عن قائمة معرفات من السطر السابق (وليس كويري)
+            all_liked_ids = set(liked_product_ids)
+            if liked_products:
+                all_liked_ids = all_liked_ids.union(set(liked_products))
+            liked_products = list(Product.objects.filter(id__in=all_liked_ids))
+            # fallback إذا بقيت القائمة فارغة بعد الفلترة
+            if not liked_products:
+                fallback_qs = Product.objects.order_by('-views')[:10]
+                if not fallback_qs:
+                    fallback_qs = Product.objects.all().order_by('?')[:10]
+                liked_products = list(fallback_qs)
 
             # New products (last 30 days), ordered from newest to oldest
             new_products = Product.objects.filter(
@@ -126,9 +127,8 @@ class RecommendationView(APIView):
             }
             if hybrid_serializer is not None:
                 response_data["hybrid"] = hybrid_serializer.data
-            # إضافة نتائج الذكاء الاصطناعي الخام في الاستجابة النهائية فقط
-            if 'ai_recommendations' in locals() and ai_recommendations is not None:
-                response_data["ai_raw"] = ai_recommendations
+            # إضافة نتائج الذكاء الاصطناعي الخام في الاستجابة النهائية دائماً
+            response_data["ai_raw"] = ai_recommendations
             return Response(response_data)
         except Exception as e:
             logger.error(f"Error in recommendations: {e}")
@@ -419,6 +419,12 @@ class ExternalHybridRecommendationView(APIView):
             # اختيار المنتجات
             selected_originals = original_products[:orig_count]
             selected_new = new_products[:new_count]
+            # fallback إذا بقيت ai_new فارغة بعد الفلترة
+            if not selected_new:
+                fallback_qs = Product.objects.filter(is_active=True).order_by('-views')[:new_count]
+                if not fallback_qs:
+                    fallback_qs = Product.objects.filter(is_active=True).order_by('?')[:new_count]
+                selected_new = list(fallback_qs)
             final_products = selected_originals + selected_new
             serializer = ProductSerializer(final_products, many=True)
             return Response({
@@ -429,20 +435,6 @@ class ExternalHybridRecommendationView(APIView):
                     "ai_raw": ai_recommendations
                 }
             })
-            # fallback: إذا لم يوجد أي توصية من الذكاء الاصطناعي أو بيانات المستخدم
-            if not final_products:
-                # جلب منتجات عشوائية أو الأكثر شهرة
-                fallback_products = list(Product.objects.filter(is_active=True).order_by('-views')[:10])
-                serializer = ProductSerializer(fallback_products, many=True)
-                return Response({
-                    "results": serializer.data,
-                    "source": {
-                        "original": [],
-                        "ai_new": [],
-                        "ai_raw": ai_recommendations,
-                        "fallback": "popular"
-                    }
-                })
         except Exception as e:
             logger.error(f"Error in external hybrid recommendations: {e}")
             return Response({"error": "An error occurred while generating recommendations"}, status=500)

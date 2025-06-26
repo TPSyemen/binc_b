@@ -13,4 +13,5 @@ urlpatterns = [
     path('products/<uuid:product_id>/reviews/', ProductReviewsView.as_view(), name='product-reviews'),
     path('products/<uuid:product_id>/reviews/<int:review_id>/', ProductReviewDetailView.as_view(), name='product-review-detail'),
     path('add/', ReviewListCreateView.as_view(), name='add-review'),
+    path('reviews/', ReviewListCreateView.as_view(), name='review-list-create'),
 ]

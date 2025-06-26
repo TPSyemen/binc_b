@@ -177,9 +177,7 @@ class UserViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAdminUser]
 
     def get_permissions(self):
-        # Only admin can delete/update/create, others can only view
-        if self.action in ['list', 'retrieve']:
-            return [permissions.IsAuthenticated()]
+        # فقط الأدمن يمكنه أي عملية (عرض، إضافة، تعديل، حذف)
         return [permissions.IsAdminUser()]
 
     def update(self, request, *args, **kwargs):
