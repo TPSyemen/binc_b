@@ -28,9 +28,10 @@ router = DefaultRouter()
 router.register(r"brands", BrandViewSet, basename="brand")
 
 urlpatterns = [
-    path("", ProductListView.as_view(), name="product-list"),
-    path("<str:pk>/reviews-stats/", ProductReviewsStatsView.as_view(), name="product-reviews-stats"),
-    path("<str:pk>/", ProductDetailView.as_view(), name="product-detail"),
+    path("categories/", include("products.urls_categories")), # Moved up
+    path("<uuid:pk>/", ProductDetailView.as_view(), name="product-detail"), # Keep after specific paths
+    path("", ProductListView.as_view(), name="product-list"), # General list view
+    path("<str:pk>/reviews-stats/", ProductReviewsStatsView.as_view(), name="product-reviews-stats"), # Specific product stats
     path("<uuid:pk>/update/", ProductUpdateView.as_view(), name="product-update"),
     path("<uuid:pk>/delete/", ProductDeleteView.as_view(), name="product-delete"),
     path("featured/", FeaturedProductsView.as_view(), name="featured-products"),
@@ -42,7 +43,6 @@ urlpatterns = [
     ),
     path("<uuid:pk>/similar/", SimilarProductsView.as_view(), name="similar-products"),
     path("popular/", PopularProductsView.as_view(), name="popular-products"),
-    path("categories/", include("products.urls_categories")),
     path(
         "<uuid:pk>/price-history/",
         ProductPriceHistoryView.as_view(),
