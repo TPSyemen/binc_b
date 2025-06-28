@@ -33,17 +33,23 @@ class ShopCheckView(APIView):
 
 class ShopRegisterView(APIView):
     """Register a new shop for the authenticated owner."""
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.AllowAny]  # السماح للجميع بدون تحقق من الصلاحيات
     parser_classes = [MultiPartParser, FormParser, JSONParser]  # دعم JSON أيضًا
 
     def post(self, request):
-        user = request.user
-        if not user.is_authenticated:
-            return Response({"detail": "يجب تسجيل الدخول أولاً."}, status=status.HTTP_401_UNAUTHORIZED)
-        if getattr(user, 'user_type', None) != 'owner':
-            return Response({"detail": "فقط المستخدم من نوع مالك (owner) يمكنه تسجيل متجر."}, status=status.HTTP_403_FORBIDDEN)
+        # تم تعطيل التحقق من تسجيل الدخول ونوع المستخدم للسماح للجميع
+        # user = request.user
+        # if not user.is_authenticated:
+        #     return Response({"detail": "يجب تسجيل الدخول أولاً."}, status=status.HTTP_401_UNAUTHORIZED)
+        # if getattr(user, 'user_type', None) != 'owner':
+        #     return Response({"detail": "فقط المستخدم من نوع مالك (owner) يمكنه تسجيل متجر."}, status=status.HTTP_403_FORBIDDEN)
 
-        # جلب أو إنشاء Owner profile
+        # جلب أو إنشاء Owner profile بناءً على البريد الإلكتروني المرسل
+        from core.models import User
+        email = request.data.get('email')
+        user = User.objects.filter(email=email).first()
+        if not user:
+            return Response({'error': 'لا يوجد مستخدم بهذا البريد الإلكتروني.'}, status=status.HTTP_400_BAD_REQUEST)
         owner, _ = Owner.objects.get_or_create(user=user, defaults={"email": user.email})
         # تحقق من وجود متجر سابق
         shop = getattr(owner, 'shop', None)
