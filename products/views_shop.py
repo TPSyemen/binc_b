@@ -14,35 +14,21 @@ class ShopCheckView(APIView):
     parser_classes = [JSONParser, MultiPartParser, FormParser]
 
     def get(self, request):
-        # التحقق من أن المستخدم هو مالك
-        if request.user.user_type != 'owner':
+        # تحقق فقط من user_type
+        if getattr(request.user, 'user_type', None) != 'owner':
             return Response(
                 {"error": "يجب أن تكون مالكًا للوصول إلى هذه الميزة."},
                 status=status.HTTP_403_FORBIDDEN
             )
-
-        # التحقق من وجود ملف تعريف المالك
-        try:
-            owner = request.user.owner_profile
-        except Owner.DoesNotExist:
-            return Response(
-                {"error": "ملف تعريف المالك غير موجود."},
-                status=status.HTTP_404_NOT_FOUND
-            )
-
-        # التحقق من وجود متجر للمالك
-        try:
-            shop = owner.shop
+        # جلب المتجر بناءً على علاقة Shop مع Owner عبر user_type فقط
+        owner = Owner.objects.filter(user=request.user).first()
+        if not owner:
+            return Response({"has_shop": False, "detail": "لا يوجد متجر مرتبط بهذا المالك بعد."}, status=status.HTTP_200_OK)
+        shop = getattr(owner, 'shop', None)
+        if shop:
             serializer = ShopSerializer(shop)
-            return Response(
-                {"has_shop": True, "shop": serializer.data},
-                status=status.HTTP_200_OK
-            )
-        except Shop.DoesNotExist:
-            return Response(
-                {"has_shop": False},
-                status=status.HTTP_404_NOT_FOUND
-            )
+            return Response({"has_shop": True, "shop": serializer.data}, status=status.HTTP_200_OK)
+        return Response({"has_shop": False, "detail": "لا يوجد متجر مرتبط بهذا المالك بعد."}, status=status.HTTP_200_OK)
 
 class ShopRegisterView(APIView):
     """Register a new shop for the authenticated owner."""
@@ -50,41 +36,25 @@ class ShopRegisterView(APIView):
     parser_classes = [MultiPartParser, FormParser, JSONParser]  # دعم JSON أيضًا
 
     def post(self, request):
-        # التحقق من أن المستخدم هو مالك
-        if request.user.user_type != 'owner':
+        # تحقق فقط من user_type
+        if getattr(request.user, 'user_type', None) != 'owner':
             return Response(
-                {"error": "يجب أن تكون مالكًا للوصول إلى هذه الميزة."},
+                {"detail": "ليس لديك صلاحية للقيام بهذا الإجراء. يجب أن يكون نوع المستخدم 'owner'."},
                 status=status.HTTP_403_FORBIDDEN
             )
-
-        # التحقق من وجود ملف تعريف المالك
-        try:
-            owner = request.user.owner_profile
-        except Owner.DoesNotExist:
-            # إنشاء ملف تعريف المالك إذا لم يكن موجودًا
-            owner = Owner.objects.create(
-                user=request.user,
-                email=request.user.email,
-                password=request.user.password  # ملاحظة: هذا ليس آمنًا، ولكن نستخدمه للتبسيط
-            )
-
-        # التحقق من أن المالك ليس لديه متجر بالفعل
-        try:
-            shop = owner.shop
-            return Response(
-                {"error": "لديك متجر بالفعل."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        except Shop.DoesNotExist:
-            # إنشاء متجر جديد
-            serializer = ShopSerializer(data=request.data)
-            if serializer.is_valid():
-                serializer.save(owner=owner)
-                return Response(
-                    {"message": "تم تسجيل المتجر بنجاح.", "shop": serializer.data},
-                    status=status.HTTP_201_CREATED
-                )
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        # لا تعتمد على Owner profile، فقط تحقق من وجود متجر مرتبط بهذا المستخدم
+        owner = Owner.objects.filter(user=request.user).first()
+        if owner and getattr(owner, 'shop', None):
+            return Response({"error": "لديك متجر بالفعل."}, status=status.HTTP_400_BAD_REQUEST)
+        # إذا لم يوجد Owner profile، أنشئه تلقائيًا
+        if not owner:
+            owner = Owner.objects.create(user=request.user, email=request.user.email)
+        # إنشاء متجر جديد
+        serializer = ShopSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(owner=owner)
+            return Response({"message": "تم تسجيل المتجر بنجاح.", "shop": serializer.data}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class ShopListView(APIView):
     """عرض جميع المتاجر مع بيانات مختصرة (id, name, logo)."""
