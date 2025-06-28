@@ -22,13 +22,18 @@ Content-Type: application/json
 {
   "name": "منتج جديد",
   "price": 100,
+  "original_price": 90,
   "category_id": "uuid-التصنيف",
   "brand_id": "uuid-البراند",
   "description": "وصف المنتج",
   "image_url": "https://...",
-  "in_stock": true,
-  "stock": 5
+  "video_url": "https://...",
+  "release_date": "2025-06-19",
+  "is_active": true
 }
+
+ملاحظة هامة:
+- لا ترسل الحقول in_stock أو stock عند إنشاء أو تعديل منتج، لأن النظام لن يقبلها وسيظهر خطأ 500.
 
 سياسة الوصول:
 - يجب أن يكون المستخدم مالك متجر (owner) ومسجل الدخول.
