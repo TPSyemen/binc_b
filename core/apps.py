@@ -37,3 +37,6 @@ class CoreConfig(AppConfig):
         except Exception:
             # This can happen during migrations or if the sites table doesn't exist yet
             pass
+
+        # إضافة استيراد الإشارة الخاصة بإنشاء Owner تلقائيًا
+        from . import signals_owner

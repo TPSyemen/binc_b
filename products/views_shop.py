@@ -130,12 +130,16 @@ class ShopViewSet(viewsets.ModelViewSet):
 @permission_classes([AllowAny])
 def create_shop_simple(request):
     user = request.user
+    print("1")
     if not user.is_authenticated:
+        print("2")
         return Response({"detail": "يجب تسجيل الدخول أولاً."}, status=status.HTTP_401_UNAUTHORIZED)
     if getattr(user, 'user_type', None) != 'owner':
+        print("3")
         return Response({"detail": "فقط المستخدم من نوع مالك (owner) يمكنه تسجيل متجر."}, status=status.HTTP_403_FORBIDDEN)
 
     owner, _ = Owner.objects.get_or_create(user=user, defaults={"email": user.email})
+    print("4")
     if hasattr(owner, 'shop') and owner.shop is not None:
         return Response({"error": "لا يمكنك إنشاء أكثر من متجر واحد لهذا الحساب."}, status=status.HTTP_400_BAD_REQUEST)
 
