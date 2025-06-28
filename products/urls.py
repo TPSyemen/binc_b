@@ -56,3 +56,7 @@ urlpatterns += [
 ]
 
 urlpatterns += router.urls
+
+urlpatterns += [
+    path("new/", ProductListView.as_view(), name="product-new"),  # المنتجات الجديدة (ترتيب حسب created_at)
+]

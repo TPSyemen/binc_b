@@ -13,6 +13,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from .serializers import RegisterSerializer, LoginSerializer
 from .email_service import send_verification_email
 from rest_framework import viewsets
+from rest_framework.permissions import IsAuthenticated
 
 User = get_user_model()
 
@@ -197,3 +198,15 @@ class UserViewSet(viewsets.ModelViewSet):
         if password:
             user.set_password(password)
             user.save()
+
+# ---------------------------------------------------------------------------------
+#                   User Profile API View
+# ---------------------------------------------------------------------------------
+class UserProfileAPIView(APIView):
+    """عرض بيانات المستخدم الحالي (البروفايل)"""
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        serializer = RegisterSerializer(user)
+        return Response(serializer.data)

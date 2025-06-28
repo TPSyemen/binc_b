@@ -14,6 +14,7 @@ from .views import (
     LogoutAPIView,
     AccessPointLoginAPIView,
     UserViewSet,
+    UserProfileAPIView,
 )
 from .views_site_admin import ensure_site_view
 
@@ -28,7 +29,9 @@ urlpatterns = [
     path('logout/', LogoutAPIView.as_view(), name='logout'),
     path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('token/verify/', TokenObtainPairView.as_view(), name='token_verify'),
     path('ensure-site/', ensure_site_view, name='ensure-site'),
+    path('profile/', UserProfileAPIView.as_view(), name='user-profile'),
 ]
 
 urlpatterns += router.urls
