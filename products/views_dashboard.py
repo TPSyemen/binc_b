@@ -131,6 +131,7 @@ class OwnerProductsView(APIView):
         يقبل category كاسم أو category_id كـ UUID.
         يمنع تمرير shop أو owner في البيانات.
         """
+        # السماح فقط للمالك وليس الأدمن أو أي مستخدم آخر
         if request.user.user_type != 'owner':
             return Response({'error': 'يجب أن تكون مالكًا لإنشاء منتج.'}, status=status.HTTP_403_FORBIDDEN)
         try:
