@@ -32,7 +32,7 @@ class ShopCheckView(APIView):
 
 class ShopRegisterView(APIView):
     """Register a new shop for the authenticated owner."""
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
     parser_classes = [MultiPartParser, FormParser, JSONParser]  # دعم JSON أيضًا
 
     def post(self, request):
@@ -40,7 +40,7 @@ class ShopRegisterView(APIView):
         print("USER:", request.user, "TYPE:", getattr(request.user, 'user_type', None))
         if not request.user.is_authenticated:
             return Response(
-                {"detail": "يجب تسجيل الدخول أولاً."},
+                {"detail": "يجب تسجيل الدخول أولاً (JWT أو توكن مفقود)."},
                 status=status.HTTP_401_UNAUTHORIZED
             )
         if getattr(request.user, 'user_type', None) != 'owner':
