@@ -33,23 +33,17 @@ class ShopCheckView(APIView):
 
 class ShopRegisterView(APIView):
     """Register a new shop for the authenticated owner."""
-    permission_classes = [permissions.AllowAny]  # السماح للجميع بدون تحقق من الصلاحيات
+    permission_classes = [permissions.AllowAny]
     parser_classes = [MultiPartParser, FormParser, JSONParser]  # دعم JSON أيضًا
 
     def post(self, request):
-        # تم تعطيل التحقق من تسجيل الدخول ونوع المستخدم للسماح للجميع
-        # user = request.user
-        # if not user.is_authenticated:
-        #     return Response({"detail": "يجب تسجيل الدخول أولاً."}, status=status.HTTP_401_UNAUTHORIZED)
-        # if getattr(user, 'user_type', None) != 'owner':
-        #     return Response({"detail": "فقط المستخدم من نوع مالك (owner) يمكنه تسجيل متجر."}, status=status.HTTP_403_FORBIDDEN)
+        user = request.user
+        if not user.is_authenticated:
+            return Response({"detail": "يجب تسجيل الدخول أولاً."}, status=status.HTTP_401_UNAUTHORIZED)
+        if getattr(user, 'user_type', None) != 'owner':
+            return Response({"detail": "فقط المستخدم من نوع مالك (owner) يمكنه تسجيل متجر."}, status=status.HTTP_403_FORBIDDEN)
 
-        # جلب أو إنشاء Owner profile بناءً على البريد الإلكتروني المرسل
-        from core.models import User
-        email = request.data.get('email')
-        user = User.objects.filter(email=email).first()
-        if not user:
-            return Response({'error': 'لا يوجد مستخدم بهذا البريد الإلكتروني.'}, status=status.HTTP_400_BAD_REQUEST)
+        # جلب أو إنشاء Owner profile
         owner, _ = Owner.objects.get_or_create(user=user, defaults={"email": user.email})
         # تحقق من وجود متجر سابق
         shop = getattr(owner, 'shop', None)
@@ -138,14 +132,12 @@ def create_shop_simple(request):
     user = request.user
     print("1")
     if not user.is_authenticated:
-        print("2")
+        print("1")
         return Response({"detail": "يجب تسجيل الدخول أولاً."}, status=status.HTTP_401_UNAUTHORIZED)
     if getattr(user, 'user_type', None) != 'owner':
-        print("3")
         return Response({"detail": "فقط المستخدم من نوع مالك (owner) يمكنه تسجيل متجر."}, status=status.HTTP_403_FORBIDDEN)
 
     owner, _ = Owner.objects.get_or_create(user=user, defaults={"email": user.email})
-    print("4")
     if hasattr(owner, 'shop') and owner.shop is not None:
         return Response({"error": "لا يمكنك إنشاء أكثر من متجر واحد لهذا الحساب."}, status=status.HTTP_400_BAD_REQUEST)
 
