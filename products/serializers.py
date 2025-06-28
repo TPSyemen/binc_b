@@ -83,7 +83,6 @@ class ProductDetailSerializer(serializers.ModelSerializer):
     discount = serializers.SerializerMethodField()
     rating = serializers.FloatField(read_only=True, required=False)
     in_stock = serializers.BooleanField(read_only=True, required=False)
-    stock = serializers.IntegerField(read_only=True)
     category_id = serializers.UUIDField(write_only=True, required=True, allow_null=False)
     brand_id = serializers.UUIDField(write_only=True, required=True, allow_null=False)
 
@@ -91,7 +90,7 @@ class ProductDetailSerializer(serializers.ModelSerializer):
         model = Product
         fields = (
             'id', 'name', 'description', 'price', 'original_price',
-            'discount', 'category', 'category_id', 'brand', 'brand_id', 'shop', 'image_url', 'in_stock', 'rating', 'is_active', 'created_at', 'stock',
+            'discount', 'category', 'category_id', 'brand', 'brand_id', 'shop', 'image_url', 'in_stock', 'rating', 'is_active', 'created_at',
             'reviews', 'video_url', 'release_date', 'likes', 'dislikes', 'neutrals',
             'views', 'is_banned'
         )
@@ -227,7 +226,6 @@ class ProductDetailSerializer(serializers.ModelSerializer):
     discount = serializers.SerializerMethodField()
     rating = serializers.FloatField(read_only=True, required=False)
     in_stock = serializers.BooleanField(read_only=True, required=False)
-    stock = serializers.IntegerField(read_only=True)
     category_id = serializers.UUIDField(write_only=True, required=True, allow_null=False)
     brand_id = serializers.UUIDField(write_only=True, required=True, allow_null=False)
 
@@ -239,7 +237,7 @@ class ProductDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = ('id', 'name', 'description', 'price', 'original_price',
-                  'discount', 'category', 'category_id', 'brand', 'brand_id', 'shop', 'image_url', 'in_stock', 'rating', 'is_active', 'created_at', 'stock',
+                  'discount', 'category', 'category_id', 'brand', 'brand_id', 'shop', 'image_url', 'in_stock', 'rating', 'is_active', 'created_at',
                   'reviews', 'video_url', 'release_date', 'likes', 'dislikes', 'neutrals',
                   'views', 'is_banned')
         extra_kwargs = {

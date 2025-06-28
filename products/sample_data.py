@@ -49,7 +49,6 @@ class Command(BaseCommand):
                 'original_price': Decimal('1299.99'),
                 'category': category_objects['electronics'],
                 'image_url': 'https://via.placeholder.com/300',
-                'stock': 15,
                 'is_active': True
             },
             {
@@ -59,7 +58,6 @@ class Command(BaseCommand):
                 'original_price': Decimal('1799.99'),
                 'category': category_objects['electronics'],
                 'image_url': 'https://via.placeholder.com/300',
-                'stock': 8,
                 'is_active': True
             },
             {
@@ -69,7 +67,6 @@ class Command(BaseCommand):
                 'original_price': Decimal('249.99'),
                 'category': category_objects['electronics'],
                 'image_url': 'https://via.placeholder.com/300',
-                'stock': 25,
                 'is_active': True
             },
             {
@@ -79,7 +76,6 @@ class Command(BaseCommand):
                 'original_price': Decimal('39.99'),
                 'category': category_objects['clothing'],
                 'image_url': 'https://via.placeholder.com/300',
-                'stock': 50,
                 'is_active': True
             },
             {
@@ -89,7 +85,6 @@ class Command(BaseCommand):
                 'original_price': Decimal('119.99'),
                 'category': category_objects['sports'],
                 'image_url': 'https://via.placeholder.com/300',
-                'stock': 30,
                 'is_active': True
             },
             {
@@ -99,7 +94,6 @@ class Command(BaseCommand):
                 'original_price': Decimal('69.99'),
                 'category': category_objects['home'],
                 'image_url': 'https://via.placeholder.com/300',
-                'stock': 20,
                 'is_active': True
             },
             {
@@ -109,7 +103,6 @@ class Command(BaseCommand):
                 'original_price': Decimal('44.99'),
                 'category': category_objects['books'],
                 'image_url': 'https://via.placeholder.com/300',
-                'stock': 40,
                 'is_active': True
             },
             {
@@ -119,7 +112,6 @@ class Command(BaseCommand):
                 'original_price': Decimal('199.99'),
                 'category': category_objects['electronics'],
                 'image_url': 'https://via.placeholder.com/300',
-                'stock': 12,
                 'is_active': True
             },
             {
@@ -129,7 +121,6 @@ class Command(BaseCommand):
                 'original_price': Decimal('79.99'),
                 'category': category_objects['clothing'],
                 'image_url': 'https://via.placeholder.com/300',
-                'stock': 35,
                 'is_active': True
             },
             {
@@ -139,7 +130,6 @@ class Command(BaseCommand):
                 'original_price': Decimal('169.99'),
                 'category': category_objects['home'],
                 'image_url': 'https://via.placeholder.com/300',
-                'stock': 15,
                 'is_active': True
             }
         ]

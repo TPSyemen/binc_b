@@ -344,11 +344,6 @@ class Product(models.Model):
         verbose_name="Is Active",
         help_text="Indicates whether the product is active and visible."
     )
-    in_stock = models.BooleanField(
-        default=True,
-        verbose_name="In Stock",
-        help_text="Indicates whether the product is currently in stock."
-    )
     is_banned = models.BooleanField(
         default=False,
         verbose_name="Is Banned",
