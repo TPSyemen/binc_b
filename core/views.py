@@ -229,17 +229,18 @@ class CreateOwnerProfileView(APIView):
 #                   Shop Check API View
 # ---------------------------------------------------------------------------------
 class ShopCheckView(APIView):
-    """Check if the authenticated owner has a shop."""
+    """Check if the authenticated owner has a shop. Creates Owner profile if missing."""
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
         user = request.user
-        # تحقق من وجود ملف تعريف المالك
+        # تحقق من وجود ملف تعريف المالك، إذا لم يوجد أنشئه تلقائياً
         if not hasattr(user, 'owner_profile'):
-            return Response({'error': 'ملف تعريف المالك غير موجود.'}, status=status.HTTP_404_NOT_FOUND)
-        owner = user.owner_profile
+            owner = Owner.objects.create(user=user, email=user.email)
+        else:
+            owner = user.owner_profile
         # تحقق من وجود متجر مرتبط
         if not hasattr(owner, 'shop') or owner.shop is None:
-            return Response({'has_shop': False}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'has_owner': True, 'has_shop': False}, status=status.HTTP_200_OK)
         shop = owner.shop
-        return Response({'has_shop': True, 'shop_id': str(shop.id), 'shop_name': shop.name}, status=status.HTTP_200_OK)
+        return Response({'has_owner': True, 'has_shop': True, 'shop_id': str(shop.id), 'shop_name': shop.name}, status=status.HTTP_200_OK)
