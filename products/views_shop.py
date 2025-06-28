@@ -36,7 +36,13 @@ class ShopRegisterView(APIView):
     parser_classes = [MultiPartParser, FormParser, JSONParser]  # دعم JSON أيضًا
 
     def post(self, request):
-        # تحقق فقط من نوع المستخدم
+        # تحقق من المصادقة ونوع المستخدم مع طباعة للتشخيص
+        print("USER:", request.user, "TYPE:", getattr(request.user, 'user_type', None))
+        if not request.user.is_authenticated:
+            return Response(
+                {"detail": "يجب تسجيل الدخول أولاً."},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
         if getattr(request.user, 'user_type', None) != 'owner':
             return Response(
                 {"detail": "ليس لديك صلاحية للقيام بهذا الإجراء. فقط المستخدم من نوع مالك (owner) يمكنه تسجيل متجر."},
