@@ -36,20 +36,17 @@ class ShopRegisterView(APIView):
     parser_classes = [MultiPartParser, FormParser, JSONParser]  # دعم JSON أيضًا
 
     def post(self, request):
-        # تحقق فقط من user_type
+        # تحقق فقط من نوع المستخدم
         if getattr(request.user, 'user_type', None) != 'owner':
             return Response(
-                {"detail": "ليس لديك صلاحية للقيام بهذا الإجراء. يجب أن يكون نوع المستخدم 'owner'."},
+                {"detail": "ليس لديك صلاحية للقيام بهذا الإجراء. فقط المستخدم من نوع مالك (owner) يمكنه تسجيل متجر."},
                 status=status.HTTP_403_FORBIDDEN
             )
-        # لا تعتمد على Owner profile، فقط تحقق من وجود متجر مرتبط بهذا المستخدم
-        owner = Owner.objects.filter(user=request.user).first()
-        if owner and getattr(owner, 'shop', None):
+        # السماح للمالك بمتجر واحد فقط
+        owner, _ = Owner.objects.get_or_create(user=request.user, defaults={"email": request.user.email})
+        if hasattr(owner, 'shop') and owner.shop is not None:
             return Response({"error": "لديك متجر بالفعل."}, status=status.HTTP_400_BAD_REQUEST)
-        # إذا لم يوجد Owner profile، أنشئه تلقائيًا
-        if not owner:
-            owner = Owner.objects.create(user=request.user, email=request.user.email)
-        # إنشاء متجر جديد
+        # إنشاء متجر جديد بدون أي شروط إضافية
         serializer = ShopSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save(owner=owner)
