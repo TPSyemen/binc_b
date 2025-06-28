@@ -32,7 +32,7 @@ class ShopCheckView(APIView):
 
 class ShopRegisterView(APIView):
     """Register a new shop for the authenticated owner."""
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
     parser_classes = [MultiPartParser, FormParser, JSONParser]  # دعم JSON أيضًا
 
     def post(self, request):
