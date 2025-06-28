@@ -6,7 +6,8 @@ from django.shortcuts import get_object_or_404
 from core.models import Shop, Owner, Product
 from .serializers import ShopSerializer
 from rest_framework import viewsets
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework.permissions import AllowAny
 
 class ShopCheckView(APIView):
     """Check if the authenticated owner has a shop."""
@@ -124,3 +125,32 @@ class ShopViewSet(viewsets.ModelViewSet):
         products = Product.objects.filter(shop=shop)
         updated = products.update(is_active=bool(is_active))
         return Response({'updated': updated, 'is_active': bool(is_active)})
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def create_shop_simple(request):
+    user = request.user
+    if not user.is_authenticated:
+        return Response({"detail": "يجب تسجيل الدخول أولاً."}, status=status.HTTP_401_UNAUTHORIZED)
+    if getattr(user, 'user_type', None) != 'owner':
+        return Response({"detail": "فقط المستخدم من نوع مالك (owner) يمكنه تسجيل متجر."}, status=status.HTTP_403_FORBIDDEN)
+
+    owner, _ = Owner.objects.get_or_create(user=user, defaults={"email": user.email})
+    if hasattr(owner, 'shop') and owner.shop is not None:
+        return Response({"error": "لا يمكنك إنشاء أكثر من متجر واحد لهذا الحساب."}, status=status.HTTP_400_BAD_REQUEST)
+
+    data = request.data
+    try:
+        shop = Shop.objects.create(
+            name=data.get('name'),
+            owner=owner,
+            address=data.get('address', ''),
+            description=data.get('description', ''),
+            url=data.get('url', ''),
+            phone=data.get('phone', ''),
+            email=data.get('email', ''),
+        )
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    return Response({"message": "تم تسجيل المتجر بنجاح.", "shop_id": str(shop.id), "shop_name": shop.name}, status=status.HTTP_201_CREATED)
