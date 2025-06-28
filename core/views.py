@@ -14,6 +14,7 @@ from .serializers import RegisterSerializer, LoginSerializer
 from .email_service import send_verification_email
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
+from core.models import Owner
 
 User = get_user_model()
 
@@ -210,3 +211,16 @@ class UserProfileAPIView(APIView):
         user = request.user
         serializer = RegisterSerializer(user)
         return Response(serializer.data)
+
+# ---------------------------------------------------------------------------------
+#                   Owner Profile API View
+# ---------------------------------------------------------------------------------
+class CreateOwnerProfileView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        if hasattr(user, 'owner_profile'):
+            return Response({'detail': 'المالك موجود بالفعل.'}, status=status.HTTP_400_BAD_REQUEST)
+        owner = Owner.objects.create(user=user, email=user.email)
+        return Response({'detail': 'تم إنشاء ملف تعريف المالك بنجاح.', 'owner_id': owner.id}, status=status.HTTP_201_CREATED)

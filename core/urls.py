@@ -15,6 +15,7 @@ from .views import (
     AccessPointLoginAPIView,
     UserViewSet,
     UserProfileAPIView,
+    CreateOwnerProfileView,
 )
 from .views_site_admin import ensure_site_view
 
@@ -32,6 +33,7 @@ urlpatterns = [
     path('token/verify/', TokenObtainPairView.as_view(), name='token_verify'),
     path('ensure-site/', ensure_site_view, name='ensure-site'),
     path('profile/', UserProfileAPIView.as_view(), name='user-profile'),
+    path('owner/profile/create/', CreateOwnerProfileView.as_view(), name='create-owner-profile'),
 ]
 
 urlpatterns += router.urls
