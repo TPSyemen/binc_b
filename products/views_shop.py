@@ -36,28 +36,39 @@ class ShopRegisterView(APIView):
     parser_classes = [MultiPartParser, FormParser, JSONParser]  # دعم JSON أيضًا
 
     def post(self, request):
-        # تحقق من المصادقة ونوع المستخدم مع طباعة للتشخيص
-        print("USER:", request.user, "TYPE:", getattr(request.user, 'user_type', None))
-        if not request.user.is_authenticated:
-            return Response(
-                {"detail": "يجب تسجيل الدخول أولاً (JWT أو توكن مفقود)."},
-                status=status.HTTP_401_UNAUTHORIZED
+        user = request.user
+        if not user.is_authenticated:
+            return Response({"detail": "يجب تسجيل الدخول أولاً."}, status=status.HTTP_401_UNAUTHORIZED)
+        if getattr(user, 'user_type', None) != 'owner':
+            return Response({"detail": "فقط المستخدم من نوع مالك (owner) يمكنه تسجيل متجر."}, status=status.HTTP_403_FORBIDDEN)
+
+        # جلب أو إنشاء Owner profile
+        owner, _ = Owner.objects.get_or_create(user=user, defaults={"email": user.email})
+        # تحقق من وجود متجر سابق
+        shop = getattr(owner, 'shop', None)
+        if shop:
+            return Response({"error": "لا يمكنك إنشاء أكثر من متجر واحد لهذا الحساب."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # إنشاء المتجر يدويًا بدون Serializer
+        from core.models import Shop
+        from django.core.exceptions import ValidationError
+        data = request.data
+        try:
+            shop = Shop.objects.create(
+                name=data.get('name'),
+                owner=owner,
+                address=data.get('address', ''),
+                description=data.get('description', ''),
+                url=data.get('url', ''),
+                phone=data.get('phone', ''),
+                email=data.get('email', ''),
             )
-        if getattr(request.user, 'user_type', None) != 'owner':
-            return Response(
-                {"detail": "ليس لديك صلاحية للقيام بهذا الإجراء. فقط المستخدم من نوع مالك (owner) يمكنه تسجيل متجر."},
-                status=status.HTTP_403_FORBIDDEN
-            )
-        # السماح للمالك بمتجر واحد فقط
-        owner, _ = Owner.objects.get_or_create(user=request.user, defaults={"email": request.user.email})
-        if hasattr(owner, 'shop') and owner.shop is not None:
-            return Response({"error": "لديك متجر بالفعل."}, status=status.HTTP_400_BAD_REQUEST)
-        # إنشاء متجر جديد بدون أي شروط إضافية
-        serializer = ShopSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save(owner=owner)
-            return Response({"message": "تم تسجيل المتجر بنجاح.", "shop": serializer.data}, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except ValidationError as ve:
+            return Response({'error': str(ve)}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({"message": "تم تسجيل المتجر بنجاح.", "shop_id": str(shop.id), "shop_name": shop.name}, status=status.HTTP_201_CREATED)
 
 class ShopListView(APIView):
     """عرض جميع المتاجر مع بيانات مختصرة (id, name, logo)."""
