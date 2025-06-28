@@ -129,19 +129,22 @@ class ShopViewSet(viewsets.ModelViewSet):
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def create_shop_simple(request):
-    user = request.user
-    print("1")
-    if not user.is_authenticated:
-        print("1")
-        return Response({"detail": "يجب تسجيل الدخول أولاً."}, status=status.HTTP_401_UNAUTHORIZED)
-    if getattr(user, 'user_type', None) != 'owner':
-        return Response({"detail": "فقط المستخدم من نوع مالك (owner) يمكنه تسجيل متجر."}, status=status.HTTP_403_FORBIDDEN)
-
+    # السماح لأي شخص بإنشاء متجر بدون تحقق من تسجيل الدخول أو نوع المستخدم
+    from core.models import User, Owner, Shop
+    import uuid
+    data = request.data
+    email = data.get('email')
+    username = data.get('username') or f"visitor_{uuid.uuid4().hex[:8]}"
+    # إذا لم يوجد مستخدم بهذا الإيميل، أنشئه تلقائياً
+    user, _ = User.objects.get_or_create(email=email, defaults={
+        'username': username,
+        'user_type': 'owner',
+        'password': User.objects.make_random_password()
+    })
+    # إذا لم يوجد Owner مرتبط، أنشئه تلقائياً
     owner, _ = Owner.objects.get_or_create(user=user, defaults={"email": user.email})
     if hasattr(owner, 'shop') and owner.shop is not None:
         return Response({"error": "لا يمكنك إنشاء أكثر من متجر واحد لهذا الحساب."}, status=status.HTTP_400_BAD_REQUEST)
-
-    data = request.data
     try:
         shop = Shop.objects.create(
             name=data.get('name'),
@@ -154,5 +157,4 @@ def create_shop_simple(request):
         )
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
     return Response({"message": "تم تسجيل المتجر بنجاح.", "shop_id": str(shop.id), "shop_name": shop.name}, status=status.HTTP_201_CREATED)
