@@ -224,3 +224,22 @@ class CreateOwnerProfileView(APIView):
             return Response({'detail': 'المالك موجود بالفعل.'}, status=status.HTTP_400_BAD_REQUEST)
         owner = Owner.objects.create(user=user, email=user.email)
         return Response({'detail': 'تم إنشاء ملف تعريف المالك بنجاح.', 'owner_id': owner.id}, status=status.HTTP_201_CREATED)
+
+# ---------------------------------------------------------------------------------
+#                   Shop Check API View
+# ---------------------------------------------------------------------------------
+class ShopCheckView(APIView):
+    """Check if the authenticated owner has a shop."""
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        # تحقق من وجود ملف تعريف المالك
+        if not hasattr(user, 'owner_profile'):
+            return Response({'error': 'ملف تعريف المالك غير موجود.'}, status=status.HTTP_404_NOT_FOUND)
+        owner = user.owner_profile
+        # تحقق من وجود متجر مرتبط
+        if not hasattr(owner, 'shop') or owner.shop is None:
+            return Response({'has_shop': False}, status=status.HTTP_404_NOT_FOUND)
+        shop = owner.shop
+        return Response({'has_shop': True, 'shop_id': str(shop.id), 'shop_name': shop.name}, status=status.HTTP_200_OK)
