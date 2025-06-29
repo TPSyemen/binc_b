@@ -59,4 +59,5 @@ urlpatterns += router.urls
 
 urlpatterns += [
     path("new/", ProductListView.as_view(), name="product-new"),  # المنتجات الجديدة (ترتيب حسب created_at)
+    path("specifications/", __import__("products.views_specifications", fromlist=["SpecificationListPublicView"]).SpecificationListPublicView.as_view(), name="specification-list-public"),
 ]

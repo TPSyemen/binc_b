@@ -1,3 +1,17 @@
+from rest_framework.permissions import AllowAny
+
+# عرض جميع المواصفات بدون تحقق صلاحيات (API عام)
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from core.models import Specification
+from .serializers import SpecificationSerializer
+
+class SpecificationListPublicView(APIView):
+    permission_classes = [AllowAny]
+    def get(self, request):
+        specs = Specification.objects.all()
+        serializer = SpecificationSerializer(specs, many=True)
+        return Response(serializer.data)
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
