@@ -4,14 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>عرض جميع المواصفات</title>
+    <link rel="stylesheet" href="/static/dashboard_style.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Cairo', Arial, sans-serif;
-            background: linear-gradient(120deg, #e3f0ff 0%, #f8fafd 100%);
-            margin: 0;
-            padding: 0;
-        }
         .navbar {
             background: linear-gradient(90deg, #1976d2 0%, #0d47a1 100%);
             color: #fff;
@@ -43,76 +38,123 @@
             margin-left: 8px;
             filter: drop-shadow(0 2px 4px #0d47a1aa);
         }
-        .specs-container {
-            max-width: 900px;
-            margin: 40px auto;
+        .navbar .menu {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0 32px;
+        }
+        .navbar .menu button {
+            background: rgba(255,255,255,0.13);
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5em;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.2s;
+            box-shadow: 0 2px 8px rgba(30,60,120,0.10);
+        }
+        .navbar .menu button:hover {
             background: #fff;
-            border-radius: 18px;
-            box-shadow: 0 6px 32px rgba(30,60,120,0.10);
-            padding: 36px 28px;
-        }
-        h1 {
-            text-align: center;
-            color: #0d47a1;
-            margin-bottom: 10px;
-            letter-spacing: 1px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 24px;
-        }
-        th, td {
-            padding: 12px 8px;
-            border-bottom: 1px solid #e3e7ee;
-            text-align: right;
-        }
-        th {
-            background: #e3f0ff;
             color: #1976d2;
-            font-weight: bold;
+            transform: translateY(-2px) scale(1.08);
         }
-        tr:hover { background: #f8fafd; }
         @media (max-width: 700px) {
             .navbar .brand { font-size: 1.1em; padding: 0 10px; }
-            .specs-container { padding: 10px 2px; }
-            table, th, td { font-size: 0.95em; }
+            .navbar .menu { padding: 0 8px; }
+        }
+        .icon-btn { background: none; border: none; font-size: 1.2em; cursor: pointer; margin: 0 2px; }
+        .icon-btn.edit { color: #1976d2; }
+        .icon-btn.delete { color: #b71c1c; }
+        .icon-btn.edit:hover { color: #0d47a1; }
+        .icon-btn.delete:hover { color: #d32f2f; }
+        .form-popup { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(30,60,120,0.13); z-index: 1001; align-items: center; justify-content: center; }
+        .form-popup.active { display: flex !important; }
+        .form-box { background: #fff; border-radius: 12px; box-shadow: 0 4px 24px rgba(30,60,120,0.13); padding: 32px 24px; min-width: 320px; }
+        .form-box label { display: block; margin-bottom: 6px; color: #263238; }
+        .form-box input, .form-box select { width: 100%; margin-bottom: 14px; padding: 8px; border-radius: 6px; border: 1px solid #bdbdbd; font-size: 1em; background: #f7fafd; }
+        .form-box .form-actions { display: flex; justify-content: flex-end; gap: 10px; }
+        .form-box button { background: #1976d2; color: #fff; border: none; border-radius: 6px; padding: 8px 20px; font-size: 1em; cursor: pointer; }
+        .form-box button.cancel { background: #bdbdbd; color: #263238; }
+        .form-box button:hover:not(.cancel) { background: #0d47a1; }
+        .error { color: #b71c1c; text-align: center; margin-bottom: 12px; }
+        .success { color: #388e3c; text-align: center; margin-bottom: 12px; }
+        @media (max-width: 700px) { .dashboard { padding: 10px 2px; } .form-box { min-width: 90vw; } }
+        .crud-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #fff;
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 2px 12px rgba(30,60,120,0.07);
+            font-size: 1.08em;
+        }
+        .crud-table thead {
+            background: linear-gradient(90deg, #1976d2 0%, #0d47a1 100%);
+            color: #fff;
+        }
+        .crud-table th, .crud-table td {
+            padding: 16px 10px;
+            text-align: center;
+        }
+        .crud-table th {
+            font-size: 1.1em;
+            letter-spacing: 1px;
+            border-bottom: 2px solid #1976d2;
+        }
+        .crud-table tbody tr {
+            transition: background 0.18s;
+        }
+        .crud-table tbody tr:nth-child(even) {
+            background: #f4f7fb;
+        }
+        .crud-table tbody tr:nth-child(odd) {
+            background: #fafdff;
+        }
+        .crud-table tbody tr:hover {
+            background: #e3e7ee;
+            box-shadow: 0 2px 8px #1976d22a;
+        }
+        .crud-table td {
+            border-bottom: 1px solid #e3e7ee;
+        }
+        @media (max-width: 700px) {
+            .crud-table th, .crud-table td { padding: 10px 4px; font-size: 0.98em; }
         }
     </style>
 </head>
 <body>
     <div class="navbar">
-        <span class="brand"><span class="icon">⚙️</span> جميع المواصفات</span>
+        <span class="brand"><span class="icon">⚙️</span> إدارة المواصفات</span>
         <div class="menu">
-            <button title="رجوع" onclick="window.history.back()" style="background:#1976d2;color:#fff;border:none;border-radius:50%;width:44px;height:44px;font-size:1.5em;cursor:pointer;">↩️</button>
+            <button title="الرئيسية" onclick="window.location.href='/apps-dashboard/'"><span>🏠</span></button>
+            <button title="رجوع" onclick="window.history.back()"><span>↩️</span></button>
         </div>
     </div>
-    <div class="specs-container">
-        <h1>جميع المواصفات</h1>
-        <div style="margin-bottom:18px;text-align:left;">
-            <button onclick="openSpecForm()" style="background:#1976d2;color:#fff;padding:8px 18px;border:none;border-radius:8px;font-size:1em;cursor:pointer;">➕ إضافة مواصفة</button>
+    <div class="dashboard">
+        <h1><span style="font-size:1.2em;vertical-align:middle;">⚙️</span> المواصفات <span style="font-size:0.7em;color:#1976d2;"></span></h1>
+        <div class="actions">
+            <button class="add-btn" onclick="openSpecForm()"><span style="font-size:1.1em;">➕</span> إضافة مواصفة</button>
         </div>
-        <table id="specsTable">
-            <thead>
-                <tr>
-                    <th>المعرف</th>
-                    <th>الاسم</th>
-                    <th>التصنيف</th>
-                    <th>إجراءات</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr><td colspan="4" style="text-align:center;">جاري التحميل...</td></tr>
-            </tbody>
-        </table>
+        <div style="width:100%;overflow-x:auto;">
+            <table id="specsTable" class="crud-table" style="width:100%;min-width:700px;">
+                <thead>
+                    <tr><th>⚙️</th><th>🏷️</th><th>إجراءات</th></tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
     </div>
-    <div class="form-popup" id="specFormPopup" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(30,60,120,0.13);z-index:1001;align-items:center;justify-content:center;">
+    <div class="form-popup" id="specFormPopup">
         <form class="form-box" onsubmit="return saveSpec(event)">
             <div id="specFormError" class="error" style="color:#b71c1c;text-align:center;margin-bottom:12px;"></div>
             <label>الاسم</label>
             <input type="text" id="specFormName" required>
-            <label>التصنيف</label>
-            <select id="specFormCategory" required></select>
             <div class="form-actions" style="display:flex;justify-content:flex-end;gap:10px;">
                 <button type="button" class="cancel" onclick="closeSpecForm()" style="background:#bdbdbd;color:#263238;">إلغاء</button>
                 <button type="submit">حفظ</button>
@@ -125,70 +167,51 @@
         let editSpecId = null;
         async function fetchSpecifications() {
             const token = localStorage.getItem('access_token');
-            const res = await fetch('/api/specifications-admin/', {
+            const res = await fetch('/api/products/specifications-admin/', {
                 headers: token ? { 'Authorization': 'Bearer ' + token } : {}
             });
             const specs = await res.json();
             allSpecs = specs;
             renderSpecs();
         }
-        async function fetchCategories() {
-            const token = localStorage.getItem('access_token');
-            const res = await fetch('/api/dashboard/specifications/categories/', {
-                headers: token ? { 'Authorization': 'Bearer ' + token } : {}
-            });
-            const cats = await res.json();
-            allCategories = cats;
-            const select = document.getElementById('specFormCategory');
-            select.innerHTML = '';
-            cats.forEach(cat => {
-                select.innerHTML += `<option value="${cat.id}">${cat.category_name}</option>`;
-            });
-        }
+        // لم يعد هناك تصنيفات
         function renderSpecs() {
             const tbody = document.getElementById('specsTable').querySelector('tbody');
             tbody.innerHTML = '';
             allSpecs.forEach(spec => {
-                const cat = spec.category ? (spec.category.category_name || '-') : '-';
-                tbody.innerHTML += `<tr>
-                    <td>${spec.id}</td>
-                    <td>${spec.specification_name}</td>
-                    <td>${cat}</td>
+                tbody.innerHTML += `<tr style="cursor:pointer;" onclick="editSpec('${spec.id}')">
+                    <td><span style='font-size:1.1em;'>⚙️</span> ${spec.specification_name}</td>
+                    <td><span style='font-size:1.1em;'>🏷️</span> ${spec.id}</td>
                     <td>
-                        <button onclick="editSpec('${spec.id}')" style="background:#1976d2;color:#fff;border:none;border-radius:5px;padding:4px 10px;cursor:pointer;">تعديل</button>
-                        <button onclick="deleteSpec('${spec.id}')" style="background:#b71c1c;color:#fff;border:none;border-radius:5px;padding:4px 10px;cursor:pointer;">حذف</button>
+                        <button class="icon-btn delete" title="حذف" onclick="event.stopPropagation();deleteSpec('${spec.id}');return false;">🗑️</button>
                     </td>
                 </tr>`;
             });
-            if(allSpecs.length === 0) tbody.innerHTML = '<tr><td colspan="4">لا توجد مواصفات</td></tr>';
+            if(allSpecs.length === 0) tbody.innerHTML = '<tr><td colspan="3">لا توجد مواصفات</td></tr>';
         }
-        function openSpecForm(id = null) {
+        async function openSpecForm(id = null) {
             editSpecId = id;
             document.getElementById('specFormError').textContent = '';
-            fetchCategories();
             if(id) {
                 const s = allSpecs.find(x => x.id === id);
                 document.getElementById('specFormName').value = s.specification_name;
-                document.getElementById('specFormCategory').value = s.category ? s.category.id : '';
             } else {
                 document.getElementById('specFormName').value = '';
-                document.getElementById('specFormCategory').selectedIndex = 0;
             }
-            document.getElementById('specFormPopup').style.display = 'flex';
+            document.getElementById('specFormPopup').classList.add('active');
         }
         function closeSpecForm() {
-            document.getElementById('specFormPopup').style.display = 'none';
+            document.getElementById('specFormPopup').classList.remove('active');
         }
         async function saveSpec(e) {
             e.preventDefault();
             const name = document.getElementById('specFormName').value.trim();
-            const category = document.getElementById('specFormCategory').value;
-            if(!name || !category) {
+            if(!name) {
                 document.getElementById('specFormError').textContent = 'يرجى تعبئة جميع الحقول';
                 return false;
             }
             const token = localStorage.getItem('access_token');
-            let url = '/api/specifications-admin/';
+            let url = '/api/products/specifications-admin/';
             let method = 'POST';
             if(editSpecId) {
                 url += editSpecId + '/';
@@ -200,7 +223,7 @@
                     'Content-Type': 'application/json',
                     'Authorization': 'Bearer ' + token
                 },
-                body: JSON.stringify({ specification_name: name, category: category })
+                body: JSON.stringify({ specification_name: name })
             });
             if(res.ok) {
                 closeSpecForm();
@@ -212,7 +235,7 @@
         async function deleteSpec(id) {
             if(!confirm('هل أنت متأكد من حذف المواصفة؟')) return;
             const token = localStorage.getItem('access_token');
-            const res = await fetch('/api/specifications-admin/' + id + '/', {
+            const res = await fetch('/api/products/specifications-admin/' + id + '/', {
                 method: 'DELETE',
                 headers: { 'Authorization': 'Bearer ' + token }
             });

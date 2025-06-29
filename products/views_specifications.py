@@ -1,4 +1,3 @@
-
 from rest_framework import viewsets, permissions, status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
@@ -13,9 +12,7 @@ class SpecificationAdminViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = Specification.objects.all()
-        category_id = self.request.query_params.get('category')
-        if category_id:
-            queryset = queryset.filter(category_id=category_id)
+        # تم فصل المواصفات عن التصنيفات، لم يعد هناك فلترة حسب التصنيف
         return queryset
 
 class SpecificationListPublicView(APIView):
@@ -52,17 +49,8 @@ class SpecificationCategoryListView(APIView):
         for category in categories:
             category_data = {
                 'id': str(category.id),
-                'category_name': category.category_name,
-                'specifications': []
+                'category_name': category.category_name
             }
-
-            specifications = Specification.objects.filter(category=category)
-            for spec in specifications:
-                category_data['specifications'].append({
-                    'id': str(spec.id),
-                    'specification_name': spec.specification_name
-                })
-
             result.append(category_data)
 
         return Response(result)
@@ -103,11 +91,8 @@ class ProductSpecificationsView(APIView):
             )
 
         # جلب جميع المواصفات المرتبطة بتصنيف المنتج
-        category = product.category if hasattr(product, 'category') else None
-        if not category:
-            return Response({"error": "المنتج ليس له تصنيف محدد."}, status=status.HTTP_400_BAD_REQUEST)
-
-        all_specs = Specification.objects.filter(category=category)
+        # لم يعد هناك ربط مباشر بين المواصفات والتصنيفات
+        all_specs = Specification.objects.all()
         product_specs = ProductSpecification.objects.filter(product=product)
         selected_map = {str(ps.specification.id): ps.specification_value for ps in product_specs}
 
@@ -116,8 +101,6 @@ class ProductSpecificationsView(APIView):
             result.append({
                 'specification_id': str(spec.id),
                 'specification_name': spec.specification_name,
-                'category_id': str(spec.category.id),
-                'category_name': spec.category.category_name,
                 'value': selected_map.get(str(spec.id), None)
             })
 
@@ -175,8 +158,6 @@ class ProductSpecificationsView(APIView):
                 created_specs.append({
                     'specification_id': str(specification.id),
                     'specification_name': specification.specification_name,
-                    'category_id': str(specification.category.id),
-                    'category_name': specification.category.category_name,
                     'value': value
                 })
             except Specification.DoesNotExist:

@@ -443,11 +443,7 @@ class Specification(models.Model):
         editable=False,
         help_text="المعرف الفريد للمواصفة"
     )
-    category = models.ForeignKey(
-        SpecificationCategory,
-        on_delete=models.CASCADE,
-        help_text="تصنيف المواصفة"
-    )
+    # تم فصل المواصفات عن التصنيفات، لم يعد هناك ارتباط مباشر
     specification_name = models.CharField(
         max_length=255,
         unique=True,

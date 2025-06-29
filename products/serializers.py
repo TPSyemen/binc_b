@@ -333,11 +333,9 @@ class SpecificationCategorySerializer(serializers.ModelSerializer):
 #                   Specification Serializer
 #----------------------------------------------------------------
 class SpecificationSerializer(serializers.ModelSerializer):
-    category = SpecificationCategorySerializer(read_only=True)
-
     class Meta:
         model = Specification
-        fields = ('id', 'category', 'specification_name')
+        fields = ('id', 'specification_name')
 
 #----------------------------------------------------------------
 #                   Product Specification Serializer
