@@ -89,41 +89,134 @@
     </div>
     <div class="specs-container">
         <h1>جميع المواصفات</h1>
+        <div style="margin-bottom:18px;text-align:left;">
+            <button onclick="openSpecForm()" style="background:#1976d2;color:#fff;padding:8px 18px;border:none;border-radius:8px;font-size:1em;cursor:pointer;">➕ إضافة مواصفة</button>
+        </div>
         <table id="specsTable">
             <thead>
                 <tr>
                     <th>المعرف</th>
                     <th>الاسم</th>
-                    <th>الوصف</th>
+                    <th>التصنيف</th>
+                    <th>إجراءات</th>
                 </tr>
             </thead>
             <tbody>
-                <tr><td colspan="3" style="text-align:center;">جاري التحميل...</td></tr>
+                <tr><td colspan="4" style="text-align:center;">جاري التحميل...</td></tr>
             </tbody>
         </table>
     </div>
+    <div class="form-popup" id="specFormPopup" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(30,60,120,0.13);z-index:1001;align-items:center;justify-content:center;">
+        <form class="form-box" onsubmit="return saveSpec(event)">
+            <div id="specFormError" class="error" style="color:#b71c1c;text-align:center;margin-bottom:12px;"></div>
+            <label>الاسم</label>
+            <input type="text" id="specFormName" required>
+            <label>التصنيف</label>
+            <select id="specFormCategory" required></select>
+            <div class="form-actions" style="display:flex;justify-content:flex-end;gap:10px;">
+                <button type="button" class="cancel" onclick="closeSpecForm()" style="background:#bdbdbd;color:#263238;">إلغاء</button>
+                <button type="submit">حفظ</button>
+            </div>
+        </form>
+    </div>
     <script>
+        let allSpecs = [];
+        let allCategories = [];
+        let editSpecId = null;
         async function fetchSpecifications() {
             const token = localStorage.getItem('access_token');
-            try {
-                const res = await fetch('/api/specifications/', {
-                    headers: { 'Authorization': 'Bearer ' + token }
-                });
-                if (!res.ok) throw new Error('فشل في جلب البيانات');
-                const specs = await res.json();
-                const tbody = document.getElementById('specsTable').querySelector('tbody');
-                tbody.innerHTML = '';
-                if (Array.isArray(specs) && specs.length > 0) {
-                    specs.forEach(spec => {
-                        tbody.innerHTML += `<tr><td>${spec.id}</td><td>${spec.name}</td><td>${spec.description || ''}</td></tr>`;
-                    });
-                } else {
-                    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;">لا توجد مواصفات</td></tr>';
-                }
-            } catch (e) {
-                const tbody = document.getElementById('specsTable').querySelector('tbody');
-                tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;">حدث خطأ أثناء جلب البيانات</td></tr>';
+            const res = await fetch('/api/specifications-admin/', {
+                headers: token ? { 'Authorization': 'Bearer ' + token } : {}
+            });
+            const specs = await res.json();
+            allSpecs = specs;
+            renderSpecs();
+        }
+        async function fetchCategories() {
+            const token = localStorage.getItem('access_token');
+            const res = await fetch('/api/dashboard/specifications/categories/', {
+                headers: token ? { 'Authorization': 'Bearer ' + token } : {}
+            });
+            const cats = await res.json();
+            allCategories = cats;
+            const select = document.getElementById('specFormCategory');
+            select.innerHTML = '';
+            cats.forEach(cat => {
+                select.innerHTML += `<option value="${cat.id}">${cat.category_name}</option>`;
+            });
+        }
+        function renderSpecs() {
+            const tbody = document.getElementById('specsTable').querySelector('tbody');
+            tbody.innerHTML = '';
+            allSpecs.forEach(spec => {
+                const cat = spec.category ? (spec.category.category_name || '-') : '-';
+                tbody.innerHTML += `<tr>
+                    <td>${spec.id}</td>
+                    <td>${spec.specification_name}</td>
+                    <td>${cat}</td>
+                    <td>
+                        <button onclick="editSpec('${spec.id}')" style="background:#1976d2;color:#fff;border:none;border-radius:5px;padding:4px 10px;cursor:pointer;">تعديل</button>
+                        <button onclick="deleteSpec('${spec.id}')" style="background:#b71c1c;color:#fff;border:none;border-radius:5px;padding:4px 10px;cursor:pointer;">حذف</button>
+                    </td>
+                </tr>`;
+            });
+            if(allSpecs.length === 0) tbody.innerHTML = '<tr><td colspan="4">لا توجد مواصفات</td></tr>';
+        }
+        function openSpecForm(id = null) {
+            editSpecId = id;
+            document.getElementById('specFormError').textContent = '';
+            fetchCategories();
+            if(id) {
+                const s = allSpecs.find(x => x.id === id);
+                document.getElementById('specFormName').value = s.specification_name;
+                document.getElementById('specFormCategory').value = s.category ? s.category.id : '';
+            } else {
+                document.getElementById('specFormName').value = '';
+                document.getElementById('specFormCategory').selectedIndex = 0;
             }
+            document.getElementById('specFormPopup').style.display = 'flex';
+        }
+        function closeSpecForm() {
+            document.getElementById('specFormPopup').style.display = 'none';
+        }
+        async function saveSpec(e) {
+            e.preventDefault();
+            const name = document.getElementById('specFormName').value.trim();
+            const category = document.getElementById('specFormCategory').value;
+            if(!name || !category) {
+                document.getElementById('specFormError').textContent = 'يرجى تعبئة جميع الحقول';
+                return false;
+            }
+            const token = localStorage.getItem('access_token');
+            let url = '/api/specifications-admin/';
+            let method = 'POST';
+            if(editSpecId) {
+                url += editSpecId + '/';
+                method = 'PUT';
+            }
+            const res = await fetch(url, {
+                method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                },
+                body: JSON.stringify({ specification_name: name, category: category })
+            });
+            if(res.ok) {
+                closeSpecForm();
+                fetchSpecifications();
+            } else {
+                document.getElementById('specFormError').textContent = 'فشل الحفظ. ربما الاسم مستخدم مسبقاً أو هناك خطأ.';
+            }
+        }
+        async function deleteSpec(id) {
+            if(!confirm('هل أنت متأكد من حذف المواصفة؟')) return;
+            const token = localStorage.getItem('access_token');
+            const res = await fetch('/api/specifications-admin/' + id + '/', {
+                method: 'DELETE',
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            if(res.ok) fetchSpecifications();
         }
         fetchSpecifications();
     </script>
