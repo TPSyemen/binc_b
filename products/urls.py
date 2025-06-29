@@ -23,6 +23,7 @@ from .views_public_categories import PublicCategoriesView
 from .views import BrandViewSet
 from .views_reviews_stats import ProductReviewsStatsView
 from .views_dashboard import BrandListView
+from .views_specifications import SpecificationListPublicView, SpecificationAdminViewSet
 
 router = DefaultRouter()
 router.register(r"brands", BrandViewSet, basename="brand")
@@ -59,5 +60,11 @@ urlpatterns += router.urls
 
 urlpatterns += [
     path("new/", ProductListView.as_view(), name="product-new"),  # المنتجات الجديدة (ترتيب حسب created_at)
-    path("specifications/", __import__("products.views_specifications", fromlist=["SpecificationListPublicView"]).SpecificationListPublicView.as_view(), name="specification-list-public"),
+    path("specifications/", SpecificationListPublicView.as_view(), name="specification-list-public"),
 ]
+
+# Router لإدارة المواصفات للأدمن
+from rest_framework.routers import DefaultRouter as SpecDefaultRouter
+spec_router = SpecDefaultRouter()
+spec_router.register(r'specifications-admin', SpecificationAdminViewSet, basename='specification-admin')
+urlpatterns += spec_router.urls

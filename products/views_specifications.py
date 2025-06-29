@@ -1,3 +1,16 @@
+from rest_framework import viewsets, permissions
+
+# ViewSet لإدارة المواصفات (إضافة/تعديل/حذف) للأدمن فقط
+class SpecificationAdminViewSet(viewsets.ModelViewSet):
+    serializer_class = SpecificationSerializer
+    permission_classes = [permissions.IsAdminUser]
+
+    def get_queryset(self):
+        queryset = Specification.objects.all()
+        category_id = self.request.query_params.get('category')
+        if category_id:
+            queryset = queryset.filter(category_id=category_id)
+        return queryset
 from rest_framework.permissions import AllowAny
 
 # عرض جميع المواصفات بدون تحقق صلاحيات (API عام)
@@ -69,8 +82,7 @@ class ProductSpecificationsView(APIView):
             return None
 
     def get(self, request, product_id):
-        """Get specifications for a product."""
-        # Verificar si el usuario es propietario o administrador
+        """Get all possible specifications for the product's category, and the selected values for this product."""
         if request.user.user_type not in ['owner', 'admin']:
             return Response(
                 {"error": "You must be an owner or admin to access this feature."},
@@ -84,23 +96,30 @@ class ProductSpecificationsView(APIView):
                 status=status.HTTP_404_NOT_FOUND
             )
 
-        # Verificar si el usuario es el propietario del producto
+        # تحقق من ملكية المنتج
         if request.user.user_type == 'owner' and product.shop.owner.user != request.user:
             return Response(
                 {"error": "You can only access specifications for your own products."},
                 status=status.HTTP_403_FORBIDDEN
             )
 
-        product_specs = ProductSpecification.objects.filter(product=product)
-        result = []
+        # جلب جميع المواصفات المرتبطة بتصنيف المنتج
+        category = product.category if hasattr(product, 'category') else None
+        if not category:
+            return Response({"error": "المنتج ليس له تصنيف محدد."}, status=status.HTTP_400_BAD_REQUEST)
 
-        for spec in product_specs:
+        all_specs = Specification.objects.filter(category=category)
+        product_specs = ProductSpecification.objects.filter(product=product)
+        selected_map = {str(ps.specification.id): ps.specification_value for ps in product_specs}
+
+        result = []
+        for spec in all_specs:
             result.append({
-                'specification_id': str(spec.specification.id),
-                'specification_name': spec.specification.specification_name,
-                'category_id': str(spec.specification.category.id),
-                'category_name': spec.specification.category.category_name,
-                'value': spec.specification_value
+                'specification_id': str(spec.id),
+                'specification_name': spec.specification_name,
+                'category_id': str(spec.category.id),
+                'category_name': spec.category.category_name,
+                'value': selected_map.get(str(spec.id), None)
             })
 
         return Response(result)
