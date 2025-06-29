@@ -15,6 +15,7 @@ from .views import (
     AccessPointLoginAPIView,
     UserViewSet,
     UserProfileAPIView,
+    CustomTokenObtainPairView,  # أضف هذا
 )
 from .views_site_admin import ensure_site_view
 
@@ -27,7 +28,7 @@ urlpatterns = [
     path('register/', RegisterAPIView.as_view(), name='register'),
     path('login/', LoginAPIView.as_view(), name='login'),
     path('logout/', LogoutAPIView.as_view(), name='logout'),
-    path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),  # استخدم الكلاس المخصص
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('token/verify/', TokenObtainPairView.as_view(), name='token_verify'),
     path('ensure-site/', ensure_site_view, name='ensure-site'),

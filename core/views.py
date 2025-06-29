@@ -10,7 +10,8 @@ from rest_framework import status, permissions
 from django.contrib.auth import authenticate, get_user_model
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.authentication import JWTAuthentication
-from .serializers import RegisterSerializer, LoginSerializer
+from rest_framework_simplejwt.views import TokenObtainPairView
+from .serializers import RegisterSerializer, LoginSerializer, CustomTokenObtainPairSerializer
 from .email_service import send_verification_email
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
@@ -210,3 +211,6 @@ class UserProfileAPIView(APIView):
         user = request.user
         serializer = RegisterSerializer(user)
         return Response(serializer.data)
+
+class CustomTokenObtainPairView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer

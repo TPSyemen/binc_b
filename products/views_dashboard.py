@@ -20,20 +20,14 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 import json
+from core.permissions import IsOwnerUser
 
 class DashboardStatsView(APIView):
     """Get dashboard statistics for the authenticated owner."""
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsOwnerUser]
 
     def get(self, request):
-        # التحقق من أن المستخدم هو مالك
-        if request.user.user_type != 'owner':
-            return Response(
-                {"error": "يجب أن تكون مالكًا للوصول إلى هذه الميزة."},
-                status=status.HTTP_403_FORBIDDEN
-            )
-
-        # الحصول على متجر المالك
+        # لم يعد هناك حاجة للتحقق اليدوي من user_type هنا
         try:
             shop = request.user.owner_profile.shop
         except:
