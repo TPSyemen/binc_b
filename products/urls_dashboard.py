@@ -10,6 +10,7 @@ from .views_dashboard import (
 )
 from .views_brands import BrandListCreateView, BrandDetailView
 from .views_specifications import SpecificationCategoryListView, ProductSpecificationsView
+from .views_product_spec_api import ProductSpecificationListCreate, ProductSpecificationDetail
 
 urlpatterns = [
     # Dashboard stats
@@ -33,7 +34,8 @@ urlpatterns = [
 
     # Specifications management
     path('specifications/categories/', SpecificationCategoryListView.as_view(), name='owner-specification-categories'),
-    path('products/<uuid:product_id>/specifications/', ProductSpecificationsView.as_view(), name='owner-product-specifications'),
+    path('products/<uuid:product_id>/specifications/', ProductSpecificationListCreate.as_view(), name='product-spec-list-create'),
+    path('products/<uuid:product_id>/specifications/<uuid:spec_id>/', ProductSpecificationDetail.as_view(), name='product-spec-detail'),
 
     # Admin actions
     path('admin/products/<uuid:pk>/activate/', AdminProductActivateView.as_view(), name='admin-product-activate'),
