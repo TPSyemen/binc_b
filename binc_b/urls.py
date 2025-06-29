@@ -33,6 +33,7 @@ urlpatterns = [
     path('api/auth/', include('core.urls')),
     path('api/shop/', include('products.urls_shop')),
     path('api/products/', include('products.urls')),
+    path('api/specifications/', __import__('products.views_specifications', fromlist=['SpecificationListPublicView']).SpecificationListPublicView.as_view(), name='specification-list-public'),
     path('api/comparison/', include('comparison.urls')),
     path('api/dashboard/', include('products.urls_dashboard')),
     path('categories/', include('products.urls_categories')),
