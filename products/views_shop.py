@@ -14,6 +14,8 @@ class ShopCheckView(APIView):
     parser_classes = [JSONParser, MultiPartParser, FormParser]
 
     def get(self, request):
+        import logging
+        logger = logging.getLogger(__name__)
         # التحقق من أن المستخدم هو مالك
         if request.user.user_type != 'owner':
             return Response(
@@ -33,16 +35,38 @@ class ShopCheckView(APIView):
         # التحقق من وجود متجر للمالك
         try:
             shop = owner.shop
-            serializer = ShopSerializer(shop)
-            return Response(
-                {"has_shop": True, "shop": serializer.data},
-                status=status.HTTP_200_OK
-            )
         except Shop.DoesNotExist:
             return Response(
                 {"has_shop": False},
                 status=status.HTTP_404_NOT_FOUND
             )
+
+        # تحقق من الربط بين Owner وShop
+        if shop.owner.id != owner.id:
+            logger.error(f"عدم تطابق بين owner.id في قاعدة البيانات و shop.owner.id: owner.id={owner.id}, shop.owner.id={shop.owner.id}")
+            return Response(
+                {"error": "يوجد خطأ في الربط بين المالك والمتجر. يرجى التواصل مع الدعم.", "owner_id": owner.id, "shop_owner_id": shop.owner.id},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # طباعة بيانات المستخدم وبيانات المتجر للمقارنة
+        logger.info(f"User from token: id={request.user.id}, email={request.user.email}")
+        logger.info(f"Owner: id={owner.id}, email={owner.email}")
+        logger.info(f"Shop: id={shop.id}, owner_id={shop.owner.id}")
+
+        # تحقق من تطابق user_id بين التوكن ومالك المتجر
+        if request.user.id != owner.user.id:
+            logger.error(f"عدم تطابق بين user.id في التوكن و owner.user.id: user.id={request.user.id}, owner.user.id={owner.user.id}")
+            return Response(
+                {"error": "يوجد خطأ في الربط بين المستخدم وملف المالك.", "user_id": request.user.id, "owner_user_id": owner.user.id},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        serializer = ShopSerializer(shop)
+        return Response(
+            {"has_shop": True, "shop": serializer.data, "user_id": request.user.id, "owner_id": owner.id, "owner_user_id": owner.user.id},
+            status=status.HTTP_200_OK
+        )
 
 class ShopRegisterView(APIView):
     """Register a new shop for the authenticated owner."""
