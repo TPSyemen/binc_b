@@ -9,6 +9,8 @@ from django.utils.html import format_html
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 from .models import StoreIntegrationConfig, ProductMapping, PriceHistory, SyncLog
+from .services import StoreIntegrationService
+import json
 
 
 @admin.register(StoreIntegrationConfig)
@@ -37,7 +39,9 @@ class StoreIntegrationConfigAdmin(admin.ModelAdmin):
             'classes': ('collapse',)
         })
     )
-    
+
+    actions = ['test_connection', 'trigger_sync', 'activate_configs', 'deactivate_configs']
+
     def integration_status(self, obj):
         if obj.sync_errors:
             return format_html(
@@ -52,6 +56,54 @@ class StoreIntegrationConfigAdmin(admin.ModelAdmin):
                 '<span style="color: orange;">Pending</span>'
             )
     integration_status.short_description = 'Status'
+
+    def test_connection(self, request, queryset):
+        """Test connection for selected integrations."""
+        results = []
+        for config in queryset:
+            try:
+                result = StoreIntegrationService.test_integration(config)
+                if result['success']:
+                    results.append(f"✓ {config.shop.name}: Connection successful")
+                else:
+                    results.append(f"✗ {config.shop.name}: {result['error']}")
+            except Exception as e:
+                results.append(f"✗ {config.shop.name}: {str(e)}")
+
+        self.message_user(request, "\n".join(results))
+    test_connection.short_description = "Test connection for selected integrations"
+
+    def trigger_sync(self, request, queryset):
+        """Trigger synchronization for selected integrations."""
+        results = []
+        for config in queryset:
+            if config.is_active:
+                try:
+                    integration = StoreIntegrationService.get_integration(config)
+                    result = integration.sync_products()
+                    if result['success']:
+                        results.append(f"✓ {config.shop.name}: Sync completed")
+                    else:
+                        results.append(f"✗ {config.shop.name}: {result['error']}")
+                except Exception as e:
+                    results.append(f"✗ {config.shop.name}: {str(e)}")
+            else:
+                results.append(f"⚠ {config.shop.name}: Integration not active")
+
+        self.message_user(request, "\n".join(results))
+    trigger_sync.short_description = "Trigger sync for selected integrations"
+
+    def activate_configs(self, request, queryset):
+        """Activate selected integrations."""
+        updated = queryset.update(is_active=True)
+        self.message_user(request, f"Activated {updated} integrations")
+    activate_configs.short_description = "Activate selected integrations"
+
+    def deactivate_configs(self, request, queryset):
+        """Deactivate selected integrations."""
+        updated = queryset.update(is_active=False)
+        self.message_user(request, f"Deactivated {updated} integrations")
+    deactivate_configs.short_description = "Deactivate selected integrations"
 
 
 @admin.register(ProductMapping)

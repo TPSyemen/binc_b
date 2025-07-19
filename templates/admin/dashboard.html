@@ -1,0 +1,874 @@
+{% extends 'frontend/base.html' %}
+{% load static %}
+
+{% block title %}Admin Dashboard - E-Commerce Hub{% endblock %}
+
+{% block extra_css %}
+<style>
+    .admin-header {
+        background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+        color: white;
+        padding: 2rem 0;
+        margin-bottom: 2rem;
+    }
+
+    .admin-sidebar {
+        background: white;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+        padding: 1.5rem;
+        height: fit-content;
+        position: sticky;
+        top: 2rem;
+    }
+
+    .admin-nav {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .admin-nav li {
+        margin-bottom: 0.5rem;
+    }
+
+    .admin-nav a {
+        display: flex;
+        align-items: center;
+        padding: 0.75rem 1rem;
+        color: var(--text-secondary);
+        text-decoration: none;
+        border-radius: var(--border-radius);
+        transition: all 0.2s ease;
+    }
+
+    .admin-nav a:hover,
+    .admin-nav a.active {
+        background: var(--primary-color);
+        color: white;
+    }
+
+    .admin-nav i {
+        width: 20px;
+        margin-right: 0.75rem;
+    }
+
+    .metric-card {
+        background: white;
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+        box-shadow: var(--shadow-sm);
+        border-left: 4px solid var(--primary-color);
+        transition: all 0.3s ease;
+    }
+
+    .metric-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .metric-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--primary-color);
+        display: block;
+    }
+
+    .metric-label {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .metric-change {
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .metric-change.positive {
+        color: var(--success-color);
+    }
+
+    .metric-change.negative {
+        color: var(--danger-color);
+    }
+
+    .chart-container {
+        background: white;
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+        box-shadow: var(--shadow-sm);
+        margin-bottom: 2rem;
+    }
+
+    .chart-canvas {
+        height: 300px;
+    }
+
+    .data-table {
+        background: white;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+        overflow: hidden;
+    }
+
+    .table-header {
+        background: var(--light-bg);
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+        font-weight: 600;
+    }
+
+    .table-responsive {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+
+    .status-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .status-active {
+        background: rgba(16, 185, 129, 0.2);
+        color: var(--success-color);
+    }
+
+    .status-inactive {
+        background: rgba(239, 68, 68, 0.2);
+        color: var(--danger-color);
+    }
+
+    .status-pending {
+        background: rgba(245, 158, 11, 0.2);
+        color: var(--warning-color);
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .btn-sm {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.8rem;
+    }
+
+    .alert-item {
+        display: flex;
+        align-items: center;
+        padding: 1rem;
+        border-bottom: 1px solid var(--border-color);
+        transition: background-color 0.2s ease;
+    }
+
+    .alert-item:hover {
+        background: var(--light-bg);
+    }
+
+    .alert-item:last-child {
+        border-bottom: none;
+    }
+
+    .alert-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 1rem;
+        font-size: 1.2rem;
+    }
+
+    .alert-icon.warning {
+        background: rgba(245, 158, 11, 0.2);
+        color: var(--warning-color);
+    }
+
+    .alert-icon.error {
+        background: rgba(239, 68, 68, 0.2);
+        color: var(--danger-color);
+    }
+
+    .alert-icon.info {
+        background: rgba(59, 130, 246, 0.2);
+        color: #3b82f6;
+    }
+
+    .admin-content {
+        background: white;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+        padding: 2rem;
+        min-height: 600px;
+    }
+
+    .quick-actions {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .quick-action-card {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+        color: white;
+        padding: 1.5rem;
+        border-radius: var(--border-radius);
+        text-align: center;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+
+    .quick-action-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-lg);
+        color: white;
+    }
+
+    .quick-action-icon {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+    }
+
+    @media (max-width: 768px) {
+        .admin-sidebar {
+            position: static;
+            margin-bottom: 2rem;
+        }
+        
+        .admin-nav {
+            display: flex;
+            overflow-x: auto;
+            gap: 0.5rem;
+        }
+        
+        .admin-nav li {
+            margin-bottom: 0;
+            white-space: nowrap;
+        }
+        
+        .metric-card {
+            margin-bottom: 1rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Admin Header -->
+<div class="admin-header">
+    <div class="container-fluid">
+        <div class="row align-items-center">
+            <div class="col">
+                <h1><i class="fas fa-cog me-2"></i>Admin Dashboard</h1>
+                <p class="mb-0">Manage your e-commerce aggregation platform</p>
+            </div>
+            <div class="col-auto">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="text-end">
+                        <div class="fw-bold">{{ user.username }}</div>
+                        <small>System Administrator</small>
+                    </div>
+                    <div class="bg-white text-primary rounded-circle d-flex align-items-center justify-content-center" 
+                         style="width: 50px; height: 50px; font-size: 1.2rem;">
+                        <i class="fas fa-user-shield"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid">
+    <div class="row">
+        <!-- Admin Sidebar -->
+        <div class="col-lg-3 col-md-4">
+            <div class="admin-sidebar">
+                <ul class="admin-nav">
+                    <li>
+                        <a href="#overview" class="nav-link active" data-section="overview">
+                            <i class="fas fa-tachometer-alt"></i>
+                            Overview
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#stores" class="nav-link" data-section="stores">
+                            <i class="fas fa-store"></i>
+                            Store Management
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#products" class="nav-link" data-section="products">
+                            <i class="fas fa-box"></i>
+                            Product Catalog
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#users" class="nav-link" data-section="users">
+                            <i class="fas fa-users"></i>
+                            User Management
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#reviews" class="nav-link" data-section="reviews">
+                            <i class="fas fa-star"></i>
+                            Review Moderation
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#analytics" class="nav-link" data-section="analytics">
+                            <i class="fas fa-chart-bar"></i>
+                            Analytics
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#system" class="nav-link" data-section="system">
+                            <i class="fas fa-server"></i>
+                            System Health
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#settings" class="nav-link" data-section="settings">
+                            <i class="fas fa-cogs"></i>
+                            Settings
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-lg-9 col-md-8">
+            <div class="admin-content">
+                <!-- Overview Section -->
+                <div id="overview-section" class="admin-section">
+                    <!-- Platform Metrics -->
+                    <div class="row g-4 mb-4">
+                        <div class="col-lg-3 col-md-6">
+                            <div class="metric-card">
+                                <div class="metric-label">Total Products</div>
+                                <span id="totalProducts" class="metric-value">0</span>
+                                <div id="productsChange" class="metric-change">Loading...</div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="metric-card">
+                                <div class="metric-label">Active Stores</div>
+                                <span id="activeStores" class="metric-value">0</span>
+                                <div id="storesChange" class="metric-change">Loading...</div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="metric-card">
+                                <div class="metric-label">Total Users</div>
+                                <span id="totalUsers" class="metric-value">0</span>
+                                <div id="usersChange" class="metric-change">Loading...</div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="metric-card">
+                                <div class="metric-label">Reviews Today</div>
+                                <span id="reviewsToday" class="metric-value">0</span>
+                                <div id="reviewsChange" class="metric-change">Loading...</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="quick-actions">
+                        <a href="#stores" class="quick-action-card" data-section="stores">
+                            <div class="quick-action-icon">
+                                <i class="fas fa-plus"></i>
+                            </div>
+                            <div>Add New Store</div>
+                        </a>
+                        <a href="#products" class="quick-action-card" data-section="products">
+                            <div class="quick-action-icon">
+                                <i class="fas fa-sync"></i>
+                            </div>
+                            <div>Sync Products</div>
+                        </a>
+                        <a href="#reviews" class="quick-action-card" data-section="reviews">
+                            <div class="quick-action-icon">
+                                <i class="fas fa-flag"></i>
+                            </div>
+                            <div>Review Reports</div>
+                        </a>
+                        <a href="#analytics" class="quick-action-card" data-section="analytics">
+                            <div class="quick-action-icon">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <div>View Analytics</div>
+                        </a>
+                    </div>
+
+                    <!-- Charts Row -->
+                    <div class="row g-4">
+                        <div class="col-lg-8">
+                            <div class="chart-container">
+                                <h5><i class="fas fa-chart-line me-2"></i>Platform Growth</h5>
+                                <canvas id="growthChart" class="chart-canvas"></canvas>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="chart-container">
+                                <h5><i class="fas fa-exclamation-triangle me-2"></i>System Alerts</h5>
+                                <div id="systemAlerts">
+                                    <div class="text-center">
+                                        <div class="spinner-border text-primary" role="status"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Activity -->
+                    <div class="data-table">
+                        <div class="table-header">
+                            <i class="fas fa-clock me-2"></i>Recent Platform Activity
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Time</th>
+                                        <th>Event</th>
+                                        <th>User</th>
+                                        <th>Details</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recentActivity">
+                                    <tr>
+                                        <td colspan="5" class="text-center">
+                                            <div class="spinner-border text-primary" role="status"></div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Store Management Section -->
+                <div id="stores-section" class="admin-section d-none">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h3><i class="fas fa-store me-2"></i>Store Management</h3>
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addStoreModal">
+                            <i class="fas fa-plus me-2"></i>Add Store
+                        </button>
+                    </div>
+
+                    <div class="data-table">
+                        <div class="table-header">
+                            Registered Stores
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Store Name</th>
+                                        <th>Platform</th>
+                                        <th>Products</th>
+                                        <th>Status</th>
+                                        <th>Performance</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="storesTable">
+                                    <tr>
+                                        <td colspan="6" class="text-center">
+                                            <div class="spinner-border text-primary" role="status"></div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Other sections would be implemented similarly -->
+                <div id="products-section" class="admin-section d-none">
+                    <h3><i class="fas fa-box me-2"></i>Product Catalog Management</h3>
+                    <p class="text-muted">Manage global product catalog, AI ratings, and quality control.</p>
+                    <!-- Product management interface would go here -->
+                </div>
+
+                <div id="users-section" class="admin-section d-none">
+                    <h3><i class="fas fa-users me-2"></i>User Management</h3>
+                    <p class="text-muted">Manage customer accounts, store owners, and user permissions.</p>
+                    <!-- User management interface would go here -->
+                </div>
+
+                <div id="reviews-section" class="admin-section d-none">
+                    <h3><i class="fas fa-star me-2"></i>Review Moderation</h3>
+                    <p class="text-muted">Monitor and moderate product reviews, detect fake reviews.</p>
+                    <!-- Review moderation interface would go here -->
+                </div>
+
+                <div id="analytics-section" class="admin-section d-none">
+                    <h3><i class="fas fa-chart-bar me-2"></i>Platform Analytics</h3>
+                    <p class="text-muted">Comprehensive analytics and reporting dashboard.</p>
+                    <!-- Analytics interface would go here -->
+                </div>
+
+                <div id="system-section" class="admin-section d-none">
+                    <h3><i class="fas fa-server me-2"></i>System Health</h3>
+                    <p class="text-muted">Monitor system performance, API health, and integration status.</p>
+                    <!-- System health interface would go here -->
+                </div>
+
+                <div id="settings-section" class="admin-section d-none">
+                    <h3><i class="fas fa-cogs me-2"></i>Platform Settings</h3>
+                    <p class="text-muted">Configure platform settings, features, and integrations.</p>
+                    <!-- Settings interface would go here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let adminData = null;
+let growthChart = null;
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadAdminDashboard();
+    setupNavigation();
+    initializeCharts();
+});
+
+function loadAdminDashboard() {
+    // This would typically load from admin-specific APIs
+    // For now, we'll simulate the data
+    setTimeout(() => {
+        const mockData = {
+            metrics: {
+                total_products: 15420,
+                products_change: 5.2,
+                active_stores: 89,
+                stores_change: 2.1,
+                total_users: 3456,
+                users_change: 8.7,
+                reviews_today: 23,
+                reviews_change: -1.2
+            },
+            alerts: [
+                {
+                    type: 'warning',
+                    message: 'Store sync failed for TechMart',
+                    time: '2 minutes ago'
+                },
+                {
+                    type: 'info',
+                    message: 'New store application received',
+                    time: '15 minutes ago'
+                },
+                {
+                    type: 'error',
+                    message: 'High API error rate detected',
+                    time: '1 hour ago'
+                }
+            ],
+            recent_activity: [
+                {
+                    time: '10:30 AM',
+                    event: 'Store Registration',
+                    user: 'FashionHub',
+                    details: 'New store registered',
+                    status: 'pending'
+                },
+                {
+                    time: '10:15 AM',
+                    event: 'Product Sync',
+                    user: 'System',
+                    details: '1,250 products updated',
+                    status: 'active'
+                },
+                {
+                    time: '09:45 AM',
+                    event: 'Review Flagged',
+                    user: 'john_doe',
+                    details: 'Suspicious review detected',
+                    status: 'pending'
+                }
+            ]
+        };
+        
+        renderAdminData(mockData);
+    }, 1000);
+}
+
+function renderAdminData(data) {
+    // Update metrics
+    document.getElementById('totalProducts').textContent = data.metrics.total_products.toLocaleString();
+    document.getElementById('productsChange').textContent = `+${data.metrics.products_change}% this week`;
+    document.getElementById('productsChange').className = `metric-change ${data.metrics.products_change > 0 ? 'positive' : 'negative'}`;
+    
+    document.getElementById('activeStores').textContent = data.metrics.active_stores;
+    document.getElementById('storesChange').textContent = `+${data.metrics.stores_change}% this week`;
+    document.getElementById('storesChange').className = `metric-change ${data.metrics.stores_change > 0 ? 'positive' : 'negative'}`;
+    
+    document.getElementById('totalUsers').textContent = data.metrics.total_users.toLocaleString();
+    document.getElementById('usersChange').textContent = `+${data.metrics.users_change}% this week`;
+    document.getElementById('usersChange').className = `metric-change ${data.metrics.users_change > 0 ? 'positive' : 'negative'}`;
+    
+    document.getElementById('reviewsToday').textContent = data.metrics.reviews_today;
+    document.getElementById('reviewsChange').textContent = `${data.metrics.reviews_change}% vs yesterday`;
+    document.getElementById('reviewsChange').className = `metric-change ${data.metrics.reviews_change > 0 ? 'positive' : 'negative'}`;
+    
+    // Render alerts
+    renderSystemAlerts(data.alerts);
+    
+    // Render recent activity
+    renderRecentActivity(data.recent_activity);
+}
+
+function renderSystemAlerts(alerts) {
+    const container = document.getElementById('systemAlerts');
+    
+    if (!alerts || alerts.length === 0) {
+        container.innerHTML = '<p class="text-muted text-center">No alerts</p>';
+        return;
+    }
+    
+    container.innerHTML = alerts.map(alert => `
+        <div class="alert-item">
+            <div class="alert-icon ${alert.type}">
+                <i class="fas fa-${alert.type === 'warning' ? 'exclamation-triangle' : 
+                                   alert.type === 'error' ? 'times-circle' : 'info-circle'}"></i>
+            </div>
+            <div class="flex-grow-1">
+                <div class="fw-medium">${alert.message}</div>
+                <small class="text-muted">${alert.time}</small>
+            </div>
+        </div>
+    `).join('');
+}
+
+function renderRecentActivity(activities) {
+    const tbody = document.getElementById('recentActivity');
+    
+    tbody.innerHTML = activities.map(activity => `
+        <tr>
+            <td>${activity.time}</td>
+            <td>${activity.event}</td>
+            <td>${activity.user}</td>
+            <td>${activity.details}</td>
+            <td>
+                <span class="status-badge status-${activity.status}">
+                    ${activity.status.charAt(0).toUpperCase() + activity.status.slice(1)}
+                </span>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function setupNavigation() {
+    const navLinks = document.querySelectorAll('.admin-nav .nav-link');
+    const sections = document.querySelectorAll('.admin-section');
+    
+    navLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Update active nav link
+            navLinks.forEach(l => l.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Show corresponding section
+            const sectionId = this.dataset.section + '-section';
+            sections.forEach(section => {
+                section.classList.add('d-none');
+            });
+            document.getElementById(sectionId).classList.remove('d-none');
+            
+            // Load section-specific data
+            loadSectionData(this.dataset.section);
+        });
+    });
+    
+    // Handle quick action clicks
+    document.querySelectorAll('.quick-action-card').forEach(card => {
+        card.addEventListener('click', function(e) {
+            e.preventDefault();
+            const section = this.dataset.section;
+            
+            // Trigger navigation
+            const navLink = document.querySelector(`[data-section="${section}"]`);
+            if (navLink) {
+                navLink.click();
+            }
+        });
+    });
+}
+
+function loadSectionData(section) {
+    switch(section) {
+        case 'stores':
+            loadStoresData();
+            break;
+        case 'products':
+            loadProductsData();
+            break;
+        case 'users':
+            loadUsersData();
+            break;
+        case 'reviews':
+            loadReviewsData();
+            break;
+        case 'analytics':
+            loadAnalyticsData();
+            break;
+        case 'system':
+            loadSystemData();
+            break;
+        case 'settings':
+            loadSettingsData();
+            break;
+    }
+}
+
+function loadStoresData() {
+    const tbody = document.getElementById('storesTable');
+    
+    // Mock data - in real implementation, this would come from the API
+    setTimeout(() => {
+        const stores = [
+            {
+                name: 'TechMart',
+                platform: 'Shopify',
+                products: 1250,
+                status: 'active',
+                performance: 4.8
+            },
+            {
+                name: 'FashionHub',
+                platform: 'WooCommerce',
+                products: 890,
+                status: 'pending',
+                performance: 4.2
+            },
+            {
+                name: 'HomeGoods',
+                platform: 'Magento',
+                products: 2100,
+                status: 'active',
+                performance: 4.6
+            }
+        ];
+        
+        tbody.innerHTML = stores.map(store => `
+            <tr>
+                <td>
+                    <div class="fw-medium">${store.name}</div>
+                </td>
+                <td>
+                    <span class="badge bg-secondary">${store.platform}</span>
+                </td>
+                <td>${store.products.toLocaleString()}</td>
+                <td>
+                    <span class="status-badge status-${store.status}">
+                        ${store.status.charAt(0).toUpperCase() + store.status.slice(1)}
+                    </span>
+                </td>
+                <td>
+                    <div class="d-flex align-items-center">
+                        <span class="me-2">${store.performance}/5</span>
+                        <div class="progress" style="width: 60px; height: 6px;">
+                            <div class="progress-bar bg-success" 
+                                 style="width: ${(store.performance/5)*100}%"></div>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <div class="action-buttons">
+                        <button class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-warning">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger">
+                            <i class="fas fa-ban"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+    }, 500);
+}
+
+function initializeCharts() {
+    const ctx = document.getElementById('growthChart').getContext('2d');
+    
+    growthChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+            datasets: [
+                {
+                    label: 'Products',
+                    data: [8000, 9500, 11000, 12500, 14000, 15420],
+                    borderColor: 'rgb(37, 99, 235)',
+                    backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                    tension: 0.4
+                },
+                {
+                    label: 'Users',
+                    data: [1200, 1500, 1800, 2300, 2800, 3456],
+                    borderColor: 'rgb(16, 185, 129)',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    tension: 0.4
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+}
+
+// Placeholder functions for other sections
+function loadProductsData() {
+    console.log('Loading products data...');
+}
+
+function loadUsersData() {
+    console.log('Loading users data...');
+}
+
+function loadReviewsData() {
+    console.log('Loading reviews data...');
+}
+
+function loadAnalyticsData() {
+    console.log('Loading analytics data...');
+}
+
+function loadSystemData() {
+    console.log('Loading system data...');
+}
+
+function loadSettingsData() {
+    console.log('Loading settings data...');
+}
+</script>
+{% endblock %}

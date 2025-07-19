@@ -13,7 +13,11 @@ from .views import (
     SyncLogViewSet,
     ProductComparisonViewSet,
     StorePerformanceViewSet,
-    ProductAggregationViewSet
+    ProductAggregationViewSet,
+    StoreIntegrationManagementViewSet,
+    WebhookReceiverViewSet,
+    RealTimeSyncViewSet,
+    StoreAnalyticsViewSet
 )
 
 router = DefaultRouter()
@@ -24,6 +28,10 @@ router.register(r'sync-logs', SyncLogViewSet, basename='sync-log')
 router.register(r'comparisons', ProductComparisonViewSet, basename='product-comparison')
 router.register(r'performance', StorePerformanceViewSet, basename='store-performance')
 router.register(r'aggregation', ProductAggregationViewSet, basename='product-aggregation')
+router.register(r'management', StoreIntegrationManagementViewSet, basename='integration-management')
+router.register(r'webhooks', WebhookReceiverViewSet, basename='webhook-receiver')
+router.register(r'realtime-sync', RealTimeSyncViewSet, basename='realtime-sync')
+router.register(r'analytics', StoreAnalyticsViewSet, basename='store-analytics')
 
 urlpatterns = [
     path('api/store-integration/', include(router.urls)),

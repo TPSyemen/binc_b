@@ -1,0 +1,797 @@
+{% extends 'frontend/base.html' %}
+{% load static %}
+
+{% block title %}Products - E-Commerce Hub{% endblock %}
+
+{% block extra_css %}
+<style>
+    .filters-sidebar {
+        background: white;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+        padding: 1.5rem;
+        height: fit-content;
+        position: sticky;
+        top: 2rem;
+    }
+
+    .filter-section {
+        margin-bottom: 2rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .filter-section:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+    }
+
+    .filter-title {
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: var(--text-primary);
+    }
+
+    .price-range-slider {
+        margin: 1rem 0;
+    }
+
+    .product-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .product-card {
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        transition: all 0.3s ease;
+        background: white;
+    }
+
+    .product-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .product-image {
+        width: 100%;
+        height: 220px;
+        object-fit: cover;
+        background: var(--light-bg);
+    }
+
+    .product-info {
+        padding: 1rem;
+    }
+
+    .product-title {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .product-price {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--primary-color);
+    }
+
+    .product-original-price {
+        text-decoration: line-through;
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+    }
+
+    .discount-badge {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: var(--danger-color);
+        color: white;
+        padding: 0.25rem 0.5rem;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .rating-display {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin: 0.5rem 0;
+    }
+
+    .stars {
+        color: #fbbf24;
+    }
+
+    .shop-info {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+    }
+
+    .reliability-score {
+        background: var(--success-color);
+        color: white;
+        padding: 0.1rem 0.4rem;
+        border-radius: 10px;
+        font-size: 0.7rem;
+    }
+
+    .sort-controls {
+        background: white;
+        border-radius: var(--border-radius);
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .results-info {
+        color: var(--text-secondary);
+        margin-bottom: 1rem;
+    }
+
+    .pagination-wrapper {
+        margin-top: 3rem;
+        display: flex;
+        justify-content: center;
+    }
+
+    .compare-checkbox {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        z-index: 10;
+    }
+
+    .compare-bar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: var(--primary-color);
+        color: white;
+        padding: 1rem;
+        transform: translateY(100%);
+        transition: transform 0.3s ease;
+        z-index: 1000;
+    }
+
+    .compare-bar.show {
+        transform: translateY(0);
+    }
+
+    .loading-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(255, 255, 255, 0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 100;
+    }
+
+    @media (max-width: 768px) {
+        .filters-sidebar {
+            position: static;
+            margin-bottom: 2rem;
+        }
+        
+        .product-grid {
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <!-- Filters Sidebar -->
+        <div class="col-lg-3 col-md-4">
+            <div class="filters-sidebar">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0">Filters</h5>
+                    <button id="clearFilters" class="btn btn-sm btn-outline-secondary">Clear All</button>
+                </div>
+
+                <!-- Search Filter -->
+                <div class="filter-section">
+                    <div class="filter-title">Search</div>
+                    <input type="text" id="searchFilter" class="form-control" 
+                           placeholder="Search products..." value="{{ request.GET.q }}">
+                </div>
+
+                <!-- Category Filter -->
+                <div class="filter-section">
+                    <div class="filter-title">Categories</div>
+                    <div id="categoryFilters">
+                        <div class="text-center">
+                            <div class="spinner-border spinner-border-sm" role="status"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Brand Filter -->
+                <div class="filter-section">
+                    <div class="filter-title">Brands</div>
+                    <div id="brandFilters">
+                        <div class="text-center">
+                            <div class="spinner-border spinner-border-sm" role="status"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Store Filter -->
+                <div class="filter-section">
+                    <div class="filter-title">Stores</div>
+                    <div id="storeFilters">
+                        <div class="text-center">
+                            <div class="spinner-border spinner-border-sm" role="status"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Price Range Filter -->
+                <div class="filter-section">
+                    <div class="filter-title">Price Range</div>
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <input type="number" id="minPrice" class="form-control form-control-sm" 
+                                   placeholder="Min" min="0" value="{{ request.GET.min_price }}">
+                        </div>
+                        <div class="col-6">
+                            <input type="number" id="maxPrice" class="form-control form-control-sm" 
+                                   placeholder="Max" min="0" value="{{ request.GET.max_price }}">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Rating Filter -->
+                <div class="filter-section">
+                    <div class="filter-title">Minimum Rating</div>
+                    <select id="ratingFilter" class="form-select form-select-sm">
+                        <option value="">Any Rating</option>
+                        <option value="4" {{ request.GET.min_rating == '4' and 'selected' or '' }}>4+ Stars</option>
+                        <option value="3" {{ request.GET.min_rating == '3' and 'selected' or '' }}>3+ Stars</option>
+                        <option value="2" {{ request.GET.min_rating == '2' and 'selected' or '' }}>2+ Stars</option>
+                        <option value="1" {{ request.GET.min_rating == '1' and 'selected' or '' }}>1+ Stars</option>
+                    </select>
+                </div>
+
+                <!-- Additional Filters -->
+                <div class="filter-section">
+                    <div class="filter-title">Additional Options</div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="availabilityFilter" 
+                               {{ request.GET.availability and 'checked' or '' }}>
+                        <label class="form-check-label" for="availabilityFilter">
+                            Available Only
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="discountFilter" 
+                               {{ request.GET.has_discount and 'checked' or '' }}>
+                        <label class="form-check-label" for="discountFilter">
+                            On Sale
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-lg-9 col-md-8">
+            <!-- Sort Controls -->
+            <div class="sort-controls">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <div class="results-info">
+                            <span id="resultsCount">Loading...</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center justify-content-md-end">
+                            <label for="sortBy" class="form-label me-2 mb-0">Sort by:</label>
+                            <select id="sortBy" class="form-select form-select-sm" style="width: auto;">
+                                <option value="relevance" {{ request.GET.sort_by == 'relevance' and 'selected' or '' }}>Relevance</option>
+                                <option value="price_low" {{ request.GET.sort_by == 'price_low' and 'selected' or '' }}>Price: Low to High</option>
+                                <option value="price_high" {{ request.GET.sort_by == 'price_high' and 'selected' or '' }}>Price: High to Low</option>
+                                <option value="rating" {{ request.GET.sort_by == 'rating' and 'selected' or '' }}>Highest Rated</option>
+                                <option value="popularity" {{ request.GET.sort_by == 'popularity' and 'selected' or '' }}>Most Popular</option>
+                                <option value="newest" {{ request.GET.sort_by == 'newest' and 'selected' or '' }}>Newest</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Products Grid -->
+            <div class="position-relative">
+                <div id="loadingOverlay" class="loading-overlay d-none">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading products...</span>
+                    </div>
+                </div>
+                
+                <div id="productsGrid" class="product-grid">
+                    <!-- Products will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Pagination -->
+            <div class="pagination-wrapper">
+                <nav id="paginationNav" aria-label="Products pagination">
+                    <!-- Pagination will be loaded here -->
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Compare Bar -->
+<div id="compareBar" class="compare-bar">
+    <div class="container-fluid">
+        <div class="row align-items-center">
+            <div class="col">
+                <span id="compareCount">0</span> products selected for comparison
+            </div>
+            <div class="col-auto">
+                <button id="compareBtn" class="btn btn-light me-2" disabled>
+                    Compare Products
+                </button>
+                <button id="clearCompare" class="btn btn-outline-light">
+                    Clear
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let currentPage = 1;
+let currentFilters = {};
+let compareList = new Set();
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize filters from URL parameters
+    initializeFiltersFromURL();
+    
+    // Load initial data
+    loadProducts();
+    loadFilterOptions();
+    
+    // Setup event listeners
+    setupEventListeners();
+});
+
+function initializeFiltersFromURL() {
+    const urlParams = new URLSearchParams(window.location.search);
+    
+    currentFilters = {
+        q: urlParams.get('q') || '',
+        category_id: urlParams.get('category_id') || '',
+        brand_id: urlParams.get('brand_id') || '',
+        shop_id: urlParams.get('shop_id') || '',
+        min_price: urlParams.get('min_price') || '',
+        max_price: urlParams.get('max_price') || '',
+        min_rating: urlParams.get('min_rating') || '',
+        sort_by: urlParams.get('sort_by') || 'relevance',
+        availability: urlParams.get('availability') === 'true',
+        has_discount: urlParams.get('has_discount') === 'true'
+    };
+    
+    currentPage = parseInt(urlParams.get('page')) || 1;
+}
+
+function setupEventListeners() {
+    // Search input
+    let searchTimeout;
+    document.getElementById('searchFilter').addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            currentFilters.q = this.value;
+            currentPage = 1;
+            loadProducts();
+            updateURL();
+        }, 500);
+    });
+    
+    // Sort dropdown
+    document.getElementById('sortBy').addEventListener('change', function() {
+        currentFilters.sort_by = this.value;
+        currentPage = 1;
+        loadProducts();
+        updateURL();
+    });
+    
+    // Price inputs
+    ['minPrice', 'maxPrice'].forEach(id => {
+        document.getElementById(id).addEventListener('change', function() {
+            currentFilters[id.replace('Price', '_price')] = this.value;
+            currentPage = 1;
+            loadProducts();
+            updateURL();
+        });
+    });
+    
+    // Rating filter
+    document.getElementById('ratingFilter').addEventListener('change', function() {
+        currentFilters.min_rating = this.value;
+        currentPage = 1;
+        loadProducts();
+        updateURL();
+    });
+    
+    // Checkbox filters
+    ['availabilityFilter', 'discountFilter'].forEach(id => {
+        document.getElementById(id).addEventListener('change', function() {
+            const filterKey = id.replace('Filter', '').replace('availability', 'availability').replace('discount', 'has_discount');
+            currentFilters[filterKey] = this.checked;
+            currentPage = 1;
+            loadProducts();
+            updateURL();
+        });
+    });
+    
+    // Clear filters
+    document.getElementById('clearFilters').addEventListener('click', function() {
+        currentFilters = { sort_by: 'relevance' };
+        currentPage = 1;
+        resetFilterInputs();
+        loadProducts();
+        updateURL();
+    });
+    
+    // Compare functionality
+    document.getElementById('compareBtn').addEventListener('click', function() {
+        if (compareList.size >= 2) {
+            const productIds = Array.from(compareList).join(',');
+            window.location.href = `/compare/?product_ids=${productIds}`;
+        }
+    });
+    
+    document.getElementById('clearCompare').addEventListener('click', function() {
+        compareList.clear();
+        updateCompareBar();
+        document.querySelectorAll('.compare-checkbox input').forEach(cb => cb.checked = false);
+    });
+}
+
+function loadProducts() {
+    showLoading();
+    
+    const params = new URLSearchParams();
+    Object.entries(currentFilters).forEach(([key, value]) => {
+        if (value !== '' && value !== false) {
+            params.append(key, value);
+        }
+    });
+    params.append('page', currentPage);
+    params.append('page_size', 20);
+    
+    fetch(`${window.API_BASE_URL}search_products/?${params}`)
+        .then(response => response.json())
+        .then(data => {
+            hideLoading();
+            if (data.success) {
+                renderProducts(data.results);
+                renderPagination(data.pagination);
+                updateResultsInfo(data.pagination);
+            } else {
+                utils.showAlert('Failed to load products', 'error');
+            }
+        })
+        .catch(error => {
+            hideLoading();
+            console.error('Error loading products:', error);
+            utils.showAlert('Failed to load products', 'error');
+        });
+}
+
+function loadFilterOptions() {
+    // This would typically load from the search API's filter aggregations
+    // For now, we'll simulate the data
+    setTimeout(() => {
+        renderCategoryFilters([
+            { id: '1', name: 'Electronics', count: 150 },
+            { id: '2', name: 'Clothing', count: 89 },
+            { id: '3', name: 'Home & Garden', count: 67 }
+        ]);
+        
+        renderBrandFilters([
+            { id: '1', name: 'Apple', count: 45 },
+            { id: '2', name: 'Samsung', count: 38 },
+            { id: '3', name: 'Nike', count: 29 }
+        ]);
+        
+        renderStoreFilters([
+            { id: '1', name: 'TechStore', count: 78 },
+            { id: '2', name: 'FashionHub', count: 56 },
+            { id: '3', name: 'HomeGoods', count: 43 }
+        ]);
+    }, 1000);
+}
+
+function renderProducts(products) {
+    const grid = document.getElementById('productsGrid');
+    
+    if (!products || products.length === 0) {
+        grid.innerHTML = `
+            <div class="col-12 text-center py-5">
+                <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                <h4>No products found</h4>
+                <p class="text-muted">Try adjusting your filters or search terms</p>
+            </div>
+        `;
+        return;
+    }
+    
+    grid.innerHTML = products.map(product => `
+        <div class="product-card">
+            <div class="position-relative">
+                <img src="${product.image_url || '/static/images/product-placeholder.jpg'}" 
+                     class="product-image" 
+                     alt="${product.name}"
+                     loading="lazy">
+                
+                ${product.discount_percentage > 0 ? 
+                    `<div class="discount-badge">-${product.discount_percentage}%</div>` : ''}
+                
+                <div class="compare-checkbox">
+                    <input type="checkbox" class="form-check-input" 
+                           onchange="toggleCompare('${product.id}')"
+                           ${compareList.has(product.id) ? 'checked' : ''}>
+                </div>
+            </div>
+            
+            <div class="product-info">
+                <h6 class="product-title">
+                    <a href="/products/${product.id}/" class="text-decoration-none text-dark">
+                        ${product.name}
+                    </a>
+                </h6>
+                
+                <div class="rating-display">
+                    <div class="stars">
+                        ${'★'.repeat(Math.floor(product.rating))}${'☆'.repeat(5-Math.floor(product.rating))}
+                    </div>
+                    <small class="text-muted">(${product.rating})</small>
+                </div>
+                
+                <div class="price-info">
+                    <span class="product-price">${utils.formatCurrency(product.price)}</span>
+                    ${product.original_price ? 
+                        `<span class="product-original-price ms-2">
+                            ${utils.formatCurrency(product.original_price)}
+                        </span>` : ''}
+                </div>
+                
+                <div class="shop-info">
+                    <i class="fas fa-store"></i>
+                    <span>${product.shop.name}</span>
+                    <span class="reliability-score">${product.shop.reliability_score}/5</span>
+                </div>
+                
+                ${product.price_comparison && product.price_comparison.length > 0 ? 
+                    `<small class="text-success">
+                        <i class="fas fa-tag"></i> 
+                        Available at ${product.price_comparison.length + 1} stores
+                    </small>` : ''}
+            </div>
+        </div>
+    `).join('');
+}
+
+function renderPagination(pagination) {
+    const nav = document.getElementById('paginationNav');
+    
+    if (pagination.total_pages <= 1) {
+        nav.innerHTML = '';
+        return;
+    }
+    
+    let paginationHTML = '<ul class="pagination">';
+    
+    // Previous button
+    if (pagination.has_previous) {
+        paginationHTML += `
+            <li class="page-item">
+                <a class="page-link" href="#" onclick="changePage(${pagination.current_page - 1})">
+                    <i class="fas fa-chevron-left"></i>
+                </a>
+            </li>
+        `;
+    }
+    
+    // Page numbers
+    const startPage = Math.max(1, pagination.current_page - 2);
+    const endPage = Math.min(pagination.total_pages, pagination.current_page + 2);
+    
+    for (let i = startPage; i <= endPage; i++) {
+        paginationHTML += `
+            <li class="page-item ${i === pagination.current_page ? 'active' : ''}">
+                <a class="page-link" href="#" onclick="changePage(${i})">${i}</a>
+            </li>
+        `;
+    }
+    
+    // Next button
+    if (pagination.has_next) {
+        paginationHTML += `
+            <li class="page-item">
+                <a class="page-link" href="#" onclick="changePage(${pagination.current_page + 1})">
+                    <i class="fas fa-chevron-right"></i>
+                </a>
+            </li>
+        `;
+    }
+    
+    paginationHTML += '</ul>';
+    nav.innerHTML = paginationHTML;
+}
+
+function renderCategoryFilters(categories) {
+    const container = document.getElementById('categoryFilters');
+    container.innerHTML = categories.map(category => `
+        <div class="form-check">
+            <input class="form-check-input" type="radio" name="category" 
+                   id="cat_${category.id}" value="${category.id}"
+                   ${currentFilters.category_id === category.id ? 'checked' : ''}
+                   onchange="updateCategoryFilter('${category.id}')">
+            <label class="form-check-label d-flex justify-content-between" for="cat_${category.id}">
+                <span>${category.name}</span>
+                <small class="text-muted">${category.count}</small>
+            </label>
+        </div>
+    `).join('');
+}
+
+function renderBrandFilters(brands) {
+    const container = document.getElementById('brandFilters');
+    container.innerHTML = brands.map(brand => `
+        <div class="form-check">
+            <input class="form-check-input" type="radio" name="brand" 
+                   id="brand_${brand.id}" value="${brand.id}"
+                   ${currentFilters.brand_id === brand.id ? 'checked' : ''}
+                   onchange="updateBrandFilter('${brand.id}')">
+            <label class="form-check-label d-flex justify-content-between" for="brand_${brand.id}">
+                <span>${brand.name}</span>
+                <small class="text-muted">${brand.count}</small>
+            </label>
+        </div>
+    `).join('');
+}
+
+function renderStoreFilters(stores) {
+    const container = document.getElementById('storeFilters');
+    container.innerHTML = stores.map(store => `
+        <div class="form-check">
+            <input class="form-check-input" type="radio" name="store" 
+                   id="store_${store.id}" value="${store.id}"
+                   ${currentFilters.shop_id === store.id ? 'checked' : ''}
+                   onchange="updateStoreFilter('${store.id}')">
+            <label class="form-check-label d-flex justify-content-between" for="store_${store.id}">
+                <span>${store.name}</span>
+                <small class="text-muted">${store.count}</small>
+            </label>
+        </div>
+    `).join('');
+}
+
+function updateResultsInfo(pagination) {
+    const info = document.getElementById('resultsCount');
+    const start = (pagination.current_page - 1) * pagination.page_size + 1;
+    const end = Math.min(pagination.current_page * pagination.page_size, pagination.total_results);
+    
+    info.textContent = `Showing ${start}-${end} of ${pagination.total_results.toLocaleString()} results`;
+}
+
+function updateCategoryFilter(categoryId) {
+    currentFilters.category_id = currentFilters.category_id === categoryId ? '' : categoryId;
+    currentPage = 1;
+    loadProducts();
+    updateURL();
+}
+
+function updateBrandFilter(brandId) {
+    currentFilters.brand_id = currentFilters.brand_id === brandId ? '' : brandId;
+    currentPage = 1;
+    loadProducts();
+    updateURL();
+}
+
+function updateStoreFilter(storeId) {
+    currentFilters.shop_id = currentFilters.shop_id === storeId ? '' : storeId;
+    currentPage = 1;
+    loadProducts();
+    updateURL();
+}
+
+function changePage(page) {
+    currentPage = page;
+    loadProducts();
+    updateURL();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function toggleCompare(productId) {
+    if (compareList.has(productId)) {
+        compareList.delete(productId);
+    } else {
+        if (compareList.size >= 5) {
+            utils.showAlert('You can compare up to 5 products at a time', 'warning');
+            return;
+        }
+        compareList.add(productId);
+    }
+    updateCompareBar();
+}
+
+function updateCompareBar() {
+    const bar = document.getElementById('compareBar');
+    const count = document.getElementById('compareCount');
+    const btn = document.getElementById('compareBtn');
+    
+    count.textContent = compareList.size;
+    btn.disabled = compareList.size < 2;
+    
+    if (compareList.size > 0) {
+        bar.classList.add('show');
+    } else {
+        bar.classList.remove('show');
+    }
+}
+
+function resetFilterInputs() {
+    document.getElementById('searchFilter').value = '';
+    document.getElementById('minPrice').value = '';
+    document.getElementById('maxPrice').value = '';
+    document.getElementById('ratingFilter').value = '';
+    document.getElementById('availabilityFilter').checked = false;
+    document.getElementById('discountFilter').checked = false;
+    document.getElementById('sortBy').value = 'relevance';
+    
+    // Reset radio buttons
+    document.querySelectorAll('input[type="radio"]').forEach(radio => radio.checked = false);
+}
+
+function updateURL() {
+    const params = new URLSearchParams();
+    Object.entries(currentFilters).forEach(([key, value]) => {
+        if (value !== '' && value !== false) {
+            params.append(key, value);
+        }
+    });
+    if (currentPage > 1) {
+        params.append('page', currentPage);
+    }
+    
+    const newURL = `${window.location.pathname}?${params}`;
+    window.history.replaceState({}, '', newURL);
+}
+
+function showLoading() {
+    document.getElementById('loadingOverlay').classList.remove('d-none');
+}
+
+function hideLoading() {
+    document.getElementById('loadingOverlay').classList.add('d-none');
+}
+</script>
+{% endblock %}

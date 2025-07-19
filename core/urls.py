@@ -19,11 +19,15 @@ from .views import (
     ShopCheckView,
 )
 from .views_site_admin import ensure_site_view
+from .views_ai_rating import AIRatingViewSet
+from .views_discovery import ProductDiscoveryViewSet
 
 app_name = 'core'
 
 router = DefaultRouter()
 router.register(r'users', UserViewSet, basename='user')
+router.register(r'ai-ratings', AIRatingViewSet, basename='ai-rating')
+router.register(r'discovery', ProductDiscoveryViewSet, basename='product-discovery')
 
 urlpatterns = [
     path('register/', RegisterAPIView.as_view(), name='register'),

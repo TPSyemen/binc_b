@@ -1,0 +1,570 @@
+{% extends 'frontend/base.html' %}
+{% load static %}
+
+{% block title %}E-Commerce Hub - Smart Product Discovery{% endblock %}
+
+{% block meta_description %}
+Discover and compare products from multiple stores with AI-powered recommendations. Find the best deals, read reviews, and make informed shopping decisions.
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .hero-section {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+        color: white;
+        padding: 4rem 0;
+        margin-bottom: 3rem;
+    }
+
+    .search-box {
+        background: white;
+        border-radius: 50px;
+        padding: 0.5rem;
+        box-shadow: var(--shadow-lg);
+        max-width: 600px;
+        margin: 2rem auto;
+    }
+
+    .search-input {
+        border: none;
+        padding: 1rem 1.5rem;
+        font-size: 1.1rem;
+        border-radius: 50px;
+    }
+
+    .search-input:focus {
+        box-shadow: none;
+        border: none;
+    }
+
+    .search-btn {
+        border-radius: 50px;
+        padding: 1rem 2rem;
+        font-weight: 600;
+    }
+
+    .feature-card {
+        text-align: center;
+        padding: 2rem;
+        height: 100%;
+        border: none;
+        transition: all 0.3s ease;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-10px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .feature-icon {
+        font-size: 3rem;
+        color: var(--primary-color);
+        margin-bottom: 1rem;
+    }
+
+    .product-card {
+        border: none;
+        transition: all 0.3s ease;
+        height: 100%;
+    }
+
+    .product-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .product-image {
+        height: 200px;
+        object-fit: cover;
+        border-radius: var(--border-radius) var(--border-radius) 0 0;
+    }
+
+    .price-badge {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: var(--success-color);
+        color: white;
+        padding: 0.25rem 0.5rem;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .rating-stars {
+        color: #fbbf24;
+    }
+
+    .category-card {
+        background: linear-gradient(45deg, var(--primary-color), var(--primary-dark));
+        color: white;
+        border-radius: var(--border-radius);
+        padding: 2rem;
+        text-align: center;
+        transition: all 0.3s ease;
+        height: 150px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .category-card:hover {
+        transform: scale(1.05);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .stats-section {
+        background: var(--primary-color);
+        color: white;
+        padding: 3rem 0;
+        margin: 3rem 0;
+    }
+
+    .stat-item {
+        text-align: center;
+    }
+
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: 700;
+        display: block;
+    }
+
+    .autocomplete-dropdown {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-lg);
+        z-index: 1000;
+        max-height: 300px;
+        overflow-y: auto;
+    }
+
+    .autocomplete-item {
+        padding: 0.75rem 1rem;
+        cursor: pointer;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .autocomplete-item:hover {
+        background-color: var(--light-bg);
+    }
+
+    .autocomplete-item:last-child {
+        border-bottom: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold mb-4">
+                    Smart Product Discovery
+                </h1>
+                <p class="lead mb-4">
+                    Compare products across multiple stores, get AI-powered recommendations, 
+                    and find the best deals with our intelligent e-commerce platform.
+                </p>
+                
+                <!-- Search Box -->
+                <div class="search-box position-relative">
+                    <form id="searchForm" class="d-flex">
+                        <input type="text" 
+                               id="searchInput" 
+                               class="form-control search-input flex-grow-1" 
+                               placeholder="Search for products, brands, or categories..."
+                               autocomplete="off">
+                        <button type="submit" class="btn btn-primary search-btn">
+                            <i class="fas fa-search me-2"></i>Search
+                        </button>
+                    </form>
+                    <div id="autocompleteDropdown" class="autocomplete-dropdown d-none"></div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <img src="{% static 'images/hero-illustration.svg' %}" 
+                     alt="E-commerce illustration" 
+                     class="img-fluid">
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="container mb-5">
+    <div class="row text-center mb-5">
+        <div class="col-12">
+            <h2 class="display-5 fw-bold mb-3">Why Choose Our Platform?</h2>
+            <p class="lead text-muted">Discover the power of intelligent shopping</p>
+        </div>
+    </div>
+    
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="card feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-brain"></i>
+                </div>
+                <h4>AI-Powered Recommendations</h4>
+                <p class="text-muted">
+                    Get personalized product suggestions based on your preferences and shopping behavior.
+                </p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-balance-scale"></i>
+                </div>
+                <h4>Smart Price Comparison</h4>
+                <p class="text-muted">
+                    Compare prices across multiple stores in real-time to find the best deals.
+                </p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-star"></i>
+                </div>
+                <h4>Verified Reviews</h4>
+                <p class="text-muted">
+                    Read authentic reviews with sentiment analysis to make informed decisions.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Trending Products Section -->
+<section class="container mb-5">
+    <div class="row align-items-center mb-4">
+        <div class="col">
+            <h2 class="fw-bold">Trending Products</h2>
+            <p class="text-muted">Popular items that everyone's talking about</p>
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'products' %}?sort_by=popularity" class="btn btn-outline-primary">
+                View All <i class="fas fa-arrow-right ms-1"></i>
+            </a>
+        </div>
+    </div>
+    
+    <div id="trendingProducts" class="row g-4">
+        <!-- Trending products will be loaded here via JavaScript -->
+        <div class="col-12 text-center">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading trending products...</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Categories Section -->
+<section class="container mb-5">
+    <div class="row text-center mb-4">
+        <div class="col-12">
+            <h2 class="fw-bold">Shop by Category</h2>
+            <p class="text-muted">Explore our wide range of product categories</p>
+        </div>
+    </div>
+    
+    <div id="featuredCategories" class="row g-4">
+        <!-- Categories will be loaded here via JavaScript -->
+        <div class="col-12 text-center">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading categories...</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Best Deals Section -->
+<section class="container mb-5">
+    <div class="row align-items-center mb-4">
+        <div class="col">
+            <h2 class="fw-bold">Best Deals</h2>
+            <p class="text-muted">Don't miss these amazing offers</p>
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'products' %}?has_discount=true" class="btn btn-outline-success">
+                View All Deals <i class="fas fa-tag ms-1"></i>
+            </a>
+        </div>
+    </div>
+    
+    <div id="bestDeals" class="row g-4">
+        <!-- Best deals will be loaded here via JavaScript -->
+        <div class="col-12 text-center">
+            <div class="spinner-border text-success" role="status">
+                <span class="visually-hidden">Loading best deals...</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Platform Stats Section -->
+<section class="stats-section">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-3 col-6">
+                <div class="stat-item">
+                    <span id="totalProducts" class="stat-number">0</span>
+                    <span>Products</span>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="stat-item">
+                    <span id="totalStores" class="stat-number">0</span>
+                    <span>Partner Stores</span>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="stat-item">
+                    <span id="totalBrands" class="stat-number">0</span>
+                    <span>Brands</span>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="stat-item">
+                    <span id="totalCategories" class="stat-number">0</span>
+                    <span>Categories</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Load home feed data
+    loadHomeFeed();
+    
+    // Setup search functionality
+    setupSearch();
+    
+    // Setup autocomplete
+    setupAutocomplete();
+});
+
+function loadHomeFeed() {
+    fetch(`${window.API_BASE_URL}home_feed/`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                renderTrendingProducts(data.feed_data.trending_products);
+                renderFeaturedCategories(data.feed_data.featured_categories);
+                renderBestDeals(data.feed_data.best_deals);
+                renderPlatformStats(data.feed_data.platform_stats);
+            }
+        })
+        .catch(error => {
+            console.error('Error loading home feed:', error);
+            utils.showAlert('Failed to load content. Please refresh the page.', 'warning');
+        });
+}
+
+function renderTrendingProducts(products) {
+    const container = document.getElementById('trendingProducts');
+    if (!products || products.length === 0) {
+        container.innerHTML = '<div class="col-12 text-center text-muted">No trending products available</div>';
+        return;
+    }
+    
+    container.innerHTML = products.slice(0, 8).map(product => `
+        <div class="col-lg-3 col-md-4 col-sm-6">
+            <div class="card product-card">
+                <div class="position-relative">
+                    <img src="${product.image_url || '/static/images/product-placeholder.jpg'}" 
+                         class="card-img-top product-image" 
+                         alt="${product.name}">
+                    ${product.discount_percentage > 0 ? 
+                        `<span class="price-badge">-${product.discount_percentage}%</span>` : ''}
+                </div>
+                <div class="card-body">
+                    <h6 class="card-title">${product.name}</h6>
+                    <div class="d-flex align-items-center mb-2">
+                        <div class="rating-stars me-2">
+                            ${'★'.repeat(Math.floor(product.rating))}${'☆'.repeat(5-Math.floor(product.rating))}
+                        </div>
+                        <small class="text-muted">(${product.rating})</small>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="fw-bold text-primary">${utils.formatCurrency(product.price)}</span>
+                            ${product.original_price ? 
+                                `<small class="text-muted text-decoration-line-through ms-1">
+                                    ${utils.formatCurrency(product.original_price)}
+                                </small>` : ''}
+                        </div>
+                        <small class="text-muted">${product.shop.name}</small>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <a href="/products/${product.id}/" class="btn btn-outline-primary btn-sm w-100">
+                        View Details
+                    </a>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function renderFeaturedCategories(categories) {
+    const container = document.getElementById('featuredCategories');
+    if (!categories || categories.length === 0) {
+        container.innerHTML = '<div class="col-12 text-center text-muted">No categories available</div>';
+        return;
+    }
+    
+    container.innerHTML = categories.slice(0, 6).map(category => `
+        <div class="col-lg-2 col-md-4 col-6">
+            <a href="/products/?category_id=${category.id}" class="text-decoration-none">
+                <div class="category-card">
+                    <h6 class="mb-1">${category.name}</h6>
+                    <small>${category.product_count} products</small>
+                </div>
+            </a>
+        </div>
+    `).join('');
+}
+
+function renderBestDeals(deals) {
+    const container = document.getElementById('bestDeals');
+    if (!deals || deals.length === 0) {
+        container.innerHTML = '<div class="col-12 text-center text-muted">No deals available</div>';
+        return;
+    }
+    
+    container.innerHTML = deals.slice(0, 4).map(product => `
+        <div class="col-lg-3 col-md-6">
+            <div class="card product-card">
+                <div class="position-relative">
+                    <img src="${product.image_url || '/static/images/product-placeholder.jpg'}" 
+                         class="card-img-top product-image" 
+                         alt="${product.name}">
+                    <span class="price-badge">-${product.discount_percentage}%</span>
+                </div>
+                <div class="card-body">
+                    <h6 class="card-title">${product.name}</h6>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="fw-bold text-success">${utils.formatCurrency(product.price)}</span>
+                            <small class="text-muted text-decoration-line-through ms-1">
+                                ${utils.formatCurrency(product.original_price)}
+                            </small>
+                        </div>
+                    </div>
+                    <small class="text-muted">${product.shop.name}</small>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function renderPlatformStats(stats) {
+    if (stats) {
+        animateCounter('totalProducts', stats.total_products);
+        animateCounter('totalStores', stats.total_stores);
+        animateCounter('totalBrands', stats.total_brands);
+        animateCounter('totalCategories', stats.total_categories);
+    }
+}
+
+function animateCounter(elementId, targetValue) {
+    const element = document.getElementById(elementId);
+    let currentValue = 0;
+    const increment = targetValue / 50;
+    const timer = setInterval(() => {
+        currentValue += increment;
+        if (currentValue >= targetValue) {
+            currentValue = targetValue;
+            clearInterval(timer);
+        }
+        element.textContent = Math.floor(currentValue).toLocaleString();
+    }, 30);
+}
+
+function setupSearch() {
+    const searchForm = document.getElementById('searchForm');
+    const searchInput = document.getElementById('searchInput');
+    
+    searchForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const query = searchInput.value.trim();
+        if (query) {
+            window.location.href = `/products/?q=${encodeURIComponent(query)}`;
+        }
+    });
+}
+
+function setupAutocomplete() {
+    const searchInput = document.getElementById('searchInput');
+    const dropdown = document.getElementById('autocompleteDropdown');
+    let debounceTimer;
+    
+    searchInput.addEventListener('input', function() {
+        const query = this.value.trim();
+        
+        clearTimeout(debounceTimer);
+        
+        if (query.length < 2) {
+            dropdown.classList.add('d-none');
+            return;
+        }
+        
+        debounceTimer = setTimeout(() => {
+            fetch(`${window.API_BASE_URL}autocomplete/?q=${encodeURIComponent(query)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.suggestions && data.suggestions.length > 0) {
+                        renderAutocomplete(data.suggestions);
+                        dropdown.classList.remove('d-none');
+                    } else {
+                        dropdown.classList.add('d-none');
+                    }
+                })
+                .catch(error => {
+                    console.error('Autocomplete error:', error);
+                    dropdown.classList.add('d-none');
+                });
+        }, 300);
+    });
+    
+    // Hide dropdown when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!searchInput.contains(e.target) && !dropdown.contains(e.target)) {
+            dropdown.classList.add('d-none');
+        }
+    });
+}
+
+function renderAutocomplete(suggestions) {
+    const dropdown = document.getElementById('autocompleteDropdown');
+    dropdown.innerHTML = suggestions.map(suggestion => `
+        <div class="autocomplete-item" onclick="selectSuggestion('${suggestion.text}')">
+            <i class="fas fa-${suggestion.type === 'product' ? 'box' : 
+                                suggestion.type === 'brand' ? 'tag' : 'folder'} me-2"></i>
+            ${suggestion.text}
+            <small class="text-muted ms-2">${suggestion.category}</small>
+        </div>
+    `).join('');
+}
+
+function selectSuggestion(text) {
+    document.getElementById('searchInput').value = text;
+    document.getElementById('autocompleteDropdown').classList.add('d-none');
+    document.getElementById('searchForm').dispatchEvent(new Event('submit'));
+}
+</script>
+{% endblock %}

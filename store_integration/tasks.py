@@ -7,11 +7,14 @@ Celery tasks for real-time synchronization and background processing.
 from celery import shared_task
 from django.utils import timezone
 from django.conf import settings
-from .models import StoreIntegrationConfig, PriceHistory, SyncLog
+from .models import StoreIntegrationConfig, PriceHistory, SyncLog, ProductMapping
 from .services import StoreIntegrationService
 from core.models import Product, Shop
+from reviews.models import EngagementEvent
 import logging
 from datetime import timedelta
+from typing import Dict, List, Optional
+from django.db import transaction
 
 logger = logging.getLogger(__name__)
 
@@ -43,6 +46,245 @@ def sync_store_products(self, config_id: str, full_sync: bool = False):
             raise self.retry(countdown=countdown, exc=e)
         
         return {'success': False, 'error': str(e)}
+
+
+@shared_task(bind=True)
+def monitor_price_changes(self, config_id: str, product_ids: List[str] = None):
+    """
+    Monitor and record price changes for products in real-time.
+
+    Args:
+        config_id: StoreIntegrationConfig ID
+        product_ids: Optional list of specific product IDs to monitor
+    """
+    try:
+        config = StoreIntegrationConfig.objects.get(id=config_id, is_active=True)
+        integration = StoreIntegrationService.get_integration(config)
+
+        # Get products to monitor
+        if product_ids:
+            mappings = ProductMapping.objects.filter(
+                integration_config=config,
+                local_product_id__in=product_ids,
+                is_active=True
+            )
+        else:
+            mappings = ProductMapping.objects.filter(
+                integration_config=config,
+                is_active=True
+            )
+
+        price_changes = []
+
+        for mapping in mappings:
+            try:
+                # Fetch current product data
+                product_data = integration.fetch_product_details(
+                    mapping.external_product_id
+                )
+
+                # Get latest price history
+                latest_price = PriceHistory.objects.filter(
+                    product=mapping.local_product,
+                    shop=config.shop
+                ).first()
+
+                current_price = float(product_data.get('price', 0))
+                current_availability = product_data.get('is_available', False)
+
+                # Check for price or availability changes
+                price_changed = (
+                    not latest_price or
+                    latest_price.price != current_price or
+                    latest_price.is_available != current_availability
+                )
+
+                if price_changed:
+                    # Record new price history
+                    with transaction.atomic():
+                        price_history = PriceHistory.objects.create(
+                            product=mapping.local_product,
+                            shop=config.shop,
+                            price=current_price,
+                            original_price=product_data.get('original_price'),
+                            currency=product_data.get('currency', 'USD'),
+                            is_available=current_availability,
+                            stock_quantity=product_data.get('stock_quantity', 0)
+                        )
+
+                        # Calculate price change
+                        if latest_price:
+                            price_diff = current_price - latest_price.price
+                            change_percentage = (price_diff / latest_price.price) * 100 if latest_price.price > 0 else 0
+                        else:
+                            price_diff = 0
+                            change_percentage = 0
+
+                        price_changes.append({
+                            'product_id': str(mapping.local_product.id),
+                            'product_name': mapping.local_product.name,
+                            'old_price': latest_price.price if latest_price else 0,
+                            'new_price': current_price,
+                            'price_diff': price_diff,
+                            'change_percentage': change_percentage,
+                            'availability_changed': (
+                                not latest_price or
+                                latest_price.is_available != current_availability
+                            ),
+                            'new_availability': current_availability
+                        })
+
+                        # Update product price if it's the primary source
+                        if config.shop == mapping.local_product.shop:
+                            mapping.local_product.price = current_price
+                            mapping.local_product.is_active = current_availability
+                            mapping.local_product.save()
+
+                        # Create engagement event for price change
+                        EngagementEvent.objects.create(
+                            product=mapping.local_product,
+                            shop=config.shop,
+                            event_type='price_change',
+                            session_id='system',
+                            event_data={
+                                'old_price': latest_price.price if latest_price else 0,
+                                'new_price': current_price,
+                                'change_percentage': change_percentage,
+                                'availability_changed': price_changes[-1]['availability_changed']
+                            }
+                        )
+
+                # Update mapping sync status
+                mapping.last_sync_at = timezone.now()
+                mapping.sync_status = 'synced'
+                mapping.save()
+
+            except Exception as e:
+                logger.error(f"Error monitoring price for product {mapping.local_product.id}: {e}")
+                mapping.sync_status = 'error'
+                mapping.save()
+
+        # Trigger price alert notifications if there are significant changes
+        if price_changes:
+            send_price_alerts.delay(
+                config_id=str(config.id),
+                price_changes=price_changes
+            )
+
+        return {
+            'success': True,
+            'products_monitored': len(mappings),
+            'price_changes_detected': len(price_changes),
+            'changes': price_changes
+        }
+
+    except Exception as e:
+        logger.error(f"Error monitoring price changes for config {config_id}: {e}")
+        raise e
+
+
+@shared_task
+def send_price_alerts(config_id: str, price_changes: List[Dict]):
+    """
+    Send price alert notifications to relevant users.
+
+    Args:
+        config_id: StoreIntegrationConfig ID
+        price_changes: List of price change data
+    """
+    try:
+        config = StoreIntegrationConfig.objects.get(id=config_id)
+
+        # Filter significant price changes (>5% change or availability changes)
+        significant_changes = [
+            change for change in price_changes
+            if abs(change.get('change_percentage', 0)) > 5 or
+               change.get('availability_changed', False)
+        ]
+
+        if not significant_changes:
+            return {'success': True, 'message': 'No significant changes to alert'}
+
+        # Here you would implement actual notification logic
+        # (email, push notifications, etc.)
+        logger.info(f"Price alerts sent for {len(significant_changes)} products from {config.shop.name}")
+
+        return {
+            'success': True,
+            'alerts_sent': len(significant_changes),
+            'shop': config.shop.name
+        }
+
+    except Exception as e:
+        logger.error(f"Error sending price alerts: {e}")
+        raise e
+
+
+@shared_task
+def sync_inventory_levels(config_id: str):
+    """
+    Synchronize inventory levels for products from a specific store.
+
+    Args:
+        config_id: StoreIntegrationConfig ID
+    """
+    try:
+        config = StoreIntegrationConfig.objects.get(id=config_id, is_active=True)
+        integration = StoreIntegrationService.get_integration(config)
+
+        # Get all product mappings for this integration
+        mappings = ProductMapping.objects.filter(
+            integration_config=config,
+            is_active=True
+        )
+
+        updated_count = 0
+
+        for mapping in mappings:
+            try:
+                # Fetch current inventory data
+                inventory_data = integration.fetch_inventory_data(
+                    mapping.external_product_id
+                )
+
+                if inventory_data:
+                    # Update local product inventory
+                    product = mapping.local_product
+                    old_stock = getattr(product, 'stock_quantity', 0)
+                    new_stock = inventory_data.get('stock_quantity', 0)
+
+                    if hasattr(product, 'stock_quantity'):
+                        product.stock_quantity = new_stock
+                        product.save()
+
+                    # Record inventory change if significant
+                    if abs(old_stock - new_stock) > 0:
+                        EngagementEvent.objects.create(
+                            product=product,
+                            shop=config.shop,
+                            event_type='inventory_update',
+                            session_id='system',
+                            event_data={
+                                'old_stock': old_stock,
+                                'new_stock': new_stock,
+                                'stock_change': new_stock - old_stock
+                            }
+                        )
+
+                    updated_count += 1
+
+            except Exception as e:
+                logger.error(f"Error syncing inventory for product {mapping.local_product.id}: {e}")
+
+        return {
+            'success': True,
+            'products_updated': updated_count,
+            'shop': config.shop.name
+        }
+
+    except Exception as e:
+        logger.error(f"Error syncing inventory levels for config {config_id}: {e}")
+        raise e
 
 
 @shared_task

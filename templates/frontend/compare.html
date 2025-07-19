@@ -1,0 +1,817 @@
+{% extends 'frontend/base.html' %}
+{% load static %}
+
+{% block title %}Compare Products - E-Commerce Hub{% endblock %}
+
+{% block extra_css %}
+<style>
+    .comparison-header {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+        color: white;
+        padding: 2rem 0;
+        margin-bottom: 2rem;
+    }
+
+    .comparison-table {
+        background: white;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+        overflow: hidden;
+    }
+
+    .product-column {
+        min-width: 280px;
+        border-right: 1px solid var(--border-color);
+    }
+
+    .product-column:last-child {
+        border-right: none;
+    }
+
+    .product-header {
+        padding: 1.5rem;
+        text-align: center;
+        background: var(--light-bg);
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .product-image {
+        width: 150px;
+        height: 150px;
+        object-fit: cover;
+        border-radius: var(--border-radius);
+        margin-bottom: 1rem;
+    }
+
+    .product-name {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .product-price {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--primary-color);
+        margin-bottom: 0.5rem;
+    }
+
+    .original-price {
+        text-decoration: line-through;
+        color: var(--text-secondary);
+        font-size: 1rem;
+        margin-left: 0.5rem;
+    }
+
+    .discount-badge {
+        background: var(--danger-color);
+        color: white;
+        padding: 0.25rem 0.5rem;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        margin-left: 0.5rem;
+    }
+
+    .comparison-row {
+        display: flex;
+        border-bottom: 1px solid var(--border-color);
+        min-height: 60px;
+    }
+
+    .comparison-row:last-child {
+        border-bottom: none;
+    }
+
+    .row-label {
+        background: var(--light-bg);
+        padding: 1rem 1.5rem;
+        font-weight: 600;
+        min-width: 200px;
+        display: flex;
+        align-items: center;
+        border-right: 1px solid var(--border-color);
+    }
+
+    .row-value {
+        padding: 1rem 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        flex: 1;
+    }
+
+    .rating-display {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .rating-stars {
+        color: #fbbf24;
+    }
+
+    .ai-score {
+        background: linear-gradient(45deg, var(--primary-color), var(--primary-dark));
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 15px;
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+
+    .best-value {
+        background: rgba(16, 185, 129, 0.1);
+        border-left: 4px solid var(--success-color);
+    }
+
+    .feature-check {
+        color: var(--success-color);
+        font-size: 1.2rem;
+    }
+
+    .feature-cross {
+        color: var(--danger-color);
+        font-size: 1.2rem;
+    }
+
+    .shop-info {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .reliability-badge {
+        background: var(--success-color);
+        color: white;
+        padding: 0.2rem 0.5rem;
+        border-radius: 10px;
+        font-size: 0.8rem;
+    }
+
+    .comparison-insights {
+        background: white;
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+        box-shadow: var(--shadow-sm);
+        margin-bottom: 2rem;
+    }
+
+    .insight-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem;
+        background: var(--light-bg);
+        border-radius: var(--border-radius);
+        margin-bottom: 0.5rem;
+    }
+
+    .insight-icon {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.9rem;
+    }
+
+    .insight-icon.price {
+        background: rgba(16, 185, 129, 0.2);
+        color: var(--success-color);
+    }
+
+    .insight-icon.rating {
+        background: rgba(245, 158, 11, 0.2);
+        color: var(--warning-color);
+    }
+
+    .insight-icon.ai {
+        background: rgba(37, 99, 235, 0.2);
+        color: var(--primary-color);
+    }
+
+    .add-product-btn {
+        border: 2px dashed var(--border-color);
+        background: var(--light-bg);
+        color: var(--text-secondary);
+        padding: 2rem;
+        text-align: center;
+        border-radius: var(--border-radius);
+        transition: all 0.3s ease;
+        cursor: pointer;
+        min-height: 300px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .add-product-btn:hover {
+        border-color: var(--primary-color);
+        color: var(--primary-color);
+        background: rgba(37, 99, 235, 0.05);
+    }
+
+    .remove-product {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: var(--danger-color);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .product-column:hover .remove-product {
+        opacity: 1;
+    }
+
+    .comparison-actions {
+        background: white;
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+        box-shadow: var(--shadow-sm);
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+
+    @media (max-width: 768px) {
+        .comparison-table {
+            overflow-x: auto;
+        }
+        
+        .product-column {
+            min-width: 250px;
+        }
+        
+        .row-label {
+            min-width: 150px;
+            font-size: 0.9rem;
+        }
+        
+        .row-value {
+            font-size: 0.9rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Comparison Header -->
+<div class="comparison-header">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col">
+                <h1><i class="fas fa-balance-scale me-2"></i>Product Comparison</h1>
+                <p class="mb-0">Compare products side by side to make informed decisions</p>
+            </div>
+            <div class="col-auto">
+                <button class="btn btn-light" onclick="window.print()">
+                    <i class="fas fa-print me-2"></i>Print Comparison
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Comparison Insights -->
+    <div id="comparisonInsights" class="comparison-insights" style="display: none;">
+        <h5><i class="fas fa-lightbulb me-2"></i>Comparison Insights</h5>
+        <div id="insightsList"></div>
+    </div>
+
+    <!-- Comparison Actions -->
+    <div class="comparison-actions">
+        <div class="d-flex justify-content-center align-items-center gap-3 flex-wrap">
+            <button id="addProductBtn" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Add Product to Compare
+            </button>
+            <button id="clearAllBtn" class="btn btn-outline-danger">
+                <i class="fas fa-trash me-2"></i>Clear All
+            </button>
+            <button id="shareComparisonBtn" class="btn btn-outline-info">
+                <i class="fas fa-share me-2"></i>Share Comparison
+            </button>
+        </div>
+    </div>
+
+    <!-- Comparison Table -->
+    <div class="comparison-table">
+        <div id="comparisonContent">
+            <div class="text-center p-5">
+                <i class="fas fa-balance-scale fa-3x text-muted mb-3"></i>
+                <h4>No Products to Compare</h4>
+                <p class="text-muted">Add products to start comparing their features and prices</p>
+                <button class="btn btn-primary" onclick="document.getElementById('addProductBtn').click()">
+                    <i class="fas fa-plus me-2"></i>Add Your First Product
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Product Modal -->
+<div class="modal fade" id="addProductModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Product to Comparison</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <input type="text" id="productSearchInput" class="form-control" 
+                           placeholder="Search for products to compare...">
+                </div>
+                <div id="productSearchResults">
+                    <div class="text-center text-muted">
+                        Start typing to search for products
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let comparisonProducts = [];
+let searchTimeout;
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Load products from URL parameters
+    loadProductsFromURL();
+    
+    // Setup event listeners
+    setupEventListeners();
+});
+
+function loadProductsFromURL() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const productIds = urlParams.get('product_ids');
+    
+    if (productIds) {
+        const ids = productIds.split(',');
+        loadProductsForComparison(ids);
+    }
+}
+
+function loadProductsForComparison(productIds) {
+    if (productIds.length === 0) return;
+    
+    fetch(`${window.API_BASE_URL}compare_products/?product_ids=${productIds.join(',')}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                comparisonProducts = data.products;
+                renderComparison();
+                renderInsights(data.comparison_insights);
+            } else {
+                utils.showAlert('Failed to load products for comparison', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error loading comparison:', error);
+            utils.showAlert('Failed to load products for comparison', 'error');
+        });
+}
+
+function renderComparison() {
+    const container = document.getElementById('comparisonContent');
+    
+    if (comparisonProducts.length === 0) {
+        container.innerHTML = `
+            <div class="text-center p-5">
+                <i class="fas fa-balance-scale fa-3x text-muted mb-3"></i>
+                <h4>No Products to Compare</h4>
+                <p class="text-muted">Add products to start comparing their features and prices</p>
+                <button class="btn btn-primary" onclick="document.getElementById('addProductBtn').click()">
+                    <i class="fas fa-plus me-2"></i>Add Your First Product
+                </button>
+            </div>
+        `;
+        return;
+    }
+    
+    // Find best values for highlighting
+    const bestPrice = Math.min(...comparisonProducts.map(p => p.price));
+    const bestRating = Math.max(...comparisonProducts.map(p => p.rating));
+    const bestAIScore = Math.max(...comparisonProducts.map(p => p.ai_rating_score || 0));
+    
+    container.innerHTML = `
+        <div style="display: flex; overflow-x: auto;">
+            <!-- Feature Labels Column -->
+            <div style="min-width: 200px;">
+                <div class="row-label" style="height: 300px; display: flex; align-items: center; justify-content: center;">
+                    <strong>Product</strong>
+                </div>
+                <div class="comparison-row">
+                    <div class="row-label">Price</div>
+                </div>
+                <div class="comparison-row">
+                    <div class="row-label">Customer Rating</div>
+                </div>
+                <div class="comparison-row">
+                    <div class="row-label">AI Score</div>
+                </div>
+                <div class="comparison-row">
+                    <div class="row-label">Store</div>
+                </div>
+                <div class="comparison-row">
+                    <div class="row-label">Availability</div>
+                </div>
+                <div class="comparison-row">
+                    <div class="row-label">Shipping</div>
+                </div>
+                <div class="comparison-row">
+                    <div class="row-label">Return Policy</div>
+                </div>
+                <div class="comparison-row">
+                    <div class="row-label">Actions</div>
+                </div>
+            </div>
+            
+            <!-- Product Columns -->
+            ${comparisonProducts.map(product => `
+                <div class="product-column position-relative">
+                    <button class="remove-product" onclick="removeProduct('${product.id}')">
+                        <i class="fas fa-times"></i>
+                    </button>
+                    
+                    <!-- Product Header -->
+                    <div class="product-header" style="height: 300px;">
+                        <img src="${product.image_url || '/static/images/product-placeholder.jpg'}" 
+                             class="product-image" 
+                             alt="${product.name}">
+                        <h6 class="product-name">${product.name}</h6>
+                        <div class="product-price ${product.price === bestPrice ? 'text-success' : ''}">
+                            ${utils.formatCurrency(product.price)}
+                            ${product.original_price ? 
+                                `<span class="original-price">${utils.formatCurrency(product.original_price)}</span>
+                                 <span class="discount-badge">-${product.discount_percentage}%</span>` : ''}
+                        </div>
+                    </div>
+                    
+                    <!-- Price Row -->
+                    <div class="comparison-row ${product.price === bestPrice ? 'best-value' : ''}">
+                        <div class="row-value">
+                            <div class="text-center">
+                                <div class="fw-bold">${utils.formatCurrency(product.price)}</div>
+                                ${product.price === bestPrice ? 
+                                    '<small class="text-success"><i class="fas fa-crown me-1"></i>Best Price</small>' : ''}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Rating Row -->
+                    <div class="comparison-row ${product.rating === bestRating ? 'best-value' : ''}">
+                        <div class="row-value">
+                            <div class="rating-display">
+                                <div class="rating-stars">
+                                    ${'★'.repeat(Math.floor(product.rating))}${'☆'.repeat(5-Math.floor(product.rating))}
+                                </div>
+                                <span>(${product.rating})</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- AI Score Row -->
+                    <div class="comparison-row ${(product.ai_rating_score || 0) === bestAIScore ? 'best-value' : ''}">
+                        <div class="row-value">
+                            <div class="ai-score">
+                                <i class="fas fa-brain me-1"></i>
+                                ${product.ai_rating_score || 'N/A'}/5
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Store Row -->
+                    <div class="comparison-row">
+                        <div class="row-value">
+                            <div class="shop-info">
+                                <span>${product.shop.name}</span>
+                                <span class="reliability-badge">${product.shop.reliability_score}/5</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Availability Row -->
+                    <div class="comparison-row">
+                        <div class="row-value">
+                            <span class="badge ${product.is_available ? 'bg-success' : 'bg-danger'}">
+                                ${product.is_available ? 'In Stock' : 'Out of Stock'}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <!-- Shipping Row -->
+                    <div class="comparison-row">
+                        <div class="row-value">
+                            <div class="text-center">
+                                <div>${product.shipping_info?.method || 'Standard'}</div>
+                                <small class="text-muted">${product.shipping_info?.cost || 'Free'}</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Return Policy Row -->
+                    <div class="comparison-row">
+                        <div class="row-value">
+                            <small>${product.return_policy || '30-day return'}</small>
+                        </div>
+                    </div>
+                    
+                    <!-- Actions Row -->
+                    <div class="comparison-row">
+                        <div class="row-value">
+                            <div class="d-flex flex-column gap-2">
+                                <a href="/products/${product.id}/" class="btn btn-sm btn-primary">
+                                    View Details
+                                </a>
+                                <button class="btn btn-sm btn-outline-success" onclick="saveProduct('${product.id}')">
+                                    <i class="fas fa-heart"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('')}
+            
+            <!-- Add Product Column -->
+            ${comparisonProducts.length < 5 ? `
+                <div class="product-column">
+                    <div class="add-product-btn" onclick="document.getElementById('addProductBtn').click()">
+                        <i class="fas fa-plus fa-3x mb-3"></i>
+                        <h5>Add Another Product</h5>
+                        <p class="text-muted">Compare up to 5 products</p>
+                    </div>
+                </div>
+            ` : ''}
+        </div>
+    `;
+}
+
+function renderInsights(insights) {
+    const container = document.getElementById('comparisonInsights');
+    const list = document.getElementById('insightsList');
+    
+    if (!insights || insights.length === 0) {
+        container.style.display = 'none';
+        return;
+    }
+    
+    list.innerHTML = insights.map(insight => {
+        let iconClass = 'info';
+        if (insight.toLowerCase().includes('price')) iconClass = 'price';
+        else if (insight.toLowerCase().includes('rating') || insight.toLowerCase().includes('rated')) iconClass = 'rating';
+        else if (insight.toLowerCase().includes('ai') || insight.toLowerCase().includes('score')) iconClass = 'ai';
+        
+        return `
+            <div class="insight-item">
+                <div class="insight-icon ${iconClass}">
+                    <i class="fas fa-${iconClass === 'price' ? 'dollar-sign' : 
+                                      iconClass === 'rating' ? 'star' : 
+                                      iconClass === 'ai' ? 'brain' : 'info'}"></i>
+                </div>
+                <span>${insight}</span>
+            </div>
+        `;
+    }).join('');
+    
+    container.style.display = 'block';
+}
+
+function setupEventListeners() {
+    // Add product button
+    document.getElementById('addProductBtn').addEventListener('click', function() {
+        if (comparisonProducts.length >= 5) {
+            utils.showAlert('You can compare up to 5 products at a time', 'warning');
+            return;
+        }
+        
+        const modal = new bootstrap.Modal(document.getElementById('addProductModal'));
+        modal.show();
+    });
+    
+    // Clear all button
+    document.getElementById('clearAllBtn').addEventListener('click', function() {
+        if (confirm('Are you sure you want to clear all products from comparison?')) {
+            comparisonProducts = [];
+            renderComparison();
+            document.getElementById('comparisonInsights').style.display = 'none';
+            updateURL();
+        }
+    });
+    
+    // Share comparison button
+    document.getElementById('shareComparisonBtn').addEventListener('click', function() {
+        if (comparisonProducts.length === 0) {
+            utils.showAlert('Add products to comparison before sharing', 'warning');
+            return;
+        }
+        
+        const url = window.location.href;
+        if (navigator.share) {
+            navigator.share({
+                title: 'Product Comparison',
+                text: `Compare ${comparisonProducts.length} products`,
+                url: url
+            });
+        } else {
+            navigator.clipboard.writeText(url);
+            utils.showAlert('Comparison link copied to clipboard', 'success');
+        }
+    });
+    
+    // Product search
+    document.getElementById('productSearchInput').addEventListener('input', function() {
+        const query = this.value.trim();
+        
+        clearTimeout(searchTimeout);
+        
+        if (query.length < 2) {
+            document.getElementById('productSearchResults').innerHTML = 
+                '<div class="text-center text-muted">Start typing to search for products</div>';
+            return;
+        }
+        
+        searchTimeout = setTimeout(() => {
+            searchProducts(query);
+        }, 300);
+    });
+}
+
+function searchProducts(query) {
+    const resultsContainer = document.getElementById('productSearchResults');
+    resultsContainer.innerHTML = '<div class="text-center"><div class="spinner-border text-primary" role="status"></div></div>';
+    
+    fetch(`${window.API_BASE_URL}search_products/?q=${encodeURIComponent(query)}&page_size=10`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.results) {
+                renderSearchResults(data.results);
+            } else {
+                resultsContainer.innerHTML = '<div class="text-center text-muted">No products found</div>';
+            }
+        })
+        .catch(error => {
+            console.error('Search error:', error);
+            resultsContainer.innerHTML = '<div class="text-center text-danger">Search failed</div>';
+        });
+}
+
+function renderSearchResults(products) {
+    const container = document.getElementById('productSearchResults');
+    
+    // Filter out products already in comparison
+    const availableProducts = products.filter(p => 
+        !comparisonProducts.some(cp => cp.id === p.id)
+    );
+    
+    if (availableProducts.length === 0) {
+        container.innerHTML = '<div class="text-center text-muted">All found products are already in comparison</div>';
+        return;
+    }
+    
+    container.innerHTML = availableProducts.map(product => `
+        <div class="d-flex align-items-center p-3 border-bottom cursor-pointer" 
+             onclick="addProductToComparison('${product.id}')">
+            <img src="${product.image_url || '/static/images/product-placeholder.jpg'}" 
+                 class="rounded me-3" 
+                 style="width: 60px; height: 60px; object-fit: cover;"
+                 alt="${product.name}">
+            <div class="flex-grow-1">
+                <h6 class="mb-1">${product.name}</h6>
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="fw-bold text-primary">${utils.formatCurrency(product.price)}</span>
+                    <div class="rating-stars small">
+                        ${'★'.repeat(Math.floor(product.rating))}${'☆'.repeat(5-Math.floor(product.rating))}
+                        <span class="text-muted ms-1">(${product.rating})</span>
+                    </div>
+                </div>
+                <small class="text-muted">${product.shop.name}</small>
+            </div>
+            <button class="btn btn-sm btn-primary">
+                <i class="fas fa-plus"></i>
+            </button>
+        </div>
+    `).join('');
+}
+
+function addProductToComparison(productId) {
+    if (comparisonProducts.length >= 5) {
+        utils.showAlert('You can compare up to 5 products at a time', 'warning');
+        return;
+    }
+    
+    // Close modal
+    bootstrap.Modal.getInstance(document.getElementById('addProductModal')).hide();
+    
+    // Load product details and add to comparison
+    fetch(`${window.API_BASE_URL}product_details/?product_id=${productId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                comparisonProducts.push(data.product);
+                renderComparison();
+                updateURL();
+                
+                // Reload insights
+                if (comparisonProducts.length >= 2) {
+                    loadComparisonInsights();
+                }
+                
+                utils.showAlert('Product added to comparison', 'success');
+            } else {
+                utils.showAlert('Failed to add product to comparison', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error adding product:', error);
+            utils.showAlert('Failed to add product to comparison', 'error');
+        });
+}
+
+function removeProduct(productId) {
+    comparisonProducts = comparisonProducts.filter(p => p.id !== productId);
+    renderComparison();
+    updateURL();
+    
+    if (comparisonProducts.length >= 2) {
+        loadComparisonInsights();
+    } else {
+        document.getElementById('comparisonInsights').style.display = 'none';
+    }
+    
+    utils.showAlert('Product removed from comparison', 'info');
+}
+
+function saveProduct(productId) {
+    if (!{{ user.is_authenticated|yesno:"true,false" }}) {
+        utils.showAlert('Please login to save products', 'warning');
+        return;
+    }
+    
+    fetch(`${window.API_BASE_URL}track_engagement/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': window.CSRF_TOKEN
+        },
+        body: JSON.stringify({
+            event_type: 'save_product',
+            product_id: productId
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            utils.showAlert('Product saved to your wishlist', 'success');
+        }
+    });
+}
+
+function loadComparisonInsights() {
+    const productIds = comparisonProducts.map(p => p.id);
+    
+    fetch(`${window.API_BASE_URL}compare_products/?product_ids=${productIds.join(',')}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.comparison_insights) {
+                renderInsights(data.comparison_insights);
+            }
+        })
+        .catch(error => {
+            console.error('Error loading insights:', error);
+        });
+}
+
+function updateURL() {
+    if (comparisonProducts.length > 0) {
+        const productIds = comparisonProducts.map(p => p.id).join(',');
+        const newURL = `${window.location.pathname}?product_ids=${productIds}`;
+        window.history.replaceState({}, '', newURL);
+    } else {
+        window.history.replaceState({}, '', window.location.pathname);
+    }
+}
+</script>
+{% endblock %}
