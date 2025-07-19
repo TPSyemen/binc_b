@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'recommendations',
     'comparison',
     'realtime',  # إضافة تطبيق الاتصالات في الوقت الحقيقي
+    'store_integration',  # Multi-store integration system
 
     # Channels
     'channels',

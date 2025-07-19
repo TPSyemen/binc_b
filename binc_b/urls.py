@@ -43,6 +43,7 @@ urlpatterns = [
     path('api/user/', include('core.urls_favorites')),
     path('api/user/preferences/', include('core.urls_preferences')),
     path('api/verification/', include('core.urls_verification')),
+    path('', include('store_integration.urls')),  # Store integration endpoints
     path('login/', lambda r: open_dashboard_page(r, 'login.html'), name='login'),
     path('api/shops/admin/', AdminShopListView.as_view(), name='admin-shop-list'),
     path('brands-dashboard/', lambda r: open_dashboard_page(r, 'brands_dashboard.html'), name='brands-dashboard'),

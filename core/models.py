@@ -17,6 +17,7 @@ from .models_preferences import UserPreference, BrandPreference  # Import prefer
 from django.conf import settings
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+import json
 
 #----------------------------------------------------------------
 #           User model
@@ -181,6 +182,83 @@ class Shop(models.Model):
         default=False,
         verbose_name="Is Banned",
         help_text="Indicates whether the shop is banned."
+    )
+
+    # Multi-store integration fields
+    SHOP_TYPE_CHOICES = (
+        ('internal', 'Internal Shop'),
+        ('external', 'External Store'),
+        ('marketplace', 'Marketplace'),
+        ('api_integrated', 'API Integrated'),
+    )
+
+    INTEGRATION_STATUS_CHOICES = (
+        ('active', 'Active'),
+        ('inactive', 'Inactive'),
+        ('error', 'Error'),
+        ('pending', 'Pending Setup'),
+    )
+
+    shop_type = models.CharField(
+        max_length=20,
+        choices=SHOP_TYPE_CHOICES,
+        default='internal',
+        verbose_name="Shop Type",
+        help_text="Type of shop for integration purposes"
+    )
+    integration_status = models.CharField(
+        max_length=20,
+        choices=INTEGRATION_STATUS_CHOICES,
+        default='active',
+        verbose_name="Integration Status"
+    )
+    external_shop_id = models.CharField(
+        max_length=200,
+        blank=True,
+        null=True,
+        verbose_name="External Shop ID",
+        help_text="ID from external platform"
+    )
+    api_endpoint = models.URLField(
+        blank=True,
+        null=True,
+        verbose_name="API Endpoint",
+        help_text="Base API URL for external integration"
+    )
+
+    # Store performance metrics
+    reliability_score = models.DecimalField(
+        max_digits=3,
+        decimal_places=2,
+        default=Decimal('5.0'),
+        validators=[MinValueValidator(Decimal('0')), MaxValueValidator(Decimal('5'))],
+        verbose_name="Reliability Score"
+    )
+    average_delivery_days = models.PositiveIntegerField(
+        default=3,
+        verbose_name="Average Delivery Days"
+    )
+    return_policy_days = models.PositiveIntegerField(
+        default=30,
+        verbose_name="Return Policy Days"
+    )
+    customer_service_rating = models.DecimalField(
+        max_digits=3,
+        decimal_places=2,
+        default=Decimal('5.0'),
+        validators=[MinValueValidator(Decimal('0')), MaxValueValidator(Decimal('5'))],
+        verbose_name="Customer Service Rating"
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="Created At"
+    )
+    last_sync_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name="Last Sync At",
+        help_text="Last time data was synchronized from external source"
     )
 
     def __str__(self):
