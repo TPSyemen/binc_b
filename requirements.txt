@@ -18,8 +18,9 @@ dj-database-url==1.2.0
 # psycopg2-binary==2.9.9  # غير متوافق مع Python 3.13
 psycopg==3.1.18
 nltk==3.8.1
-# implicit==0.4.8
-# تم التعليق مؤقتاً بسبب مشاكل التوافق مع Python 3.13 على Render
+# Alternative to implicit for collaborative filtering
+scipy==1.14.1
+# implicit==0.4.8  # Disabled due to Python 3.13 compatibility issues
 
 # ./render_start.sh
 # ./render_build.sh

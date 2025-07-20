@@ -1,0 +1,17 @@
+# Minimal requirements for development
+Django==5.1
+djangorestframework==3.15.2
+django-cors-headers==4.4.0
+Pillow==10.4.0
+python-decouple==3.8
+dj-database-url==2.2.0
+psycopg2-binary==2.9.9
+
+# AI and ML libraries (optional)
+scikit-learn==1.5.1
+scipy==1.14.1
+numpy==2.0.1
+nltk==3.9.1
+
+# Development tools
+django-debug-toolbar==4.4.6

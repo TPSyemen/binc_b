@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ report_title }}</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+            @frame footer {
+                -pdf-frame-content: footerContent;
+                bottom: 1cm;
+                left: 0cm;
+                width: 100%;
+                height: 1cm;
+            }
+        }
+        body {
+            font-family: 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif;
+            font-size: 12pt;
+            text-align: left; /* Adjust for LTR */
+        }
+        h1, h2, h3 {
+            color: #2c3e50;
+            text-align: center;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left; /* Adjust for LTR */
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        .header, .footer {
+            width: 100%;
+            text-align: center;
+            font-size: 10pt;
+            color: #7f8c8d;
+        }
+        .page-break {
+            page-break-before: always;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>{{ shop_name }}</h1>
+        <h2>{{ report_title }}</h2>
+        <p>Report Date: {{ report_date }}</p>
+    </div>
+
+    <h3>Product Performance Summary</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Product Name</th>
+                <th>Category</th>
+                <th>Brand</th>
+                <th>Price</th>
+                <th>Original Price</th>
+                <th>Discount (%)</th>
+                <th>Rating</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for product in products %}
+            <tr>
+                <td>{{ product.name }}</td>
+                <td>{{ product.category.name|default:"N/A" }}</td>
+                <td>{{ product.brand.name|default:"N/A" }}</td>
+                <td>{{ product.price }} {{ settings.CURRENCY_SYMBOL }}</td>
+                <td>
+                    {% if product.original_price %}
+                        {{ product.original_price }} {{ settings.CURRENCY_SYMBOL }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+                <td>{{ product.discount_percentage|floatformat:0 }}%</td>
+                <td>{{ product.rating|floatformat:1 }}</td>
+                <td>
+                    {% if product.is_active %}
+                        Active
+                    {% else %}
+                        Inactive
+                    {% endif %}
+                    {% if product.is_banned %}
+                        (Banned)
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="page-break"></div>
+
+    <h3>Performance Overview</h3>
+    <p>This page can contain summary charts or descriptive text on product performance trends.</p>
+    <p>For example: rating distribution, most profitable products, or low stock items.</p>
+
+    <div id="footerContent" style="text-align: center;">
+        <p>Page <pdf:pagenumber /> of <pdf:pagecount /> - Your Store Report from Best in Click</p>
+    </div>
+</body>
+</html>

@@ -18,11 +18,20 @@ try:
     from sklearn.feature_extraction.text import TfidfVectorizer
     from sklearn.metrics.pairwise import cosine_similarity
     from sklearn.preprocessing import MinMaxScaler
-    from scipy.sparse import csr_matrix, vstack
+    from sklearn.decomposition import TruncatedSVD
+    from sklearn.neighbors import NearestNeighbors
     SKLEARN_AVAILABLE = True
 except ImportError:
     logger.warning("scikit-learn not available. Some recommendation features will be limited.")
     SKLEARN_AVAILABLE = False
+
+try:
+    from scipy.sparse import csr_matrix, vstack
+    import scipy.sparse as sp
+    SCIPY_AVAILABLE = True
+except ImportError:
+    logger.warning("scipy not available. Some matrix operations will be limited.")
+    SCIPY_AVAILABLE = False
 
 try:
     from implicit.als import AlternatingLeastSquares
@@ -61,9 +70,15 @@ class AIRecommendationService:
     """
 
     def __init__(self):
+        # Collaborative filtering models
         self.als_model = None
+        self.svd_model = None  # Alternative to ALS using scikit-learn
+        self.knn_model = None  # K-Nearest Neighbors for collaborative filtering
+
+        # Content-based filtering
         self.tfidf_vectorizer = None
-        # تهيئة القواميس/المصفوفات الافتراضية لتفادي الأخطاء
+
+        # Data structures
         self.user_to_idx = {}
         self.product_to_idx = {}
         self.idx_to_product = {}
@@ -118,14 +133,14 @@ class AIRecommendationService:
 
     def train_collaborative_filtering(self, user_item_interactions):
         """
-        Train a collaborative filtering model using Alternating Least Squares.
+        Train a collaborative filtering model using available libraries.
+        Uses implicit ALS if available, otherwise falls back to scikit-learn alternatives.
 
         Args:
             user_item_interactions: DataFrame with columns [user_id, product_id, score]
         """
-        # Check if implicit library is available
-        if not IMPLICIT_AVAILABLE:
-            logger.warning("Cannot train collaborative filtering model: implicit library not available")
+        if not SKLEARN_AVAILABLE and not IMPLICIT_AVAILABLE:
+            logger.warning("Cannot train collaborative filtering model: no suitable libraries available")
             return False
 
         try:
@@ -147,19 +162,40 @@ class AIRecommendationService:
             product_indices = np.array([product_to_idx[product] for product in product_ids])
 
             # Create sparse matrix
-            user_item_matrix = csr_matrix(
-                (scores, (user_indices, product_indices)),
-                shape=(len(unique_users), len(unique_products))
-            )
+            if SCIPY_AVAILABLE:
+                user_item_matrix = csr_matrix(
+                    (scores, (user_indices, product_indices)),
+                    shape=(len(unique_users), len(unique_products))
+                )
+            else:
+                # Fallback to dense matrix if scipy not available
+                user_item_matrix = np.zeros((len(unique_users), len(unique_products)))
+                user_item_matrix[user_indices, product_indices] = scores
 
-            # Train ALS model
-            self.als_model = AlternatingLeastSquares(
-                factors=100,  # Increased from 50 for better representation
-                regularization=0.01,
-                iterations=20,  # Increased from 15 for better convergence
-                calculate_training_loss=True
-            )
-            self.als_model.fit(user_item_matrix)
+            # Try to train with implicit ALS first
+            if IMPLICIT_AVAILABLE:
+                self.als_model = AlternatingLeastSquares(
+                    factors=100,
+                    regularization=0.01,
+                    iterations=20,
+                    calculate_training_loss=True
+                )
+                self.als_model.fit(user_item_matrix)
+                logger.info("Trained collaborative filtering with implicit ALS")
+
+            # Fallback to scikit-learn alternatives
+            elif SKLEARN_AVAILABLE:
+                # Use TruncatedSVD for matrix factorization
+                self.svd_model = TruncatedSVD(n_components=50, random_state=42)
+                if SCIPY_AVAILABLE and hasattr(user_item_matrix, 'toarray'):
+                    user_features = self.svd_model.fit_transform(user_item_matrix)
+                else:
+                    user_features = self.svd_model.fit_transform(user_item_matrix)
+
+                # Use KNN for finding similar users/items
+                self.knn_model = NearestNeighbors(n_neighbors=10, metric='cosine')
+                self.knn_model.fit(user_features)
+                logger.info("Trained collaborative filtering with scikit-learn SVD + KNN")
 
             # Save mappings as attributes
             self.user_to_idx = user_to_idx

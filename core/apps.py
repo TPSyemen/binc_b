@@ -14,29 +14,17 @@ class CoreConfig(AppConfig):
     def ready(self):
         """
         Run when the app is ready.
-        This is a good place to create or update the default Site object.
-        Avoids import errors by importing Site inside the method.
+        Import signals and other initialization code here.
+        Avoid database queries during app initialization.
         """
+        # Import signals to ensure they are registered
         try:
-            from django.contrib.sites.models import Site
-
-            # Try to get or create the default site
-            site, created = Site.objects.get_or_create(
-                id=1,
-                defaults={
-                    'domain': 'binc-b-1.onrender.com',
-                    'name': 'Best In Click'
-                }
-            )
-
-            # If the site exists but has different values, update it
-            if not created and (site.domain != 'binc-b-1.onrender.com' or site.name != 'Best In Click'):
-                site.domain = 'binc-b-1.onrender.com'
-                site.name = 'Best In Click'
-                site.save()
-        except Exception:
-            # This can happen during migrations or if the sites table doesn't exist yet
+            import core.signals
+        except ImportError:
             pass
+
+        # Note: Site configuration moved to management command
+        # to avoid database access during app initialization
 
         # إضافة استيراد الإشارة الخاصة بإنشاء Owner تلقائيًا
         from . import signals_owner

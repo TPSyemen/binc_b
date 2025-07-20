@@ -113,6 +113,13 @@ class Owner(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='owner_profile')
     email = models.EmailField(unique=True, verbose_name="Email")
     password = models.CharField(max_length=255, verbose_name="Password")
+    business_license = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+        verbose_name="Business License",
+        help_text="رقم الرخصة التجارية لصاحب المتجر"
+    )
 
     last_login_date = models.DateTimeField(
         default=timezone.now,

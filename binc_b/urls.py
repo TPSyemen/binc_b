@@ -8,7 +8,13 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from .views import api_index, apps_dashboard
+from .views import (
+    api_index, apps_dashboard, home_view, register_view, login_view, logout_view,
+    products_view, search_view, recommendations_view, compare_view,
+    stores_view, wishlist_view, profile_view, reviews_view, notifications_view,
+    product_detail_view, store_detail_view, write_review_view, edit_profile_view,
+    account_settings_view, forgot_password_view
+)
 from django.http import HttpResponse, JsonResponse
 from core.views_site_admin import AdminShopListView
 
@@ -17,8 +23,33 @@ def health_check(request):
 
 urlpatterns = [
     path('healthz/', health_check, name='health-check'),
-    path('', apps_dashboard, name='apps-dashboard'),
-    path('apps-dashboard/', apps_dashboard, name='apps-dashboard-redirect'),
+    path('', home_view, name='home'),
+
+    # Authentication URLs
+    path('register/', register_view, name='register'),
+    path('login/', login_view, name='login'),
+    path('logout/', logout_view, name='logout'),
+    path('forgot-password/', forgot_password_view, name='forgot_password'),
+
+    # Main site URLs
+    path('products/', products_view, name='products'),
+    path('products/<int:product_id>/', product_detail_view, name='product_detail'),
+    path('search/', search_view, name='search'),
+    path('recommendations/', recommendations_view, name='recommendations'),
+    path('compare/', compare_view, name='compare'),
+    path('stores/', stores_view, name='stores'),
+    path('stores/<int:store_id>/', store_detail_view, name='store_detail'),
+    path('wishlist/', wishlist_view, name='wishlist'),
+    path('profile/', profile_view, name='profile'),
+    path('profile/edit/', edit_profile_view, name='edit_profile'),
+    path('reviews/', reviews_view, name='reviews'),
+    path('reviews/write/', write_review_view, name='write_review'),
+    path('notifications/', notifications_view, name='notifications'),
+    path('account/settings/', account_settings_view, name='account_settings'),
+
+    # Dashboard URLs
+    path('apps-dashboard/', apps_dashboard, name='apps-dashboard'),
+    path('dashboard/', apps_dashboard, name='dashboard'),
     path('users-dashboard/', lambda r: open_dashboard_page(r, 'users_dashboard.html'), name='users-dashboard'),
     path('products-dashboard/', lambda r: open_dashboard_page(r, 'products_dashboard.html'), name='products-dashboard'),
     path('shops-dashboard/', lambda r: open_dashboard_page(r, 'shops_dashboard.html'), name='shops-dashboard'),

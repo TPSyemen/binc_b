@@ -9,7 +9,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
 from django.core.cache import cache
-from django.db.models import Q, Avg, Count, F, models
+from django.db.models import Q, Avg, Count, F
+from django.db import models
 from django.utils import timezone
 from datetime import timedelta
 from core.models import Product, Category, Brand, Shop, User

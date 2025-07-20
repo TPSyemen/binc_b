@@ -185,115 +185,7 @@ class ShopSerializer(serializers.ModelSerializer):
         return int((completed / len(required_fields)) * 100)
 
 
-#----------------------------------------------------------------
-#                   ProductList Serializer
-#----------------------------------------------------------------
-class ProductListSerializer(serializers.ModelSerializer):
 
-    category = CategorySerializer(read_only=True)
-    discount = serializers.SerializerMethodField()
-    rating = serializers.FloatField(read_only=True)
-    shop_name = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Product
-        fields = ('id', 'name', 'price', 'original_price', 'discount',
-                  'category', 'image_url', 'rating', 'likes','dislikes',
-                  'neutrals', 'is_active', 'shop_name', 'views')
-
-    def get_discount(self, obj):
-        if obj.original_price and obj.price and obj.original_price > obj.price:
-            return int(((obj.original_price - obj.price) / obj.original_price) * 100)
-        return 0
-
-    def get_shop_name(self, obj):
-        if obj.shop:
-            return obj.shop.name
-        return None
-
-#----------------------------------------------------------------
-#                   Brand Serializer
-#----------------------------------------------------------------
-class BrandSerializer(serializers.ModelSerializer):
-    product_count = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Brand
-        fields = ('id', 'name', 'popularity', 'rating', 'likes', 'dislikes', 'product_count')
-
-    def get_product_count(self, obj):
-        return obj.products.count()
-
-#----------------------------------------------------------------
-#                   Product Detail Serializer
-#----------------------------------------------------------------
-class ProductDetailSerializer(serializers.ModelSerializer):
-    reviews = ReviewSerializer(many=True, read_only=True, required=False, default=list)
-    category = CategorySerializer(read_only=True)
-    brand = BrandSerializer(read_only=True)
-    shop = ShopOwnerSerializer(read_only=True)
-    discount = serializers.SerializerMethodField()
-    rating = serializers.FloatField(read_only=True, required=False)
-    category_id = serializers.UUIDField(write_only=True, required=True, allow_null=False)
-    brand_id = serializers.UUIDField(write_only=True, required=True, allow_null=False)
-
-    def get_shop_name(self, obj):
-        if obj.shop:
-            return obj.shop.name
-        return None
-
-    class Meta:
-        model = Product
-        fields = ('id', 'name', 'description', 'price', 'original_price',
-                  'discount', 'category', 'category_id', 'brand', 'brand_id', 'shop', 'image_url', 'rating', 'is_active', 'created_at',
-                  'reviews', 'video_url', 'release_date', 'likes', 'dislikes', 'neutrals',
-                  'views', 'is_banned')
-        extra_kwargs = {
-            'brand': {'required': False},
-            'rating': {'read_only': True},  # جعل حقل التقييم للقراءة فقط
-            'original_price': {'required': False},
-            'is_active': {'default': True}
-        }
-
-    def get_discount(self, obj):
-        if obj.original_price and obj.price and obj.original_price > obj.price:
-            return int(((obj.original_price - obj.price) / obj.original_price) * 100)
-        return 0
-
-    def to_internal_value(self, data):
-        # دعم brand_id مباشرة من البيانات
-        ret = super().to_internal_value(data)
-        brand_id = data.get('brand_id')
-        if brand_id:
-            ret['brand_id'] = brand_id
-        return ret
-
-    def create(self, validated_data):
-        # استخراج category_id وربطه فعليًا
-        category_id = validated_data.pop('category_id', None)
-        if not category_id:
-            raise serializers.ValidationError({'category_id': 'هذا الحقل مطلوب.'})
-        try:
-            category = Category.objects.get(pk=category_id)
-        except Category.DoesNotExist:
-            raise serializers.ValidationError({'category_id': 'التصنيف غير موجود.'})
-        validated_data['category'] = category
-
-        # استخراج brand_id وربطه فعليًا
-        brand_id = validated_data.pop('brand_id', None)
-        if not brand_id:
-            raise serializers.ValidationError({'brand_id': 'هذا الحقل مطلوب.'})
-        from core.models import Brand
-        try:
-            brand = Brand.objects.get(pk=brand_id)
-        except Brand.DoesNotExist:
-            raise serializers.ValidationError({'brand_id': 'البراند غير موجود.'})
-        validated_data['brand'] = brand
-
-        # القيم الافتراضية
-        if 'rating' not in validated_data:
-            validated_data['rating'] = 0
-        return super().create(validated_data)
 
 #----------------------------------------------------------------
 #                   Customer Serializer
@@ -354,3 +246,10 @@ class ProductSpecificationSerializer(serializers.ModelSerializer):
         model = ProductSpecification
         fields = ('id', 'specification', 'specification_id', 'specification_value')
         read_only_fields = ('id',)
+
+
+#----------------------------------------------------------------
+#                   Product Serializer (Alias for compatibility)
+#----------------------------------------------------------------
+# إنشاء alias للتوافق مع الملفات الأخرى
+ProductSerializer = ProductDetailSerializer
