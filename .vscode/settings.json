@@ -1,5 +1,12 @@
 {
     "yaml.schemaStore.enable": false,
     "zencoder.enableRepoIndexing": true,
-    "Codegeex.RepoIndex": true
+    "Codegeex.RepoIndex": true,
+    "editor.inlineSuggest.enabled": true,
+    "editor.quickSuggestions": {
+        "other": "inline",
+        "comments": true,
+        "strings": true
+    },
+    "editor.quickSuggestionsDelay": 100
 }

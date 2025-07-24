@@ -1,0 +1,404 @@
+{% extends 'core/base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}Owner Dashboard | Best in Click{% endblock %}
+
+{% block extra_head %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+    <style>
+        .dashboard-card {
+            background-color: var(--bs-white);
+            border-radius: 1rem;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            height: 100%; /* Ensure cards have consistent height */
+        }
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.1);
+        }
+        .dashboard-card-icon {
+            font-size: 2.5rem;
+            color: var(--primary-blue);
+        }
+        .dashboard-card h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+        .dashboard-card p {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--accent-yellow);
+        }
+        .product-list-table img {
+            max-width: 60px;
+            height: auto;
+            border-radius: 0.5rem;
+        }
+        .report-section .btn {
+            font-size: 1rem;
+            padding: 0.75rem 1.5rem;
+        }
+        .section-header {
+            background-color: var(--light-blue);
+            padding: 1.5rem;
+            border-radius: 1rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.03);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .section-header h2 {
+            margin-bottom: 0;
+            color: var(--primary-blue);
+            font-weight: 700;
+        }
+        .table thead th {
+            background-color: var(--primary-blue);
+            color: var(--pure-white);
+            border-bottom: 2px solid var(--primary-blue);
+        }
+        .table tbody tr:hover {
+            background-color: var(--light-blue-hover);
+        }
+        .btn-action {
+            padding: 0.5rem 0.8rem;
+            font-size: 0.85rem;
+            border-radius: 0.5rem;
+            margin: 0 3px;
+        }
+        .btn-edit { background-color: var(--accent-yellow); border-color: var(--accent-yellow); color: var(--text-dark); }
+        .btn-edit:hover { background-color: #f0c300; border-color: #f0c300; }
+        .btn-details { background-color: var(--secondary-blue); border-color: var(--secondary-blue); color: var(--pure-white); }
+        .btn-details:hover { background-color: #007bff; border-color: #007bff; }
+        .btn-danger-outline {
+            border: 1px solid var(--bs-danger);
+            color: var(--bs-danger);
+            background-color: transparent;
+        }
+        .btn-danger-outline:hover {
+            background-color: var(--bs-danger);
+            color: var(--bs-white);
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="section-header mb-5">
+        <h2><i class="fas fa-tachometer-alt me-2"></i>Store Dashboard</h2>
+        <a href="{% url 'core:product_add' %}" class="btn btn-success btn-lg shadow-sm">
+            <i class="fas fa-plus-circle me-2"></i>Add New Product
+        </a>
+    </div>
+
+    <div class="row mb-5">
+        <div class="col-md-4 mb-4">
+            <div class="dashboard-card p-4 text-center">
+                <div class="dashboard-card-icon mb-3">
+                    <i class="fas fa-box-open"></i>
+                </div>
+                <h3>Total Products</h3>
+                <p id="totalProducts">{{ total_products }}</p>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="dashboard-card p-4 text-center">
+                <div class="dashboard-card-icon mb-3">
+                    <i class="fas fa-eye"></i>
+                </div>
+                <h3>Total Product Views</h3>
+                <p id="totalViews">{{ total_product_views }}</p>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="dashboard-card p-4 text-center">
+                <div class="dashboard-card-icon mb-3">
+                    <i class="fas fa-users"></i>
+                </div>
+                <h3>Unique Interacting Users</h3>
+                <p id="uniqueInteractors">{{ unique_interactors }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="section-header mb-4">
+        <h2><i class="fas fa-boxes me-2"></i>My Products</h2>
+    </div>
+    <div class="card dashboard-card p-4 mb-5">
+        <div class="table-responsive">
+            <table class="table table-hover product-list-table">
+                <thead>
+                    <tr>
+                        <th>Image</th>
+                        <th>Product Name</th>
+                        <th>Category</th>
+                        <th>Price</th>
+                        <th>Rating</th>
+                        <th>Views</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in products %}
+                    <tr>
+                        <td>
+                            {% if product.image_url %}
+                                <img src="{{ product.image_url }}" alt="{{ product.name }}" class="img-fluid rounded">
+                            {% else %}
+                                <img src="{% static 'images/placeholder_product.png' %}" alt="Placeholder" class="img-fluid rounded">
+                            {% endif %}
+                        </td>
+                        <td>{{ product.name }}</td>
+                        <td>{{ product.category.name }}</td>
+                        <td>{{ product.price }} {{ settings.CURRENCY_SYMBOL }}</td>
+                        <td>
+                            {% with product.rating|floatformat:1 as current_rating %}
+                                <span class="badge bg-primary">{{ current_rating }} <i class="fas fa-star"></i></span>
+                            {% endwith %}
+                        </td>
+                        <td>{{ product.views }}</td>
+                        <td>
+                            <a href="{% url 'core:product_detail' product.id %}" class="btn btn-details btn-action">
+                                <i class="fas fa-info-circle"></i> Details
+                            </a>
+                            <a href="{% url 'core:product_edit' product.id %}" class="btn btn-edit btn-action">
+                                <i class="fas fa-edit"></i> Edit
+                            </a>
+                            <button type="button" class="btn btn-danger-outline btn-action" data-bs-toggle="modal" data-bs-target="#deleteProductModal" data-product-id="{{ product.id }}" data-product-name="{{ product.name }}">
+                                <i class="fas fa-trash-alt"></i> Delete
+                            </button>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-4">You currently have no products. <a href="{% url 'core:product_add' %}">Add your first product!</a></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% if products.has_other_pages %}
+            <nav aria-label="Products Pagination" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if products.has_previous %}
+                        <li class="page-item"><a class="page-link" href="?page={{ products.previous_page_number }}">Previous</a></li>
+                    {% endif %}
+                    {% for i in products.paginator.page_range %}
+                        {% if products.number == i %}
+                            <li class="page-item active"><span class="page-link">{{ i }}</span></li>
+                        {% else %}
+                            <li class="page-item"><a class="page-link" href="?page={{ i }}">{{ i }}</a></li>
+                        {% endif %}
+                    {% endfor %}
+                    {% if products.has_next %}
+                        <li class="page-item"><a class="page-link" href="?page={{ products.next_page_number }}">Next</a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+        {% endif %}
+    </div>
+
+    <div class="section-header mb-4 report-section">
+        <h2><i class="fas fa-chart-bar me-2"></i>Reports & Analytics</h2>
+    </div>
+    <div class="card dashboard-card p-4 mb-5">
+        <h4 class="mb-4 text-primary">Product Interaction Reports</h4>
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="p-3 border rounded-3 bg-light h-100 d-flex flex-column justify-content-between">
+                    <h5>User Views & Interactions Report</h5>
+                    <p class="text-muted">A detailed report on the number of views, likes, dislikes, and neutral interactions for your store's products.</p>
+                    <a href="{% url 'core:report_product_interactions_pdf' %}" class="btn btn-primary mt-3">
+                        <i class="fas fa-file-pdf me-2"></i>Generate PDF Report
+                    </a>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="p-3 border rounded-3 bg-light h-100 d-flex flex-column justify-content-between">
+                    <h5>Product Performance Report</h5>
+                    <p class="text-muted">A comprehensive report on your products' performance, including prices, ratings, and discounts.</p>
+                    <a href="{% url 'core:report_product_performance_pdf' %}" class="btn btn-primary mt-3">
+                        <i class="fas fa-file-pdf me-2"></i>Generate PDF Report
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <hr class="my-5">
+
+        <h4 class="mb-4 text-primary">Analytical Charts</h4>
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="p-3 border rounded-3 bg-light">
+                    <h5>Top 5 Most Viewed Products</h5>
+                    <canvas id="topProductsViewsChart"></canvas>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="p-3 border rounded-3 bg-light">
+                    <h5>Average Product Rating by Category</h5>
+                    <canvas id="categoryRatingChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="deleteProductModal" tabindex="-1" aria-labelledby="deleteProductModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteProductModalLabel">Confirm Deletion</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete the product "<span id="productToDeleteName" class="fw-bold text-danger"></span>"?
+                <p class="mt-2 text-danger">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteProductForm" method="post" action="">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Delete Product</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle Delete Product Modal
+        const deleteProductModal = document.getElementById('deleteProductModal');
+        if (deleteProductModal) {
+            deleteProductModal.addEventListener('show.bs.modal', function (event) {
+                const button = event.relatedTarget; // Button that triggered the modal
+                const productId = button.getAttribute('data-product-id');
+                const productName = button.getAttribute('data-product-name');
+
+                const productToDeleteName = deleteProductModal.querySelector('#productToDeleteName');
+                const deleteProductForm = deleteProductModal.querySelector('#deleteProductForm');
+
+                if (productToDeleteName) {
+                    productToDeleteName.textContent = productName;
+                }
+
+                // Set the form action dynamically
+                if (deleteProductForm) {
+                    // Assuming you have a URL pattern named 'core:product_delete'
+                    // Example: /products/delete/<uuid:product_id>/
+                    deleteProductForm.action = `/products/delete/${productId}/`;
+                }
+            });
+        }
+
+        // --- Chart.js Data and Initialization ---
+        // These values should ideally be passed from your Django view context
+        const topProductsData = {
+            labels: JSON.parse('{{ top_products_labels|safe }}'), // Product names
+            datasets: [{
+                label: 'Views',
+                data: JSON.parse('{{ top_products_views|safe }}'), // Corresponding view counts
+                backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        };
+
+        const categoryRatingData = {
+            labels: JSON.parse('{{ category_rating_labels|safe }}'), // Category names
+            datasets: [{
+                label: 'Average Rating',
+                data: JSON.parse('{{ category_rating_values|safe }}'), // Corresponding average ratings
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.7)',
+                    'rgba(54, 162, 235, 0.7)',
+                    'rgba(255, 206, 86, 0.7)',
+                    'rgba(75, 192, 192, 0.7)',
+                    'rgba(153, 102, 255, 0.7)',
+                    'rgba(255, 159, 64, 0.7)'
+                ],
+                borderColor: [
+                    'rgba(255, 99, 132, 1)',
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(255, 206, 86, 1)',
+                    'rgba(75, 192, 192, 1)',
+                    'rgba(153, 102, 255, 1)',
+                    'rgba(255, 159, 64, 1)'
+                ],
+                borderWidth: 1
+            }]
+        };
+
+        // Render Top Products Views Chart
+        const topProductsViewsCtx = document.getElementById('topProductsViewsChart');
+        if (topProductsViewsCtx) {
+            new Chart(topProductsViewsCtx, {
+                type: 'bar',
+                data: topProductsData,
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        title: {
+                            display: false,
+                            text: 'Top 5 Most Viewed Products'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Number of Views'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Product'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Render Category Rating Chart
+        const categoryRatingCtx = document.getElementById('categoryRatingChart');
+        if (categoryRatingCtx) {
+            new Chart(categoryRatingCtx, {
+                type: 'pie', // Using pie chart for category distribution of ratings
+                data: categoryRatingData,
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                usePointStyle: true,
+                                font: {
+                                    size: 14
+                                }
+                            }
+                        },
+                        title: {
+                            display: false,
+                            text: 'Average Product Rating by Category'
+                        }
+                    }
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

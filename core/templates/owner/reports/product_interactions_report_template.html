@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ report_title }}</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+            @frame footer {
+                -pdf-frame-content: footerContent;
+                bottom: 1cm;
+                left: 0cm;
+                width: 100%;
+                height: 1cm;
+            }
+        }
+        body {
+            font-family: 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif;
+            font-size: 12pt;
+            text-align: left; /* Adjust for LTR */
+        }
+        h1, h2, h3 {
+            color: #2c3e50;
+            text-align: center;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left; /* Adjust for LTR */
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        .header, .footer {
+            width: 100%;
+            text-align: center;
+            font-size: 10pt;
+            color: #7f8c8d;
+        }
+        .page-break {
+            page-break-before: always;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>{{ shop_name }}</h1>
+        <h2>{{ report_title }}</h2>
+        <p>Report Date: {{ report_date }}</p>
+    </div>
+
+    <h3>Product Interaction Summary</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Product Name</th>
+                <th>Views</th>
+                <th>Likes</th>
+                <th>Dislikes</th>
+                <th>Neutrals</th>
+                <th>Total Interactions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in product_interactions %}
+            <tr>
+                <td>{{ item.name }}</td>
+                <td>{{ item.views }}</td>
+                <td>{{ item.likes }}</td>
+                <td>{{ item.dislikes }}</td>
+                <td>{{ item.neutrals }}</td>
+                <td>{{ item.total_interactions }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="page-break"></div>
+
+    <h3>Additional Analysis</h3>
+    <p>This page can contain additional analyses, charts, or descriptive text.</p>
+    <p>For example: top performing products, products needing improvement.</p>
+    <p>Remember that the content of this page can be fully customized to display any additional data.</p>
+
+    <div id="footerContent" style="text-align: center;">
+        <p>Page <pdf:pagenumber /> of <pdf:pagecount /> - Your Store Report from Best in Click</p>
+    </div>
+</body>
+</html>

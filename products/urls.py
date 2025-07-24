@@ -23,6 +23,7 @@ from .views_public_categories import PublicCategoriesView
 from .views import BrandViewSet
 from .views_reviews_stats import ProductReviewsStatsView
 from .views_dashboard import BrandListView
+from .views_shop import create_shop_simple
 
 router = DefaultRouter()
 router.register(r"brands", BrandViewSet, basename="brand")
@@ -59,4 +60,5 @@ urlpatterns += router.urls
 
 urlpatterns += [
     path("new/", ProductListView.as_view(), name="product-new"),  # المنتجات الجديدة (ترتيب حسب created_at)
+    path('shop/simple-create/', create_shop_simple, name='shop-simple-create'),
 ]

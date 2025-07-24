@@ -3,11 +3,40 @@
 
 {% block content %}
     <h2>{% trans "تسجيل الدخول" %}</h2>
-    <form method="post">
+    <form method="post" id="loginForm">
         {% csrf_token %}
         {{ form.as_p }}
         <button type="submit">{% trans "دخول" %}</button>
     </form>
     <br>
     <a href="{% url 'register' %}" class="button">{% trans "ليس لديك حساب؟ سجل هنا" %}</a>
+    <div id="loginError" style="color:red; margin-top:10px;"></div>
+    <script>
+    document.getElementById('loginForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const form = e.target;
+        const formData = new FormData(form);
+        const response = await fetch(form.action || window.location.pathname, {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: formData
+        });
+        let data;
+        try {
+            data = await response.json();
+        } catch {
+            document.getElementById('loginError').innerText = 'حدث خطأ في الاتصال بالخادم.';
+            return;
+        }
+        if (data.redirect_url) {
+            window.location.href = data.redirect_url;
+        } else if (data.error) {
+            document.getElementById('loginError').innerText = data.error;
+        } else {
+            document.getElementById('loginError').innerText = 'لم يتم التوجيه. نوع المستخدم: ' + (data.user ? data.user.user_type : 'غير معروف') + '\n' + JSON.stringify(data);
+        }
+    });
+    </script>
 {% endblock %}

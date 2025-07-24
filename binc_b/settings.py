@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'recommendations',
     'comparison',
     'realtime',  # إضافة تطبيق الاتصالات في الوقت الحقيقي
+    'store_integration',  # Multi-store integration system
 
     # Channels
     'channels',
@@ -119,12 +120,20 @@ load_dotenv()
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 DATABASES = {
-    'default': dj_database_url.config(
-        default=os.environ.get('DATABASE_URL'),
-        conn_max_age=600,
-        ssl_require=True
-    )
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
 }
+
+# إعدادات قاعدة البيانات للإنتاج (معطلة مؤقتاً)
+# DATABASES = {
+#     'default': dj_database_url.config(
+#         default=os.environ.get('DATABASE_URL'),
+#         conn_max_age=600,
+#         ssl_require=True
+#     )
+# }
 
 
 # Password validation
@@ -132,17 +141,13 @@ DATABASES = {
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
         'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'OPTIONS': {
+            'min_length': 6,  # تقليل الحد الأدنى إلى 6 أحرف
+        }
     },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    # إزالة CommonPasswordValidator و NumericPasswordValidator لمرونة أكثر
+    # يمكن إعادة تفعيلها لاحقاً حسب الحاجة
 ]
 
 
@@ -193,6 +198,12 @@ AUTH_USER_MODEL = 'core.User'
 
 # Login URL
 LOGIN_URL = '/api/auth/token/'  # Redirect to the token authentication endpoint
+
+# CSRF Settings
+CSRF_COOKIE_SECURE = False  # Set to True in production with HTTPS
+CSRF_COOKIE_HTTPONLY = False
+CSRF_USE_SESSIONS = False
+CSRF_COOKIE_SAMESITE = 'Lax'
 
 
 SIMPLE_JWT = {

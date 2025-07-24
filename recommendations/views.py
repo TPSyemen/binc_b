@@ -8,7 +8,8 @@ from django.utils.timezone import now
 from datetime import timedelta
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status, viewsets
+from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.parsers import JSONParser
 from core.models import Product, User
@@ -438,3 +439,246 @@ class ExternalHybridRecommendationView(APIView):
         except Exception as e:
             logger.error(f"Error in external hybrid recommendations: {e}")
             return Response({"error": "An error occurred while generating recommendations"}, status=500)
+
+
+# -----------------------------------------------------------------------
+#                    Enhanced Recommendation Views
+# -----------------------------------------------------------------------
+
+class InteractionTriggeredRecommendationView(APIView):
+    """
+    API view for triggering recommendations based on user interactions.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        """
+        Trigger recommendations based on user interaction with a product.
+
+        Expected payload:
+        {
+            "product_id": "uuid",
+            "interaction_type": "view|like|add_to_cart|etc",
+            "context": {...}  // optional
+        }
+        """
+        try:
+            product_id = request.data.get('product_id')
+            interaction_type = request.data.get('interaction_type')
+            context = request.data.get('context', {})
+
+            if not product_id or not interaction_type:
+                return Response(
+                    {'error': 'product_id and interaction_type are required'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # Validate product exists
+            try:
+                product = Product.objects.get(id=product_id, is_active=True)
+            except Product.DoesNotExist:
+                return Response(
+                    {'error': 'Product not found'},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+
+            # Trigger recommendations
+            recommendations = recommendation_service.trigger_recommendations_on_interaction(
+                user_id=str(request.user.id),
+                product_id=product_id,
+                interaction_type=interaction_type,
+                context=context
+            )
+
+            # Create recommendation session for tracking
+            session = RecommendationSession.objects.create(
+                user=request.user,
+                session_id=request.session.session_key or 'anonymous',
+                trigger_product=product,
+                trigger_interaction=interaction_type,
+                recommended_products=[
+                    rec['product_id'] for rec_type in recommendations.get('recommendations', {}).values()
+                    for rec in rec_type if isinstance(rec, dict) and 'product_id' in rec
+                ],
+                recommendation_types=list(recommendations.get('recommendations', {}).keys())
+            )
+
+            # Add session ID to response
+            recommendations['session_id'] = str(session.id)
+
+            return Response(recommendations)
+
+        except Exception as e:
+            logger.error(f"Error in interaction-triggered recommendations: {e}")
+            return Response(
+                {'error': 'An error occurred while generating recommendations'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+class CrossStoreRecommendationView(APIView):
+    """
+    API view for getting cross-store recommendations for a specific product.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, product_id):
+        """
+        Get cross-store recommendations for a specific product.
+        """
+        try:
+            # Validate product exists
+            try:
+                product = Product.objects.select_related('shop', 'brand', 'category').get(
+                    id=product_id, is_active=True
+                )
+            except Product.DoesNotExist:
+                return Response(
+                    {'error': 'Product not found'},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+
+            # Get cross-store recommendations
+            cross_store_recs = recommendation_service.get_cross_store_recommendations(product)
+
+            return Response({
+                'original_product': {
+                    'id': str(product.id),
+                    'name': product.name,
+                    'price': float(product.price),
+                    'shop_name': product.shop.name,
+                    'rating': float(product.rating)
+                },
+                'cross_store_recommendations': cross_store_recs,
+                'total_alternatives': len(cross_store_recs)
+            })
+
+        except Exception as e:
+            logger.error(f"Error in cross-store recommendations: {e}")
+            return Response(
+                {'error': 'An error occurred while getting cross-store recommendations'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+class UserInteractionViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet for managing user interactions with products.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return UserInteraction.objects.filter(user=self.request.user)
+
+    def get_serializer_class(self):
+        return UserInteractionSerializer
+
+    def create(self, request, *args, **kwargs):
+        """
+        Create or update a user interaction.
+        """
+        try:
+            product_id = request.data.get('product_id')
+            interaction_type = request.data.get('interaction_type')
+            context = request.data.get('context', {})
+
+            if not product_id or not interaction_type:
+                return Response(
+                    {'error': 'product_id and interaction_type are required'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # Validate product exists
+            try:
+                product = Product.objects.get(id=product_id, is_active=True)
+            except Product.DoesNotExist:
+                return Response(
+                    {'error': 'Product not found'},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+
+            # Get or create interaction
+            interaction, created = UserInteraction.objects.get_or_create(
+                user=request.user,
+                product=product,
+                defaults={
+                    'interaction_type': interaction_type,
+                    'context': context
+                }
+            )
+
+            if not created:
+                # Update existing interaction
+                interaction.interaction_count += 1
+                interaction.last_interaction_type = interaction_type
+                interaction.context.update(context)
+                interaction.save()
+
+            # Record interaction for recommendations
+            recommendation_service.record_user_interaction(
+                str(request.user.id), product_id, interaction_type, context
+            )
+
+            serializer = self.get_serializer(interaction)
+            return Response(serializer.data, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
+
+        except Exception as e:
+            logger.error(f"Error creating user interaction: {e}")
+            return Response(
+                {'error': 'An error occurred while recording interaction'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    @action(detail=False, methods=['get'])
+    def analytics(self, request):
+        """
+        Get user interaction analytics.
+        """
+        try:
+            interactions = self.get_queryset()
+
+            # Calculate analytics
+            total_interactions = interactions.count()
+            interaction_types = {}
+
+            for interaction in interactions:
+                interaction_type = interaction.interaction_type
+                if interaction_type not in interaction_types:
+                    interaction_types[interaction_type] = {
+                        'count': 0,
+                        'unique_products': set()
+                    }
+
+                interaction_types[interaction_type]['count'] += interaction.interaction_count
+                interaction_types[interaction_type]['unique_products'].add(str(interaction.product.id))
+
+            # Convert sets to counts
+            for interaction_type in interaction_types:
+                interaction_types[interaction_type]['unique_products'] = len(
+                    interaction_types[interaction_type]['unique_products']
+                )
+
+            # Get user preferences
+            preferences = recommendation_service.get_user_preferences(str(request.user.id))
+
+            return Response({
+                'total_interactions': total_interactions,
+                'interaction_breakdown': interaction_types,
+                'user_preferences': preferences,
+                'most_interacted_products': [
+                    {
+                        'product_id': str(interaction.product.id),
+                        'product_name': interaction.product.name,
+                        'interaction_count': interaction.interaction_count,
+                        'last_interaction': interaction.last_interaction_at
+                    }
+                    for interaction in interactions.order_by('-interaction_count')[:10]
+                ]
+            })
+
+        except Exception as e:
+            logger.error(f"Error getting interaction analytics: {e}")
+            return Response(
+                {'error': 'An error occurred while getting analytics'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
